@@ -17,7 +17,7 @@ const getUserPhone = (res) => res.phone || res.phoneNumber || "-";
 const getUserEmail = (res) => res.email || res.userEmail || res.memberEmail || "-";
 const getPaymentInfo = (res) => {
   const pd = res.paymentData || {};
-  console.log(res)
+  const rawImageUrl = pd.imageUrl || res.paymentProofUrl || res.paymentImageUrl || res.paymentInfo?.imageUrl || res.payment?.imageUrl || res.proofUrl || "";
 
   return {
     transactionID: pd.transactionID || "-",
@@ -25,7 +25,8 @@ const getPaymentInfo = (res) => {
     amount: res.examInfo.fee + (res.additional ? CERTIPORT_FEE : 0),
     fileName: pd.filename || res.fileName || res.paymentFileName || res.paymentInfo?.fileName || res.payment?.fileName || "-",
     uploadedAt: pd.createdAt || res.paymentUploadedAt || res.updatedAt || res.paymentInfo?.uploadedAt || res.payment?.uploadedAt || "",
-    imageUrl: pd.imageUrl || res.paymentProofUrl || res.paymentImageUrl || res.paymentInfo?.imageUrl || res.payment?.imageUrl || res.proofUrl || "",
+    // 只接受 http(s) 連結，避免 javascript: 等惡意網址被管理員點開
+    imageUrl: /^https?:\/\//i.test(rawImageUrl) ? rawImageUrl : "",
   };
 };
 

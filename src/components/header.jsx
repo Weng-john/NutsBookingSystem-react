@@ -36,9 +36,11 @@ const IconUserPlaceholder = () => (
 
 export default function Header({ user, page }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(false); // 手機/平板的漢堡選單
   const [imgError, setImgError] = useState(false);
   const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
   const menuRef = useRef(null);
+  const headerRef = useRef(null);
 
   const activeClass = ({ isActive }) => (isActive ? "dark-background" : undefined);
 
@@ -67,6 +69,9 @@ export default function Header({ user, page }) {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setIsMenuOpen(false);
       }
+      if (headerRef.current && !headerRef.current.contains(event.target)) {
+        setIsNavOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -81,8 +86,13 @@ export default function Header({ user, page }) {
 
   const handleLinkClick = () => setIsMenuOpen(false);
 
+  // 點擊導覽列中的任一連結後收合漢堡選單
+  const handleNavClick = (e) => {
+    if (e.target.closest("a")) setIsNavOpen(false);
+  };
+
   return (
-    <header id="header">
+    <header id="header" ref={headerRef}>
       <div className="inner">
 
         {/* 左側 Logo */}
@@ -95,9 +105,20 @@ export default function Header({ user, page }) {
           </h2>
         </div>
 
+        {/* 漢堡選單按鈕 (僅在手機/平板顯示) */}
+        <button
+          type="button"
+          className="nav-toggle"
+          aria-label={isNavOpen ? "關閉選單" : "開啟選單"}
+          aria-expanded={isNavOpen}
+          onClick={() => setIsNavOpen(!isNavOpen)}
+        >
+          <i className={`fa-solid ${isNavOpen ? "fa-xmark" : "fa-bars"}`}></i>
+        </button>
+
         {/* 右側導覽列 */}
-        <div className="right">
-          <ul>
+        <div className={`right ${isNavOpen ? "open" : ""}`}>
+          <ul onClick={handleNavClick}>
             {page !== "index" && (
               <li><NavLink to="/" className={activeClass}>首頁</NavLink></li>
             )}
@@ -122,7 +143,7 @@ export default function Header({ user, page }) {
                 <li><NavLink to="/myReserve" className={activeClass}>我的考試</NavLink></li>
 
                 {/* --- 大頭貼與懸浮選單 --- */}
-                <li ref={menuRef}>
+                <li ref={menuRef} className="user-menu-li">
                   <div
                     className={`user-menu-btn ${isMenuOpen ? 'active' : ''}`}
                     onClick={() => setIsMenuOpen(!isMenuOpen)}

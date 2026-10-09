@@ -2248,32 +2248,6 @@ select {
 		font-size: 1.75rem;
 	}
 
-	#header {
-		height: 2.5rem;
-		line-height: 2.5rem;
-	}
-
-	#header h1 {
-		text-align: center;
-		position: relative;
-		left: 0;
-		top: 0;
-		height: 2.5rem;
-		line-height: 2.5rem;
-	}
-
-	#header h1 a {
-		font-size: 1rem;
-	}
-
-	#header .right {
-		display: none;
-	}
-
-	#content {
-		top: 2.5rem;
-	}
-
 	.box {
 		padding: 1rem;
 	}
@@ -2281,6 +2255,11 @@ select {
 	.box.style2 {
 		padding: 1.5rem 1.25rem;
 		background-color: rgba(255, 255, 255, 0.9);
+	}
+
+	#footer ul.menu {
+		flex-direction: column;
+		align-items: center;
 	}
 
 	#footer ul.menu li {
@@ -3438,33 +3417,6 @@ button:disabled {
    8. MEDIA QUERIES (RWD)
    ============================================ */
 @media screen and (max-width: 768px) {
-	#header {
-		padding: 0 1rem;
-		height: auto;
-		min-height: var(--header-height);
-	}
-
-	#header .inner {
-		flex-direction: column;
-		justify-content: center;
-		gap: 0.5rem;
-		padding: 0.5rem 0;
-	}
-
-	#header .right {
-		margin: 0;
-	}
-
-	#header .right ul {
-		flex-wrap: wrap;
-		justify-content: center;
-		gap: 0.5rem;
-	}
-
-	.layout-root {
-		padding-top: 1rem;
-	}
-
 	.manager-container {
 		flex-direction: column;
 	}
@@ -3506,10 +3458,6 @@ button:disabled {
 		flex-direction: column;
 		gap: 1rem;
 		align-items: flex-start;
-	}
-
-	.list-header-row {
-		display: none;
 	}
 
 	.item-info {
@@ -3982,4 +3930,489 @@ body.dark .menu-divider {
 
 .theme-switch.dark .switch-handle {
 	transform: translateX(20px);
-}
+}
+
+/* ============================================
+   10. RESPONSIVE (手機 / 平板)
+   斷點：1280 小筆電、1024 平板橫向、768 平板直向、600 手機、480 小手機
+   ============================================ */
+
+/* --- 漢堡選單按鈕 (預設隱藏，平板以下顯示) --- */
+#header .nav-toggle {
+	display: none;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 2.75rem;
+	height: 2.75rem;
+	padding: 0;
+	line-height: 1;
+	font-size: 1.4rem;
+	background: transparent;
+	color: inherit;
+	border-radius: 0.75rem;
+}
+
+#header .nav-toggle:hover,
+#header .nav-toggle:active {
+	background-color: rgba(0, 0, 0, 0.06);
+}
+
+#header .logo {
+	white-space: nowrap;
+}
+
+/* --- 小筆電 --- */
+@media screen and (max-width: 1280px) {
+	#header {
+		padding: 0 2rem;
+	}
+
+	#header .logo {
+		font-size: 1.6rem;
+	}
+
+	#header .right ul {
+		gap: 0.6rem;
+	}
+
+	#header .right ul li {
+		font-size: 1.05rem;
+	}
+}
+
+/* --- 平板 (橫向) 以下：導覽列收合為漢堡選單 --- */
+@media screen and (max-width: 1024px) {
+	:root {
+		--header-height: 3.75rem;
+		--header-content-height: 2.25rem;
+	}
+
+	#header {
+		padding: 0 1rem 0 1.25rem;
+	}
+
+	#header .logo {
+		font-size: 1.5rem;
+		letter-spacing: 0.02rem;
+	}
+
+	#header .nav-toggle {
+		display: flex;
+	}
+
+	#header .right {
+		display: none;
+		position: absolute;
+		top: 100%;
+		left: 0;
+		right: 0;
+		margin: 0;
+		padding: 0.5rem 0 0.75rem;
+		line-height: normal;
+		background: #fff;
+		border-top: 1px solid #eee;
+		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
+		max-height: calc(100vh - var(--header-height));
+		overflow-y: auto;
+	}
+
+	#header .right.open {
+		display: block;
+	}
+
+	#header .right ul {
+		flex-direction: column;
+		gap: 0.25rem;
+	}
+
+	#header .right ul li {
+		justify-content: flex-start;
+		padding: 0 1rem;
+		font-size: 1.1rem;
+	}
+
+	#header .right ul li a {
+		width: 100%;
+		height: auto;
+		justify-content: flex-start;
+		padding: 0.75rem 1rem;
+		line-height: 1.5rem;
+	}
+
+	#header .right ul li a.btn {
+		justify-content: center;
+		margin: 0.25rem 0;
+	}
+
+	#header .dark-background::before {
+		top: 0.15rem;
+		bottom: 0.15rem;
+	}
+
+	/* 大頭貼選單改為在面板內展開 */
+	#header .right ul li.user-menu-li {
+		flex-direction: column;
+		align-items: stretch;
+		margin-top: 0.25rem;
+		padding-top: 0.5rem;
+		border-top: 1px solid #eee;
+	}
+
+	#header .user-menu-btn {
+		align-self: flex-start;
+		margin-left: 0.5rem;
+	}
+
+	#header .dropdown-menu {
+		position: static;
+		width: auto;
+		min-width: 0;
+		padding: 0.25rem 0 0;
+		box-shadow: none;
+		animation: none;
+	}
+
+	#header .dropdown-menu .menu-item {
+		padding: 0.75rem 1rem;
+	}
+
+	body.dark #header .right {
+		background: #1a1a2e;
+		border-top-color: #2a2a4a;
+	}
+
+	/* 版面寬度 */
+	.centered-form,
+	.centered-form.history-panel,
+	.centered-form.userManage {
+		width: 92%;
+	}
+
+	.calendar-container.centered-form {
+		width: 95%;
+		padding: 1rem 1.5rem;
+	}
+
+	.manager-wrapper {
+		width: 95%;
+	}
+
+	.manager-container {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 1.5rem;
+	}
+
+	.side-panel.add-panel,
+	.side-panel.list-panel {
+		flex: none;
+		width: 100%;
+		min-width: 0;
+	}
+
+	/* 月曆標頭：篩選列換到第二行 */
+	.calendar-header {
+		gap: 1rem;
+	}
+
+	.header-options {
+		order: 3;
+		flex: 1 1 100%;
+		padding: 0;
+	}
+
+	/* 彈出視窗：內容過長時可捲動 */
+	.modal-content {
+		justify-content: flex-start;
+		max-width: calc(100vw - 2rem);
+		max-height: calc(100vh - 2rem);
+		max-height: calc(100dvh - 2rem);
+		overflow-y: auto;
+	}
+}
+
+/* --- 平板 (直向) / 大手機 --- */
+@media screen and (max-width: 768px) {
+	.centered-form,
+	.centered-form.history-panel,
+	.centered-form.userManage {
+		width: calc(100% - 2rem);
+		margin: 1rem;
+		padding: 1.5rem 1.25rem;
+	}
+
+	.centered-form form {
+		width: 100%;
+		padding: 0;
+	}
+
+	.manager-wrapper {
+		width: 100%;
+		padding: 0 1rem;
+	}
+
+	.side-panel.add-panel h3 {
+		font-size: 1.5rem;
+		margin-bottom: 1.5rem;
+	}
+
+	/* 登入頁 */
+	.centered-form .loginH1 {
+		font-size: 1.9rem;
+		margin: 0.5rem 0 3rem;
+	}
+
+	.loginBTNArea {
+		width: 100%;
+	}
+
+	.centered-form .google-custom-btn {
+		width: 100%;
+		gap: 0.75rem;
+		font-size: 1.15rem;
+	}
+
+	/* 個人資料頁 */
+	.info-area {
+		flex-direction: column;
+		margin-top: 0.5rem;
+	}
+
+	.profile-pic-section {
+		gap: 1.25rem;
+		margin: 0.5rem 0;
+		padding-bottom: 1rem;
+	}
+
+	.profile-pic {
+		width: 8rem;
+		height: 8rem;
+	}
+
+	.centered-form .row-group {
+		flex-direction: column;
+		gap: 0;
+	}
+
+	/* 表單 */
+	.form-row {
+		flex-direction: column;
+		gap: 0.7rem;
+	}
+
+	.review-modal-layout {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 0;
+	}
+
+	/* 狀態分頁：直排選單改為可橫向滑動的標籤列 */
+	.centered-form .status-vertical-menu {
+		flex-direction: row;
+		width: 100%;
+		gap: 0.5rem;
+		overflow-x: auto;
+		padding-bottom: 0.25rem;
+	}
+
+	.centered-form .status-vertical-menu .tab-item-btn {
+		flex: 0 0 auto;
+		white-space: nowrap;
+		padding: 0.6rem 1rem;
+		font-size: 1rem;
+	}
+
+	.centered-form .status-vertical-menu .tab-item-btn>.fa-chevron-right {
+		display: none;
+	}
+
+	/* 清單：取消內層捲動，改用整頁捲動 */
+	.scroll-area {
+		height: auto;
+		overflow: visible;
+		padding-right: 0;
+	}
+
+	.list-item {
+		padding: 1rem;
+	}
+
+	/* 單欄排列時清除桌機版的 grid 定位，避免產生多餘欄位 */
+	.scroll-area .modern-list .list-item .text-group>* {
+		grid-column: auto;
+		grid-row: auto;
+	}
+
+	.manager-list .list-item .text-group {
+		justify-items: stretch;
+	}
+
+	.text-group>div {
+		justify-content: flex-start;
+	}
+
+	.text-group .name {
+		font-size: 1.35rem;
+	}
+
+	.rejection-box {
+		margin: 0;
+	}
+
+	.color-indicator {
+		width: 3.5rem;
+		height: 3.5rem;
+	}
+
+	.clear-filter-btn {
+		margin-left: 0;
+	}
+
+	/* 表頭篩選器：改為可點擊的篩選標籤 (只保留有篩選功能的欄位) */
+	.list-header-row {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		position: relative;
+		padding: 0.75rem;
+		border-radius: 0.75rem;
+	}
+
+	.list-header-row .header-cell {
+		position: static;
+		padding: 0.35rem 0.75rem;
+		font-size: 0.95rem;
+		background: #fff;
+		border: 1px solid #ddd;
+		border-radius: 999px;
+	}
+
+	.list-header-row .header-cell:not(:has(.fa-filter)) {
+		display: none;
+	}
+
+	.header-filter-dropdown {
+		top: calc(100% + 4px);
+		left: 0.5rem;
+		right: 0.5rem;
+	}
+
+	.header-filter-dropdown.filter-search {
+		min-width: 0;
+	}
+
+	/* 月曆 */
+	.calendar-container.centered-form {
+		width: calc(100% - 1.5rem);
+		margin: 0.75rem;
+		padding: 1rem 0.75rem;
+	}
+
+	.header-left {
+		padding: 0;
+	}
+
+	.header-options {
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.header-controls {
+		flex-wrap: wrap;
+	}
+}
+
+/* --- 手機 --- */
+@media screen and (max-width: 600px) {
+
+	/* 月曆維持 7 欄，改為可左右滑動 */
+	.calendar-wrapper-month {
+		overflow-x: auto;
+		-webkit-overflow-scrolling: touch;
+	}
+
+	.weekday-header,
+	.month-grid {
+		min-width: 600px;
+	}
+
+	.weekday-cell {
+		font-size: 1rem;
+	}
+
+	.calendar-cell {
+		padding: 0.1rem 0.3rem;
+	}
+
+	.day-number {
+		width: 1.75rem;
+		font-size: 1.1rem;
+	}
+
+	.event-pill {
+		font-size: 0.85rem;
+	}
+
+	.event-title-pill {
+		font-size: 0.95rem;
+	}
+
+	.deadline-badge {
+		padding: 0 4px;
+		font-size: 0.75rem;
+	}
+
+	/* 「還有 N 個考試」彈出框改為底部面板 (覆蓋 JS 計算的位置) */
+	.day-popover {
+		left: 0.75rem !important;
+		right: 0.75rem !important;
+		top: auto !important;
+		bottom: 0.75rem !important;
+		max-height: 60vh !important;
+	}
+
+	.modal-content {
+		padding: 1.25rem 1rem;
+	}
+}
+
+/* --- 小手機 --- */
+@media screen and (max-width: 480px) {
+	#header {
+		padding: 0 0.5rem 0 0.75rem;
+	}
+
+	#header .logo {
+		font-size: clamp(0.95rem, 4.4vw, 1.25rem);
+		letter-spacing: 0;
+	}
+
+	#header .logo .logoIMG {
+		height: 2rem;
+		margin-right: 0.35rem;
+	}
+
+	.centered-form .loginH1 {
+		font-size: 1.6rem;
+	}
+
+	.split-group {
+		flex-direction: column;
+		align-items: stretch;
+	}
+
+	.time-separator {
+		display: none;
+	}
+}
+
+/* --- 觸控裝置：取消 hover 位移，避免點擊後卡片跳動 --- */
+@media (hover: none) {
+
+	.centered-form:hover,
+	.day-popover:hover,
+	.list-item.clickable:hover {
+		transform: none;
+	}
+}

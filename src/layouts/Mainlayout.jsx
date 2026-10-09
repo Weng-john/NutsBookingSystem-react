@@ -2,7 +2,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback, useRef } from "react";
 import Header from "../components/header";
 import Footer from "../components/footer";
-import { STORAGE_KEYS, SESSION_DURATION_MS, RECAPTCHA_SITE_KEY } from "../config"; // 新增導入 RECAPTCHA_SITE_KEY
+import { STORAGE_KEYS, SESSION_DURATION_MS, RECAPTCHA_SITE_KEY, OAUTH_NONCE_KEY } from "../config"; // 新增導入 RECAPTCHA_SITE_KEY
 import { loginAPI } from "../api";
 import ReCAPTCHA from "react-google-recaptcha"; // 新增導入 ReCAPTCHA
 
@@ -19,6 +19,17 @@ const PATH_TO_PAGE = {
   "/subjectManager": "subjectManager",
   "/reservationManager": "reservationManager",
 };
+
+// 取出 id_token (JWT) payload 中的 nonce；格式錯誤時回傳 null
+function getTokenNonce(idToken) {
+  try {
+    const base64 = idToken.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const bytes = Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+    return JSON.parse(new TextDecoder().decode(bytes)).nonce ?? null;
+  } catch {
+    return null;
+  }
+}
 
 // 獨立的 Auth 清除邏輯
 function clearAuthData() {
@@ -48,18 +59,18 @@ export default function MainLayout() {
   const [user, setUserState] = useState(() => {
     const userStr = localStorage.getItem(STORAGE_KEYS.USER);
     const lastActiveStr = localStorage.getItem(STORAGE_KEYS.LAST_ACTIVE);
-    
+
     if (!userStr || !lastActiveStr) return null;
-    
+
     if (Date.now() - Number(lastActiveStr) > SESSION_DURATION_MS) {
-      clearAuthData(); 
+      clearAuthData();
       return null;
     }
-    
-    try { 
-      return JSON.parse(userStr); 
-    } catch { 
-      return null; 
+
+    try {
+      return JSON.parse(userStr);
+    } catch {
+      return null;
     }
   });
 
@@ -80,8 +91,8 @@ export default function MainLayout() {
   }, [setUser, navigate]);
 
   // --- 閒置追蹤邏輯 (效能優化版) ---
-  const lastUpdateRef = useRef(Date.now()); 
-  
+  const lastUpdateRef = useRef(Date.now());
+
   const updateActivity = useCallback(() => {
     const now = Date.now();
     if (now - lastUpdateRef.current > 5000) {
@@ -102,7 +113,7 @@ export default function MainLayout() {
     const intervalId = setInterval(() => {
       const lastActiveStr = localStorage.getItem(STORAGE_KEYS.LAST_ACTIVE);
       if (!lastActiveStr) return;
-      
+
       if (Date.now() - Number(lastActiveStr) > SESSION_DURATION_MS) {
         alert("您已閒置過久，系統將自動登出");
         clearAuthAndRedirect();
@@ -117,8 +128,17 @@ export default function MainLayout() {
     if (!hash) return;
 
     const params = new URLSearchParams(hash.substring(1));
-    const idToken = params.get("id_token") || params.get("access_token");
+    const idToken = params.get("id_token");
     if (!idToken) return;
+
+    // 驗證 nonce：拒絕不是由本瀏覽器發起的登入 (防止偽造連結注入他人 Token)
+    const expectedNonce = sessionStorage.getItem(OAUTH_NONCE_KEY);
+    sessionStorage.removeItem(OAUTH_NONCE_KEY);
+    if (!expectedNonce || getTokenNonce(idToken) !== expectedNonce) {
+      window.history.replaceState(null, document.title, window.location.pathname);
+      alert("登入驗證失敗，請重新登入");
+      return;
+    }
 
     const processLogin = async () => {
       try {
@@ -133,7 +153,7 @@ export default function MainLayout() {
         const res = await loginAPI(idToken);
 
         setUser(res.user);
-        
+
         const isMissingPhone = res.user.phoneNumber === "";
         if (res.isNew || isMissingPhone) {
           navigate("/account", { state: { isNewUser: res.isNew, emptyPhoneNumber: isMissingPhone } });
@@ -143,7 +163,7 @@ export default function MainLayout() {
 
       } catch (err) {
         console.error("後端登入驗證失敗:", err);
-        localStorage.removeItem(STORAGE_KEYS.TOKEN); 
+        localStorage.removeItem(STORAGE_KEYS.TOKEN);
       } finally {
         setSubmit(false);
         setGlobalLoading(false);
@@ -193,7 +213,7 @@ export default function MainLayout() {
   return (
     <div className="layout-root">
       <Header user={user} page={page} setUser={setUser} />
-      
+
       <div id="content">
         {/* 載入中遮罩 */}
         {globalLoading && (
@@ -206,9 +226,9 @@ export default function MainLayout() {
         {/* ReCAPTCHA 全域驗證視窗 */}
         {captchaConfig.isOpen && (
           <div className="modal-overlay recaptcha" onClick={handleCaptchaCancel}>
-            <div className="modal-content captcha-modal" style={{gap: "2rem"}} onClick={e => e.stopPropagation()}>
+            <div className="modal-content captcha-modal" style={{ gap: "2rem" }} onClick={e => e.stopPropagation()}>
               <h3>請驗證您不是機器人</h3>
-              
+
               <div style={{ display: 'flex', justifyContent: 'center' }}>
                 <ReCAPTCHA
                   sitekey={RECAPTCHA_SITE_KEY}
@@ -217,15 +237,15 @@ export default function MainLayout() {
               </div>
 
               <div className="modal-actions">
-                <button 
-                  className="btn-cancel" 
+                <button
+                  className="btn-cancel"
                   onClick={handleCaptchaCancel}
                 >
                   取消
                 </button>
-                <button 
-                  className="btn-confirm" 
-                  disabled={!captchaToken} 
+                <button
+                  className="btn-confirm"
+                  disabled={!captchaToken}
                   onClick={handleCaptchaConfirm}
                 >
                   確認送出
@@ -234,21 +254,21 @@ export default function MainLayout() {
             </div>
           </div>
         )}
-        
+
         {/* 子路由出口 */}
-        <Outlet 
-          context={{ 
+        <Outlet
+          context={{
             user,
-            setUser, 
+            setUser,
             globalLoading,
-            setGlobalLoading, 
+            setGlobalLoading,
             setLoadingText,
             setSubmit,
             requestCaptcha // 提供給子元件調用的觸發函式
           }}
         />
       </div>
-      
+
       <Footer />
     </div>
   );

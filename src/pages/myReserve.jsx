@@ -486,7 +486,7 @@ export default function MyReserve() {
                   您正在為 <strong>{paymentModalData.examInfo?.subjectName}</strong>
                   {paymentModalData.statusInfo?.id === "payment_rejected" ? " 重新提交繳費證明。" : " 提交繳費證明。"}
                 </p>
-                {paymentModalData.statusInfo?.id === "payment_rejected" && paymentModalData.paymentData?.imageUrl && (
+                {paymentModalData.statusInfo?.id === "payment_rejected" && /^https?:\/\//i.test(paymentModalData.paymentData?.imageUrl || "") && (
                   <div className="modal-info-block" style={{ marginTop: "10px" }}>
                     <p style={{ marginBottom: "8px", fontWeight: 600 }}>前一次上傳的繳費證明：</p>
                     <a

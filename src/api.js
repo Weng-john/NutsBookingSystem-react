@@ -1,4 +1,4 @@
-import { GAS_BASE, STORAGE_KEYS, TOKEN_EXPIRED } from "./config";
+import { GAS_BASE, STORAGE_KEYS, TOKEN_EXPIRED, REDIRECT_URI } from "./config";
 
 /* =========================================
     👋 系統喚醒 (Handshake) API
@@ -129,7 +129,7 @@ export const logoutUser = (isAutoLogout = false) => {
   }
 
   // 3. 重新導向至登入頁面 (硬跳轉能確保前端框架的狀態被完全清空)
-  window.location.href = "/login";
+  window.location.href = REDIRECT_URI;
 };
 
 /**
