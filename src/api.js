@@ -91,6 +91,23 @@ const formatTime = (dateObj) => {
 };
 
 /**
+ * 依底色的亮度回傳深色或白色文字，確保月曆上各科目的色塊都看得清楚
+ * (科目顏色由後端提供，深淺不一定)
+ */
+const readableTextColor = (hex) => {
+  const match = /^#?([0-9a-f]{6})$/i.exec(String(hex || "").trim());
+  if (!match) return "#1f2a30";
+  const value = parseInt(match[1], 16);
+  const [r, g, b] = [value >> 16, (value >> 8) & 255, value & 255].map((channel) => {
+    const c = channel / 255;
+    return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  // 0.225 是深色字與白字對比度相等的亮度，比它亮就用深色字
+  return luminance > 0.225 ? "#1f2a30" : "#FFFFFF";
+};
+
+/**
  * 處理 Token 失效的統一入口
  */
 const handleUnauthorized = () => {
@@ -134,11 +151,17 @@ export const logoutUser = (isAutoLogout = false) => {
 
 /**
  * 計算預約狀態
+ * tone 是狀態的色調名稱，畫面用 .tone-<名稱> 上色 (顏色定義在 index.css，深淺模式各一組)
  */
 const calculateStatus_ = (res, exam) => {
-  if (!exam) {
-    return { id: "unknown", color: "#9e9e9e", text: "未知場次 / 已刪除", badge: "secondary" };
+  if (String(res.reservationStatus).toLowerCase() === "cancelled") {
+    return { id: "cancelled", color: "#8b959d", tone: "muted", text: "報名已取消", badge: "secondary" };
   }
+  if (!exam) {
+    return { id: "unknown", color: "#8b959d", tone: "muted", text: "未知場次 / 已刪除", badge: "secondary" };
+  }
+
+  if (["cancelled", "canceled"].includes(String(exam.status).toLowerCase())) return { id: "cancelled", color: "#8b959d", tone: "muted", text: "場次已取消，可提出退費申請", badge: "secondary" };
 
   const now = new Date();
   const examDate = new Date(exam.startTime);
@@ -157,7 +180,7 @@ const calculateStatus_ = (res, exam) => {
   if (hasComment && isApproved && !isPaid && !isPaymentReview) {
     return {
       id: "payment_rejected",
-      color: "#d9534f",
+      color: "#cf3f34", tone: "danger",
       text: isExpired ? "付款審核未通過 / 已過期" : "付款審核未通過",
       badge: isExpired ? "expired" : "danger"
     };
@@ -167,7 +190,7 @@ const calculateStatus_ = (res, exam) => {
   if (hasComment && !isApproved) {
     return {
       id: "rejected",
-      color: "#d9534f",
+      color: "#cf3f34", tone: "danger",
       text: isExpired ? "報名審核未通過 / 已過期" : "報名審核未通過",
       badge: isExpired ? "expired" : "danger"
     };
@@ -175,32 +198,32 @@ const calculateStatus_ = (res, exam) => {
 
   if (isPaid) {
     return isExpired
-      ? { id: "history", color: "#9E9E9E", text: "已結束 / 已過期", badge: "expired" }
-      : { id: "paid", color: "#46A66F", text: "已繳費", badge: "success" };
+      ? { id: "history", color: "#8b959d", tone: "muted", text: "已結束 / 已過期", badge: "expired" }
+      : { id: "paid", color: "#2b8251", tone: "success", text: "已繳費", badge: "success" };
   }
 
   if (isPaymentReview) {
     return isExpired
-      ? { id: "history", color: "#9E9E9E", text: "繳費審核中 / 已過期", badge: "expired" }
-      : { id: "payment_review", color: "#0275d8", text: "繳費審核中", badge: "primary" };
+      ? { id: "history", color: "#8b959d", tone: "muted", text: "繳費審核中 / 已過期", badge: "expired" }
+      : { id: "payment_review", color: "#2f6fb2", tone: "info", text: "繳費審核中", badge: "primary" };
   }
 
   if (isApproved) {
     return isExpired
-      ? { id: "history", color: "#9E9E9E", text: "未繳費 / 已過期", badge: "expired" }
-      : { id: "unpaid", color: "#F09438", text: "待繳費", badge: "warning" };
+      ? { id: "history", color: "#8b959d", tone: "muted", text: "未繳費 / 已過期", badge: "expired" }
+      : { id: "unpaid", color: "#e08a2c", tone: "warning", text: "待繳費", badge: "warning" };
   }
 
   return isExpired
-    ? { id: "history", color: "#9E9E9E", text: "預約失效 / 已過期", badge: "expired" }
-    : { id: "reviewing", color: "#907567", text: "審核中", badge: "info" };
+    ? { id: "history", color: "#8b959d", tone: "muted", text: "預約失效 / 已過期", badge: "expired" }
+    : { id: "reviewing", color: "#8a6f61", tone: "pending", text: "審核中", badge: "info" };
 };
 
 /* =========================================
     🚀 核心請求函式 (包含自動偵測 Invalid Token)
    ========================================= */
 
-const sendToGAS = async (route, bodyData = {}) => {
+export const sendToGAS = async (route, bodyData = {}) => {
   // ✨ 新增：在發送真實請求前，確保 GAS 是醒著的 (排除 ping 自己)
   if (route !== "ping") {
     await ensureGASAwake();
@@ -221,6 +244,9 @@ const sendToGAS = async (route, bodyData = {}) => {
     // 自動偵測 Token 是否無效
     if (!resData.ok) {
       if (resData.error && (resData.error.includes("Invalid token") || resData.error.includes("Token expired"))) {
+        // 這次請求根本沒帶 Token (公開路由) 卻被要求登入：代表後端還不認得這條路由 (GAS 尚未更新部署)，
+        // 並不是登入失效，不能因此把使用者登出
+        if (!bodyData.idToken) throw new Error("這項功能尚未在伺服器啟用");
         handleUnauthorized();
         throw new Error(TOKEN_EXPIRED);
       }
@@ -240,16 +266,8 @@ const sendToGAS = async (route, bodyData = {}) => {
 
 // 取得使用者個人資料
 export async function fetchMeAPI(token) {
-  const res = await fetch(`${GAS_BASE}?route=me`, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ idToken: token }),
-  });
-
-  const data = await res.json();
-  if (!data.ok) throw new Error(data.error || "讀取資料失敗");
-
-  return data;
+  const response = await sendToGAS("me", { idToken: token });
+  return response.data;
 }
 
 export const fetchReservationsAPI = async () => {
@@ -274,6 +292,13 @@ export const fetchReservationsAPI = async () => {
 
     return {
       id: exam.examID,
+      subjectID: exam.subjectID,
+      startTimeISO: exam.startTime,
+      endTimeISO: exam.endTime,
+      registrationDeadline: exam.registrationDeadline,
+      paymentDeadline: exam.paymentDeadline,
+      address: exam.address,
+      roomPhone: exam.roomPhone,
       title: exam.title,
       subjectName: exam.subjectName,
       date: dateStr,
@@ -286,7 +311,7 @@ export const fetchReservationsAPI = async () => {
       fee: exam.fee,
       createdBy: exam.createdBy,
       color: isFull ? "#EEEEEE" : (exam.color || "#E3F2FD"),
-      textColor: isFull ? "#9E9E9E" : "#FFFFFF",
+      textColor: isFull ? "#9E9E9E" : readableTextColor(exam.color || "#E3F2FD"),
       status: exam.status,           // Open, Draft, Cancelled
       hasRegistered: exam.hasRegistered,
     };
@@ -295,14 +320,7 @@ export const fetchReservationsAPI = async () => {
 
 export const fetchSubjectsAPI = async () => {
   const response = await sendToGAS("getSubjects");
-  // console.log(response);
-  if (Array.isArray(response.subjects)) {
-    if (response.subjects.length > 0 && typeof response.subjects[0] === 'object') {
-      return response.subjects.map(s => s.subjectName);
-    }
-    return response.subjects;
-  }
-  return [];
+  return (response.data?.subjects || []).map(subject => typeof subject === "object" ? subject.subjectName : subject);
 };
 
 export const fetchSubjectsRawAPI = async () => {
@@ -396,7 +414,7 @@ export const fetchUserReservationsAPI = async () => {
   const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
   if (!token) return [];
   const response = await sendToGAS("getReservations", { idToken: token });
-  return response.data || [];
+  return response.data?.data || [];
 };
 
 export const fetchMyReservationsWithDetailsAPI = async () => {
@@ -410,6 +428,7 @@ export const fetchMyReservationsWithDetailsAPI = async () => {
 
     const result = rawData.map(res => ({
       ...res,
+      additional: ["TRUE", "1"].includes(String(res.additional).trim().toUpperCase()),
       statusInfo: calculateStatus_(res, res.examInfo)
     }));
 
@@ -422,25 +441,18 @@ export const fetchMyReservationsWithDetailsAPI = async () => {
 
 // 更新個人資料 (包含大頭貼同步)
 export async function updateProfileAPI(payload) {
-  const res = await fetch(`${GAS_BASE}?route=updateProfile`, {
-    method: "POST",
-    headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify(payload),
-  });
-
-  const data = await res.json();
-  if (!data.ok) throw new Error(data.error || "更新資料失敗");
-
-  return data;
+  const response = await sendToGAS("updateProfile", payload);
+  return response.data;
 }
 
 /* =========================================
     🗑️ Account Deletion (User Self Delete)
    ========================================= */
 
-export const deleteMeAPI = async () => {
+export const deleteMeAPI = async (captchaToken) => {
   return await sendToGAS("deleteMe", {
     idToken: localStorage.getItem(STORAGE_KEYS.TOKEN),
+    captchaToken,
   });
 };
 
@@ -448,17 +460,19 @@ export const deleteMeAPI = async () => {
     ⚙️ 管理員 API (Admin)
    ========================================= */
 
-export const addSubjectAPI = async (subjectName) => {
+export const addSubjectAPI = async (subjectName, captchaToken) => {
   return await sendToGAS("addSubject", {
     idToken: localStorage.getItem(STORAGE_KEYS.TOKEN),
-    subjectName: subjectName
+    subjectName,
+    captchaToken,
   });
 };
 
-export const deleteSubjectAPI = async (subjectID) => {
+export const deleteSubjectAPI = async (subjectID, captchaToken) => {
   return await sendToGAS("deleteSubject", {
     idToken: localStorage.getItem(STORAGE_KEYS.TOKEN),
-    subjectID: subjectID
+    subjectID,
+    captchaToken,
   });
 };
 
@@ -478,6 +492,7 @@ export const fetchAllReservationsAdminAPI = async () => {
     // 使用原本共用的 calculateStatus_ 計算狀態
     const result = rawData.map(res => ({
       ...res,
+      additional: ["TRUE", "1"].includes(String(res.additional).trim().toUpperCase()),
       statusInfo: calculateStatus_(res, res.examInfo)
     }));
 
@@ -552,26 +567,29 @@ export const listUsersAPI = async ({ query = "", role = "" } = {}) => {
   });
 };
 
-export const setUserRoleAPI = async (targetEmail, role) => {
+export const setUserRoleAPI = async (targetEmail, role, captchaToken) => {
   return await sendToGAS("setUserRole", {
     idToken: localStorage.getItem(STORAGE_KEYS.TOKEN),
     targetEmail,
     role,
+    captchaToken,
   });
 };
 
-export const setUserMembershipAPI = async (targetEmail, membership) => {
+export const setUserMembershipAPI = async (targetEmail, membership, captchaToken) => {
   return await sendToGAS("setUserMembership", {
     idToken: localStorage.getItem(STORAGE_KEYS.TOKEN),
     targetEmail,
     membership,
+    captchaToken,
   });
 };
 
-export const adminDeleteUserAPI = async (targetEmail) => {
+export const adminDeleteUserAPI = async (targetEmail, captchaToken) => {
   return await sendToGAS("adminDeleteUser", {
     idToken: localStorage.getItem(STORAGE_KEYS.TOKEN),
     targetEmail,
+    captchaToken,
   });
 };
 

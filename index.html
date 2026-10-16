@@ -11,10 +11,24 @@
     crossorigin="anonymous"
     referrerpolicy="no-referrer"
   />
+  <!-- 中文字體：各裝置顯示一致，並提供 400 / 500 / 700 三種字重 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&display=swap" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>核果資訊學苑預約系統</title>
 </head>
   <body>
+    <!-- 在畫面繪製前就套用主題 (已儲存的選擇優先，否則跟隨系統)，避免深色模式載入時先閃一下白底。
+         邏輯要和 src/theme.js 一致 -->
+    <script>
+      (function () {
+        var saved = null;
+        try { saved = localStorage.getItem("theme"); } catch (e) { /* localStorage 無法使用時跟隨系統 */ }
+        var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+        if (dark) document.body.classList.add("dark");
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script src="https://accounts.google.com/gsi/client"></script>

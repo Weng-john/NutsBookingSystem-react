@@ -2635,20 +2635,6 @@ body.is-touch .poptrox-popup .nav-next,
 	grid-column: 2 /span 3;
 }
 
-@media (max-width: 768px) {
-	.text-group {
-		display: flex;
-		/* 手機版改回垂直堆疊 */
-		flex-direction: column;
-		align-items: flex-start;
-		gap: 5px;
-	}
-
-	.rejection-box {
-		width: 100%;
-	}
-}
-
 /* 按鈕組 */
 .item-actions {
 	display: flex;
@@ -3414,78 +3400,6 @@ button:disabled {
 }
 
 /* ============================================
-   8. MEDIA QUERIES (RWD)
-   ============================================ */
-@media screen and (max-width: 768px) {
-	.manager-container {
-		flex-direction: column;
-	}
-
-	.manager-container .side-panel {
-		width: 100%;
-		margin-right: 0;
-		margin-bottom: 1rem;
-	}
-
-	form>.fields>.field.half,
-	.form-row .form-group.half {
-		width: 100%;
-	}
-
-	.modal-content.exam-form-modal {
-		width: 95%;
-		max-width: none;
-		padding: 1rem;
-	}
-
-	.modal-actions {
-		flex-direction: column;
-		gap: 0.5rem;
-		align-items: stretch !important;
-	}
-
-	.modal-actions button {
-		margin: 0 !important;
-		width: 100%;
-	}
-
-	.list-item {
-		flex-direction: column;
-		align-items: flex-start;
-	}
-
-	.list-panel-header {
-		flex-direction: column;
-		gap: 1rem;
-		align-items: flex-start;
-	}
-
-	.item-info {
-		width: 100%;
-	}
-
-	.item-actions.status-tags {
-		width: 100%;
-		justify-content: flex-end;
-		margin-top: 1rem;
-	}
-
-	.manager-list .list-item .text-group {
-		grid-template-columns: 1fr;
-	}
-
-	.personal-info-div {
-		flex-direction: column;
-		gap: 0.25rem;
-	}
-
-	.centered-form form {
-		max-width: 100%;
-		padding: 0 1rem;
-	}
-}
-
-/* ============================================
    9. EXTRACTED COMPONENT & UTILITY CLASSES
    ============================================ */
 
@@ -3864,35 +3778,7 @@ button:disabled {
 	padding: 6px 12px;
 }
 
-/* --- Dark Mode & Theme Switch --- */
-body.dark {
-	background-color: #1a1a2e;
-	color: #e6e6e6;
-}
-
-body.dark #header {
-	background: rgba(26, 26, 46, 0.95);
-	box-shadow: 0 0 0.15rem 0 rgba(255, 255, 255, 0.1);
-}
-
-body.dark #header .right ul li a {
-	color: #e6e6e6;
-}
-
-body.dark .dropdown-menu {
-	background-color: #16213e;
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-	color: #e6e6e6;
-}
-
-body.dark .dropdown-menu .menu-item:hover {
-	background-color: #0f3460;
-}
-
-body.dark .menu-divider {
-	background-color: #2a2a4a;
-}
-
+/* --- Theme Switch (暗色模式樣式見第 11 節) --- */
 /* Colorful Dark Mode Switch Toggle */
 .theme-toggle-item {
 	display: flex;
@@ -3933,261 +3819,3579 @@ body.dark .menu-divider {
 }
 
 /* ============================================
-   10. RESPONSIVE (手機 / 平板)
-   斷點：1280 小筆電、1024 平板橫向、768 平板直向、600 手機、480 小手機
-   ============================================ */
+   10. DESIGN SYSTEM
+   全站共用的顏色、字級、圓角與陰影，以及各元件的外觀。
+   之後要調整風格，優先改這裡的變數。
 
-/* --- 漢堡選單按鈕 (預設隱藏，平板以下顯示) --- */
-#header .nav-toggle {
+   字體分級：
+     --fs-2xl  頁面 / 面板標題
+     --fs-xl   區塊標題 (側邊面板、彈出視窗內小標)
+     --fs-lg   項目名稱 (清單每一列的主要文字)
+     --fs-base 內文、輸入框
+     --fs-md   次要資訊、表單標籤、按鈕
+     --fs-sm   輔助說明、表頭、標籤
+     --fs-xs   最小的註記
+   ============================================ */
+:root {
+	--bg: #f3f4f7;
+	--surface: #ffffff;
+	--surface-2: #f6f7f9;
+	--surface-3: #eceef2;
+	--border: #e2e5ea;
+	--border-strong: #cdd2d9;
+	--text: #1f2a30;
+	--text-2: #53606a;
+	--text-3: #66717b;
+
+	/* 語意色，每種意義只有一個顏色。各有三個層次：
+	     --x        實心底色 (配白字)、線條、圖示
+	     --x-text   放在淺色底上的文字 (對比度 4.5:1 以上)
+	     --x-soft   淡色底 */
+	--primary: #1c7d77;
+	--primary-hover: #166660;
+	--primary-soft: #e0f2f0;
+	--primary-text: #176b66;
+	--accent: #efbe29;
+	--accent-soft: #fdf1c9;
+	--accent-text: #6b4e06;
+	--accent-ink: #3d2f05;
+	--brand: #594945;
+	--danger: #cf3f34;
+	--danger-hover: #b3352b;
+	--danger-soft: #fdebe9;
+	--danger-text: #b93229;
+	--warning: #e08a2c;
+	--warning-text: #9c5708;
+	--warning-soft: #fdf0de;
+	--success: #2b8251;
+	--success-text: #27774a;
+	--success-soft: #e4f5ea;
+	--info: #2f6fb2;
+	--info-text: #2a65a3;
+	--info-soft: #e6f0fa;
+	--pending: #8a6f61;
+	--pending-text: #735748;
+	--pending-soft: #f3ece8;
+
+	--fs-xs: 0.75rem;
+	--fs-sm: 0.8125rem;
+	--fs-md: 0.9375rem;
+	--fs-base: 1rem;
+	--fs-lg: 1.125rem;
+	--fs-xl: 1.25rem;
+	--fs-2xl: 1.5rem;
+
+	--radius-sm: 8px;
+	--radius: 12px;
+	--radius-lg: 18px;
+	--shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+	--shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 10px 28px -12px rgba(16, 24, 40, 0.16);
+	--shadow-lg: 0 4px 12px rgba(16, 24, 40, 0.08), 0 24px 48px -16px rgba(16, 24, 40, 0.28);
+	--ring: 0 0 0 3px rgba(28, 125, 119, 0.3);
+
+	--header-height: 4rem;
+	--header-content-height: 2.25rem;
+}
+
+/* --- 10.1 基礎與字體 --- */
+body {
+	background: var(--bg);
+	color: var(--text);
+	font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+	font-weight: 400;
+	letter-spacing: 0.01em;
+	-webkit-font-smoothing: antialiased;
+}
+
+body,
+input,
+textarea,
+select {
+	font-size: var(--fs-base);
+	line-height: 1.6;
+}
+
+input,
+textarea,
+select,
+button {
+	font-family: inherit;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+	font-weight: 700;
+	line-height: 1.3;
+	letter-spacing: 0.01em;
+	color: var(--text);
+}
+
+h1,
+h2 {
+	font-size: var(--fs-2xl);
+}
+
+h3 {
+	font-size: var(--fs-xl);
+}
+
+h4 {
+	font-size: var(--fs-lg);
+}
+
+strong,
+b {
+	font-weight: 700;
+}
+
+a {
+	color: var(--primary-text);
+}
+
+::placeholder {
+	color: var(--text-3);
+	opacity: 1;
+}
+
+::-webkit-scrollbar-thumb {
+	background-color: var(--border-strong);
+}
+
+::-webkit-scrollbar-thumb:hover,
+::-webkit-scrollbar-thumb:active {
+	background-color: var(--text-3);
+}
+
+/* --- 10.2 Header --- */
+#header {
+	height: var(--header-height);
+	line-height: 1.4;
+	padding: 0 clamp(1rem, 4vw, 4rem);
+	background: rgba(255, 255, 255, 0.88);
+	backdrop-filter: saturate(1.4) blur(12px);
+	border-bottom: 1px solid var(--border);
+	box-shadow: none;
+}
+
+#header .logo {
+	gap: 0.6rem;
+	font-size: 1.375rem;
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	color: var(--text);
+}
+
+#header .logo .logoIMG {
+	margin-right: 0;
+}
+
+#header .right {
+	margin-right: 0;
+	margin-left: auto;
+}
+
+/* 右上角：頭像 (或登入) 與選單按鈕 */
+.header-actions {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: 0.35rem;
+	margin-left: 0.5rem;
+}
+
+.user-menu {
+	position: relative;
+	display: flex;
+}
+
+/* 以下三者只在平板/手機的側邊選單出現 (見第 11 節) */
+.nav-icon,
+.nav-drawer-head,
+.nav-drawer-foot,
+.nav-scrim {
 	display: none;
+}
+
+#header .right ul {
+	align-items: center;
+	gap: 0.15rem;
+}
+
+#header .right ul li {
+	font-size: 1.0625rem;
+}
+
+#header .right ul li a,
+#header .header-link {
+	display: flex;
+	align-items: center;
+	height: auto;
+	padding: 0.45rem 0.75rem;
+	font-size: 1.0625rem;
+	line-height: 1.4;
+	border-radius: var(--radius-sm);
+	color: var(--text-2);
+	font-weight: 500;
+	white-space: nowrap;
+	transition: background-color 0.15s, color 0.15s;
+}
+
+#header .right ul li a:hover,
+#header .header-link:hover {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+/* 目前所在頁面 */
+#header .right ul li a.dark-background {
+	padding: 0.45rem 0.75rem;
+	background: var(--accent-soft);
+	color: var(--accent-text);
+	font-weight: 700;
+}
+
+#header .dark-background::before {
+	display: none;
+}
+
+#header .right ul li a.btn,
+#header .header-link.btn {
+	margin: 0 0 0 0.35rem;
+	padding: 0.5rem 1.1rem;
+	background: var(--primary);
+	border: 0;
+	border-radius: var(--radius-sm);
+	color: #fff;
+	font-weight: 700;
+}
+
+#header .right ul li a.btn:hover,
+#header .header-link.btn:hover {
+	background: var(--primary-hover);
+	color: #fff;
+}
+
+.user-menu-btn {
+	padding: 2px;
+}
+
+.user-avatar,
+.icon-user-placeholder {
+	width: 2.25rem;
+	height: 2.25rem;
+}
+
+.icon-user-placeholder {
+	padding: 6px;
+	background: var(--surface-3);
+	color: var(--text-3);
+}
+
+/* 大頭貼下拉選單 */
+#header .dropdown-menu {
+	top: calc(100% + 0.6rem);
+	width: max-content;
+	min-width: 13.5rem;
+	padding: 0.4rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-lg);
+	line-height: 1.4;
+	overflow: visible;
+}
+
+#header .dropdown-menu {
+	min-width: 15rem;
+	max-width: calc(100vw - 1.5rem);
+}
+
+/* 帳號選單最上方的姓名與信箱 */
+.menu-profile {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	padding: 0.5rem 0.75rem 0.4rem;
+	line-height: 1.35;
+}
+
+.user-menu-name {
+	color: var(--text);
+	font-size: var(--fs-base);
+	font-weight: 700;
+}
+
+.user-menu-email {
+	overflow: hidden;
+	color: var(--text-3);
+	font-size: var(--fs-sm);
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+#header .dropdown-menu .menu-item {
+	justify-content: flex-start;
+	gap: 0.75rem;
+	height: auto;
+	padding: 0.6rem 0.75rem;
+	border-radius: var(--radius-sm);
+	color: var(--text);
+	font-size: var(--fs-md);
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+#header .dropdown-menu .menu-item:hover {
+	background: var(--surface-3);
+}
+
+#header .dropdown-menu .menu-icon {
+	flex-shrink: 0;
+	color: var(--text-3);
+}
+
+#header .dropdown-menu .menu-divider {
+	margin: 0.35rem 0.25rem;
+	background: var(--border);
+}
+
+#header .dropdown-menu .menu-item.logout {
+	justify-content: flex-start;
+	border-radius: var(--radius-sm);
+	color: var(--danger-text);
+	font-weight: 700;
+	line-height: 1.4;
+}
+
+#header .dropdown-menu .menu-item.logout .menu-icon {
+	color: inherit;
+}
+
+#header .dropdown-menu .menu-item.logout:hover {
+	background: var(--danger-soft);
+}
+
+.theme-switch {
+	flex-shrink: 0;
+	margin-left: auto;
+}
+
+/* --- 10.3 面板 --- */
+.centered-form {
+	padding: 2rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow);
+	transition: box-shadow 0.2s ease;
+}
+
+/* 大面板 hover 時不再整塊位移 (會讓內容跳動) */
+.centered-form:hover,
+.day-popover:hover {
+	transform: none;
+	box-shadow: var(--shadow);
+}
+
+.centered-form>h1,
+.centered-form .loginH1 {
+	margin: 0 0 0.75rem;
+	font-size: var(--fs-2xl);
+}
+
+.subtitle,
+.tab-message {
+	padding: 0;
+	color: var(--text-3);
+	font-size: var(--fs-sm);
+}
+
+/* --- 10.4 按鈕 --- */
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.button,
+button {
+	display: inline-flex;
 	align-items: center;
 	justify-content: center;
+	gap: 0.5rem;
+	height: 2.75rem;
+	padding: 0 1.25rem;
+	line-height: 1.2;
+	background-color: var(--primary);
+	border-radius: var(--radius);
+	color: #fff;
+	font-size: var(--fs-md);
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
+}
+
+input[type="button"]:hover,
+input[type="submit"]:hover,
+input[type="reset"]:hover,
+.button:hover,
+button:hover {
+	background-color: var(--primary-hover);
+}
+
+input[type="button"]:active,
+input[type="submit"]:active,
+input[type="reset"]:active,
+.button:active,
+button:active {
+	background-color: var(--primary-hover);
+}
+
+button:focus-visible,
+a:focus-visible,
+.custom-select-bar:focus-visible {
+	outline: none;
+	box-shadow: var(--ring);
+}
+
+button:disabled {
+	opacity: 0.55;
+}
+
+.centered-form button,
+.modal-actions button {
+	font-size: var(--fs-md);
+}
+
+.centered-form button[type="submit"]:hover,
+.centered-form button.confirm-button:hover,
+.modal-actions button.btn-confirm:hover {
+	background: var(--primary-hover);
+}
+
+/* 不可用的確認鍵 (尚未開放、已關閉、額滿)：灰底虛線框，滑過也不變色 */
+.btn-confirm:disabled,
+.modal-actions button.btn-confirm:disabled,
+.modal-actions button.btn-confirm:disabled:hover {
+	background: var(--surface-3);
+	border: 1.5px dashed var(--border-strong);
+	color: var(--text-3);
+	cursor: not-allowed;
+	opacity: 1;
+}
+
+/* 次要按鈕 (取消、同步大頭貼)：中性外框，不搶主要動作的視覺 */
+.centered-form button.cancel-button,
+.modal-actions button.btn-cancel,
+.btn-syncPicture {
+	background: var(--surface);
+	border: 1.5px solid var(--border-strong);
+	color: var(--text-2);
+}
+
+.centered-form button.cancel-button:hover,
+.modal-actions button.btn-cancel:hover,
+.btn-syncPicture:hover {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+/* 小型方形按鈕：重新整理、月份切換 */
+.btn-refresh,
+.btn-nav {
+	flex-shrink: 0;
+	width: 2.25rem;
+	height: 2.25rem;
+	padding: 0;
+	background: var(--surface);
+	border: 1.5px solid var(--border-strong);
+	border-radius: var(--radius-sm);
+	color: var(--text-2);
+	font-size: var(--fs-md);
+}
+
+.centered-form .btn-today {
+	width: auto;
+	height: 2.25rem;
+	padding: 0 0.9rem;
+	background: var(--surface);
+	border: 1.5px solid var(--border-strong);
+	border-radius: var(--radius-sm);
+	color: var(--text-2);
+	font-size: var(--fs-sm);
+}
+
+/* 重新整理中：圖示旋轉 */
+.btn-refresh.is-loading {
+	cursor: not-allowed;
+}
+
+.btn-refresh.is-loading svg {
+	animation: spin 1s linear infinite;
+}
+
+.btn-refresh:hover,
+.btn-nav:hover,
+.btn-today:hover,
+.item-actions .btn-refresh:hover {
+	background-color: var(--surface-3);
+	color: var(--text);
+	transform: none;
+}
+
+/* 圖示按鈕 (編輯、刪除、儲存)：淡色底，hover 才變實色 */
+.btn-icon,
+.action-col .btn-icon {
+	flex-shrink: 0;
+	width: 2.25rem;
+	height: 2.25rem;
+	padding: 0;
+	border: 0;
+	border-radius: var(--radius-sm);
+	font-size: 0.9rem;
+}
+
+.action-col {
+	gap: 0.4rem;
+}
+
+.action-col .btn-icon i {
+	width: auto;
+	margin: 0;
+	color: inherit;
+}
+
+.action-col .btn-icon:hover,
+.btn-delete:hover {
+	transform: none;
+}
+
+/* 刪除等不可復原的操作：一律用實心警示色 */
+.btn-delete,
+.action-col .btn-delete,
+.btn-danger,
+.modal-actions button.btn-confirm.btn-danger {
+	background: var(--danger);
+	color: #fff;
+}
+
+.btn-delete:hover,
+.action-col .btn-delete:hover,
+.btn-danger:hover,
+.modal-actions button.btn-confirm.btn-danger:hover {
+	background: var(--danger-hover);
+	color: #fff;
+}
+
+.action-col .btn-edit {
+	background: var(--warning-soft);
+	color: var(--warning-text);
+}
+
+.action-col .btn-edit:hover {
+	background: var(--warning);
+	color: var(--accent-ink);
+}
+
+.action-col .btn-save {
+	background: var(--success-soft);
+	color: var(--success-text);
+}
+
+.action-col .btn-save:hover {
+	background: var(--success);
+	color: #fff;
+}
+
+.action-col .btn-cancel {
+	background: var(--surface-3);
+	color: var(--text-2);
+}
+
+.action-col .btn-cancel:hover {
+	background: var(--border-strong);
+	color: var(--text);
+}
+
+/* 「聯絡管理員」：次要動作，用文字連結的樣子，不和主要按鈕搶視覺 */
+.btn-contact-admin,
+.modal-actions button.btn-contact-admin {
+	flex: 0 0 auto;
+	height: 2.25rem;
+	margin-right: auto;
+	padding: 0 0.6rem;
+	background: transparent;
+	border: 0;
+	border-radius: var(--radius-sm);
+	color: var(--text-2);
+	font-size: var(--fs-sm);
+	font-weight: 500;
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+
+.btn-contact-admin:hover,
+.modal-actions button.btn-contact-admin:hover {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+.clear-filter-btn {
+	height: 2.25rem;
+	margin-left: 0;
+	padding: 0 0.9rem;
+	background: var(--surface);
+	border: 1.5px solid var(--danger);
+	border-radius: var(--radius-sm);
+	color: var(--danger-text);
+	font-size: var(--fs-sm);
+}
+
+.clear-filter-btn:hover {
+	background: var(--danger);
+	color: #fff;
+}
+
+.centered-form .google-custom-btn {
+	gap: 0.75rem;
+	width: 100%;
+	height: 3rem;
+	padding: 0 1rem;
+	background: var(--surface);
+	border: 1.5px solid var(--border-strong);
+	border-radius: var(--radius);
+	color: var(--text);
+	font-size: var(--fs-base);
+	font-weight: 700;
+}
+
+.google-custom-btn img {
+	width: 1.4rem;
+	height: 1.4rem;
+}
+
+.google-custom-btn:hover {
+	background: var(--surface-2);
+	box-shadow: var(--shadow-sm);
+}
+
+/* --- 10.5 表單 --- */
+input,
+select,
+textarea {
+	padding: 0.6rem 0.8rem;
+	line-height: 1.4;
+	background-color: var(--surface);
+	border: 1.5px solid var(--border-strong);
+	border-radius: 10px;
+	color: var(--text);
+	transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.centered-form form :is(input[type="text"], input[type="password"], input[type="email"], input[type="tel"]) {
+	padding: 0.6rem 0.8rem;
+	border: 1.5px solid var(--border-strong);
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.centered-form form :is(input[type="text"], input[type="password"], input[type="email"], input[type="tel"]):focus {
+	border-color: var(--primary);
+	box-shadow: var(--ring);
+}
+
+:is(input, select, textarea):disabled,
+form input:disabled {
+	background-color: var(--surface-2);
+	border-color: var(--border);
+	color: var(--text-3);
+	cursor: not-allowed;
+}
+
+/* 全站的 select 都關掉了原生外觀，這裡補上下拉箭頭 */
+select {
+	padding-right: 2.25rem;
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%238b959d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+	background-repeat: no-repeat;
+	background-position: right 0.7rem center;
+	background-size: 0.9rem;
+}
+
+textarea {
+	min-height: 7rem;
+	resize: vertical;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+	flex-shrink: 0;
+	width: 1.1rem;
+	height: 1.1rem;
+	padding: 0;
+	accent-color: var(--primary);
+	appearance: auto;
+	box-shadow: none;
+}
+
+label,
+.centered-form form label,
+.centered-form .form-group label,
+.centered-form.exam-panel label,
+.modal-content label,
+.input-field label,
+.contact-form-label {
+	margin-bottom: 0;
+	color: var(--text);
+	font-size: var(--fs-md);
+	font-weight: 700;
+}
+
+/* 勾選框用主色 (舊樣式寫死成藍色) */
+.exam-form .checkbox-group input[type="checkbox"] {
+	accent-color: var(--primary);
+}
+
+.checkbox-group label,
+.exam-form .checkbox-group label,
+.modal-content .checkbox-group label {
+	font-weight: 400;
+}
+
+.centered-form .form-group {
+	gap: 0.35rem;
+	margin: 0.4rem 0;
+}
+
+.input-field,
+.centered-form.exam-panel .input-field {
+	gap: 0.35rem;
+}
+
+.side-panel.add-panel .modern-form,
+.centered-form.exam-panel .modern-form {
+	gap: 0.85rem;
+}
+
+.contact-form-input,
+.contact-form-textarea {
+	padding: 0.6rem 0.8rem;
+	border: 1.5px solid var(--border-strong);
+	border-radius: 10px;
+}
+
+.edit-input {
+	padding: 0.35rem 0.6rem;
+	border: 1.5px solid var(--border-strong);
+	border-radius: var(--radius-sm);
+	font-size: var(--fs-md);
+}
+
+select.edit-input {
+	padding-right: 1.9rem;
+	background-position: right 0.5rem center;
+}
+
+/* 自訂下拉 (月曆篩選、考場多選) */
+.custom-select-bar,
+.custom-multi-select {
+	min-height: 2.5rem;
+	padding: 0.25rem 0.7rem;
+	background: var(--surface);
+	border: 1.5px solid var(--border-strong);
+	border-radius: 10px;
+	line-height: 1.4;
+	transition: border-color 0.15s;
+}
+
+.custom-multi-select {
+	padding-right: 2rem;
+}
+
+.custom-select-bar:hover,
+.custom-multi-select:hover {
+	border-color: var(--text-3);
+}
+
+.placeholder-text,
+.custom-multi-select .placeholder-text {
+	padding-left: 0;
+	color: var(--text-3);
+	font-size: var(--fs-md);
+}
+
+.dropdown-arrow,
+.custom-multi-select .dropdown-arrow {
+	color: var(--text-3);
+	font-size: 0.6rem;
+}
+
+.selected-tag,
+.custom-multi-select .selected-tag {
+	padding: 0.1rem 0.5rem;
+	background: var(--accent-soft);
+	border-radius: 6px;
+	color: var(--accent-text);
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.custom-multi-select .remove-tag-btn {
+	color: inherit;
+}
+
+.custom-dropdown-menu,
+.header-filter-dropdown {
+	padding: 0.35rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-lg);
+}
+
+.header-filter-dropdown {
+	padding: 0.6rem;
+	color: var(--text);
+	font-weight: 400;
+	letter-spacing: 0;
+}
+
+.dropdown-item,
+.custom-dropdown-menu .dropdown-item {
+	padding: 0.5rem 0.7rem;
+	border-radius: var(--radius-sm);
+	font-size: var(--fs-md);
+}
+
+.dropdown-item:hover,
+.custom-dropdown-menu .dropdown-item:hover {
+	background: var(--surface-3);
+}
+
+.custom-dropdown-menu .dropdown-item.selected {
+	background: var(--accent-soft);
+	color: var(--accent-text);
+	font-weight: 700;
+}
+
+.dropdown-item span {
+	margin-left: 0;
+}
+
+/* --- 10.6 管理頁面板 --- */
+.manager-wrapper {
+	width: min(96%, 90rem);
+	margin: 0;
+}
+
+.manager-container {
+	gap: 1.25rem;
+}
+
+.side-panel.add-panel {
+	flex: 0 0 clamp(15.5rem, 24%, 20rem);
+	gap: 0.75rem;
+	min-width: 0;
+	padding: 1.5rem;
+}
+
+.side-panel.add-panel h3 {
+	width: 100%;
+	margin-bottom: 1.5rem;
+	font-size: var(--fs-xl);
+	letter-spacing: 0.06em;
+}
+
+.side-panel.add-panel h3::after {
+	bottom: -0.75rem;
+	height: 1px;
+	background: var(--border);
+}
+
+/* 清單面板：標題列置中，清單內容維持靠左 */
+.side-panel.list-panel,
+.centered-form.userManage {
+	align-items: stretch;
+	padding: 1.5rem;
+	text-align: left;
+}
+
+.side-panel.list-panel>h3,
+.side-panel.list-panel>.tab-message {
+	text-align: center;
+}
+
+.side-panel.list-panel {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.centered-form.userManage {
+	width: min(96%, 72rem);
+	max-width: none;
+}
+
+.list-panel-header,
+.list-title-row {
+	justify-content: center;
+	gap: 0.75rem;
+	margin-bottom: 0.75rem;
+}
+
+.list-panel-header .list-title-row {
+	margin-bottom: 0;
+}
+
+.list-title-row h3,
+.list-panel-header h3,
+.side-panel.list-panel>h3 {
+	margin: 0 0 0.75rem;
+	font-size: var(--fs-2xl);
+}
+
+.list-title-row h3,
+.list-panel-header h3 {
+	margin-bottom: 0;
+}
+
+.side-panel.list-panel>.tab-message {
+	margin: -0.5rem 0 0.75rem;
+}
+
+.scroll-area {
+	padding-right: 6px;
+	scrollbar-gutter: stable;
+}
+
+.empty-state,
+.empty-text {
+	padding: 3rem 0;
+	color: var(--text-3);
+	font-size: var(--fs-md);
+	text-align: center;
+}
+
+.empty-state i {
+	margin-bottom: 0.75rem;
+	font-size: 2.5rem;
+}
+
+/* 狀態分頁的外層 (components/statusTabs.jsx)。箭頭只在橫向滑動時出現，見第 11 節 */
+.status-tabs {
+	position: relative;
+	width: 100%;
+}
+
+.status-tabs .tabs-arrow {
+	display: none;
+}
+
+/* 狀態分頁 (我的考試、報名管理的左側選單) */
+.centered-form .status-vertical-menu {
+	gap: 0.3rem;
+}
+
+.centered-form .status-vertical-menu .tab-item-btn {
+	justify-content: space-between;
+	min-height: 2.75rem;
+	padding: 0.6rem 0.75rem;
+	/* 淡淡的底色讓每一項看得出是按鈕，也和面板的白底分開 */
+	background: var(--surface-2);
+	border-radius: 10px;
+	box-shadow: none;
+	color: var(--text-2);
+	font-size: var(--fs-md);
+	font-weight: 500;
+	letter-spacing: 0.01em;
+}
+
+.centered-form .status-vertical-menu .tab-item-btn:hover {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+.centered-form .status-vertical-menu .tab-item-btn.active {
+	background: var(--brand);
+	box-shadow: 0 8px 18px -8px rgba(89, 73, 69, 0.7);
+	color: #fff;
+	font-weight: 700;
+}
+
+.centered-form .status-vertical-menu .tab-item-btn span i {
+	width: 1.1rem;
+	margin-right: 0.65rem;
+	text-align: center;
+}
+
+.centered-form .status-vertical-menu .tab-item-btn .tab-count {
+	display: block;
+	flex-shrink: 0;
+	min-width: 1.5rem;
+	padding: 0 0.4rem;
+	background: var(--surface);
+	border-radius: 999px;
+	color: var(--text-2);
+	font-size: var(--fs-xs);
+	font-weight: 700;
+	line-height: 1.5rem;
+	text-align: center;
+}
+
+.centered-form .status-vertical-menu .tab-item-btn.active .tab-count {
+	background: rgba(255, 255, 255, 0.22);
+	color: #fff;
+}
+
+/* --- 10.7 清單列 (寬版：表格式，欄位靠左並與表頭對齊) --- */
+.modern-list {
+	gap: 0.5rem;
+}
+
+/* gap：左邊的資訊區和右邊的狀態標籤之間保持距離 (退件原因會撐滿資訊區的寬度) */
+.list-item,
+.manager-list .list-item {
+	gap: 1.25rem;
+	margin-top: 0;
+	padding: 0.85rem 1rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	transition: background-color 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.list-item:hover {
+	background: var(--surface-2);
+	border-color: var(--border-strong);
+}
+
+.list-item.clickable:hover {
+	transform: none;
+	box-shadow: var(--shadow-sm);
+}
+
+.manager-list .list-item.editing-mode {
+	background: var(--warning-soft);
+	border-left: 4px solid var(--warning);
+}
+
+.list-item i {
+	margin-right: 0.4rem;
+}
+
+.item-info {
+	flex: 1 1 0;
+	gap: 0.9rem;
+	min-width: 0;
+}
+
+/* 「我的考試」的欄位：科目 | 時間 | 地點 | 語言。科目名稱通常很短，欄位給窄一點，長名稱會自動換行 */
+.text-group {
+	grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.15fr) minmax(0, 1.3fr) minmax(0, 0.8fr);
+	justify-items: start;
+	gap: 0.25rem 1rem;
+	text-align: left;
+}
+
+.manager-list .text-group,
+.list-header-row {
+	grid-template-columns: minmax(0, 1.3fr) minmax(0, 1.1fr) minmax(0, 1.3fr) minmax(0, 1.2fr) minmax(0, 0.9fr) 5rem;
+	justify-items: start;
+	gap: 0.25rem 1rem;
+	margin-top: 0;
+	color: var(--text-2);
+	text-align: left;
+}
+
+.manager-list .text-group.room-column,
+.room-column {
+	grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.6fr) minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 0.6fr) 5rem;
+}
+
+.manager-list .text-group.reservation-column,
+.reservation-column {
+	grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.6fr) 8.5rem;
+}
+
+.text-group.userManage-col,
+.list-header-row.userManage-col {
+	grid-template-columns: minmax(0, 2fr) minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr) 3rem;
+	font-size: var(--fs-base);
+}
+
+.text-group>div {
+	justify-content: flex-start;
+	min-width: 0;
+	max-width: 100%;
+}
+
+.text-group> :is(.subject-info, .subject-col, .reserved-col, .status-col, .user-col, .room-name-cell) {
+	flex-direction: column;
+	flex-wrap: nowrap;
+	align-items: flex-start;
+	justify-content: center;
+	gap: 0.1rem;
+}
+
+.text-group .name,
+.manager-list .text-group .name {
+	color: var(--text);
+	font-size: var(--fs-xl);
+	font-weight: 700;
+	line-height: 1.35;
+}
+
+/* 「我的考試」的科目名稱：這一列的主角，放大並在欄位內置中 */
+.reserved-col .text-group>.subject-info {
+	align-items: center;
+	justify-self: stretch;
+	text-align: center;
+}
+
+.reserved-col .text-group .subject-info .name {
+	font-size: 1.375rem;
+}
+
+.text-group span,
+.sub-detail {
+	font-size: var(--fs-base);
+}
+
+.text-group .id,
+.reserve-id-label,
+.subject-col {
+	margin-left: 0;
+	color: var(--text-3);
+	font-size: var(--fs-md);
+}
+
+.text-group .room-main-text {
+	color: var(--text);
+	font-weight: 700;
+}
+
+.text-group .time-info,
+.time-display {
+	flex-wrap: nowrap;
+	gap: 0.15rem;
+	color: var(--text-2);
+}
+
+/* 日期與時間各自不斷行，欄位太窄時才整段換行 */
+.time-text span {
+	white-space: nowrap;
+}
+
+.manager-list .text-group .personal-info {
+	width: 100%;
+	padding: 0;
+}
+
+.manager-list .text-group .personal-info .personal-info-div {
+	gap: 0.1rem;
+}
+
+.manager-list .text-group .action-col {
+	justify-self: end;
+}
+
+.manager-list .text-group .inCharge {
+	padding-top: 0.4rem;
+	border-top: 1px dashed var(--border);
+	color: var(--text-3);
+	font-size: var(--fs-md);
+}
+
+.manager-list .text-group .inCharge span {
+	font-size: var(--fs-md);
+}
+
+.in-charge-name {
+	color: var(--text-2);
+}
+
+.color-indicator {
 	flex-shrink: 0;
 	width: 2.75rem;
 	height: 2.75rem;
-	padding: 0;
-	line-height: 1;
-	font-size: 1.4rem;
+	border: 0;
+	border-radius: 10px;
+	box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+	cursor: default;
+}
+
+.color-indicator:hover {
+	transform: none;
+}
+
+/* 科目清單每筆資料很短 (色塊、名稱、刪除)，面板不需要撐滿：限制寬度，並和新增面板一起置中。
+   只在左右並排時套用；上下堆疊時 flex-basis 會變成高度，所以用 min-width 限定 */
+@media screen and (min-width: 901px) {
+	.manager-container:has(.subject-content) {
+		justify-content: center;
+	}
+
+	.side-panel.list-panel:has(.subject-content) {
+		flex: 0 1 36rem;
+	}
+}
+
+/* 科目清單：名稱在上、代碼在下 */
+.subject-content .list-item .text-group {
+	display: flex;
+	flex-direction: column-reverse;
+	align-items: flex-start;
+	gap: 0;
+}
+
+/* 狀態標籤 */
+.list-item .status-tags,
+.list-item .reservation-column .status-tags {
+	flex: 0 0 auto;
+	flex-wrap: nowrap;
+	align-items: flex-end;
+	justify-self: end;
+	gap: 0.35rem;
+}
+
+/* 狀態色調：清單列加上 .tone-<名稱> (由 api.js 的 statusInfo.tone 決定)，
+   左側色條與狀態標籤就會跟著上色。深色模式只換變數的值，不需要另外寫規則 */
+.tone-pending {
+	--tone: var(--pending-text);
+	--tone-soft: var(--pending-soft);
+	--tone-line: var(--pending);
+}
+
+.tone-warning {
+	--tone: var(--warning-text);
+	--tone-soft: var(--warning-soft);
+	--tone-line: var(--warning);
+}
+
+.tone-info {
+	--tone: var(--info-text);
+	--tone-soft: var(--info-soft);
+	--tone-line: var(--info);
+}
+
+.tone-success {
+	--tone: var(--success-text);
+	--tone-soft: var(--success-soft);
+	--tone-line: var(--success);
+}
+
+.tone-danger {
+	--tone: var(--danger-text);
+	--tone-soft: var(--danger-soft);
+	--tone-line: var(--danger);
+}
+
+.tone-muted {
+	--tone: var(--text-2);
+	--tone-soft: var(--surface-3);
+	--tone-line: var(--border-strong);
+}
+
+.list-item[class*="tone-"] {
+	border-left: 6px solid var(--tone-line);
+}
+
+.status-tags .reviewStatus,
+.status-tags .additional-tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	border-radius: 999px;
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.status-tags .reviewStatus {
+	padding: 0.3rem 0.75rem;
+	background: var(--tone-soft, var(--surface-3));
+	color: var(--tone, var(--text-2));
+	font-size: var(--fs-md);
+}
+
+/* 附加標籤 (需證書、繳費期限)：用外框、不填底色，和實心的狀態標籤 (待繳費、審核中…) 一眼就分得開。
+   需證書只是報名的附加內容，用中性色；繳費期限還早時也是中性色，快到了才用提醒色、很急用警示色 */
+.status-tags .additional-tag {
+	padding: 0.1rem 0.6rem;
 	background: transparent;
+	border: 1px solid var(--border-strong);
+	color: var(--text-2);
+	font-size: var(--fs-sm);
+}
+
+.status-tags .additional-tag.deadline-warning {
+	border-color: var(--warning);
+	color: var(--warning-text);
+}
+
+.status-tags .additional-tag.deadline-urgent {
+	border-color: var(--danger);
+	color: var(--danger-text);
+}
+
+/* 歷史紀錄：標籤也跟著變淡 */
+.tone-muted .status-tags .additional-tag {
+	border-color: var(--border);
+	color: var(--text-3);
+}
+
+.status-tags i,
+.rejection-box i,
+.fa-solid.fa-certificate::before {
 	color: inherit;
-	border-radius: 0.75rem;
+}
+
+.status-tags i {
+	margin: 0;
+}
+
+.rejection-box {
+	justify-self: stretch;
+	margin: 0;
+	padding: 0.4rem 0.75rem;
+	background: var(--danger-soft);
+	border: 1px solid transparent;
+	border-radius: var(--radius-sm);
+	color: var(--danger-text);
+	font-size: var(--fs-md);
+	text-align: left;
+}
+
+/* 清單列裡的說明圖示 (日期、地點、聯絡方式…) 一律用中性色，顏色只留給狀態 */
+.text-group i,
+.manager-list .text-group i {
+	color: var(--text-3);
+}
+
+/* 例外：按鈕與狀態標籤裡的圖示跟著所在元件的文字顏色 */
+.text-group :is(.action-col, .status-tags, .rejection-box) i,
+.manager-list .text-group :is(.action-col, .status-tags, .rejection-box) i {
+	color: inherit;
+}
+
+/* 表頭 */
+.list-header-row {
+	align-items: center;
+	width: auto;
+	/* 右側讓出清單捲軸的寬度 (6px 內距 + 8px 捲軸)，表頭才會和每一列對齊 */
+	margin: 0 14px 0.5rem 0;
+	padding: 0.55rem 1rem;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	color: var(--text-2);
+	font-size: var(--fs-md);
+	font-weight: 700;
+	letter-spacing: 0.04em;
+}
+
+.header-cell {
+	gap: 0.4rem;
+}
+
+.list-header-row .header-cell:last-child {
+	justify-self: end;
+}
+
+.header-cell:has(.fa-filter):hover {
+	color: var(--text);
+}
+
+.filter-icon {
+	margin-left: 0;
+}
+
+/* 篩選圖示：有套用篩選時變色 */
+.fa-filter {
+	color: var(--text-3);
+}
+
+.fa-filter.active {
+	color: var(--primary-text);
+}
+
+/* --- 10.8 月曆 --- */
+.calendar-container {
+	width: min(96%, 92rem);
+	padding: 1.25rem 1.5rem 1.5rem;
+	background: var(--surface);
+}
+
+.calendar-header {
+	gap: 0.75rem 1.25rem;
+	margin-bottom: 0.9rem;
+}
+
+.header-left {
+	gap: 0.6rem;
+	padding: 0;
+}
+
+.header-left h1,
+.calendar-header h1 {
+	color: var(--text);
+	font-size: var(--fs-2xl);
+}
+
+.header-options {
+	gap: 0.6rem;
+	max-width: 36rem;
+	padding: 0;
+}
+
+.header-controls {
+	gap: 0.4rem;
+}
+
+.date-picker-container .current-date-btn {
+	height: 2.25rem;
+	padding: 0 0.7rem;
+	background: transparent;
+	border-radius: var(--radius-sm);
+	color: var(--text);
+	font-size: var(--fs-lg);
+	font-weight: 700;
+}
+
+.date-picker-container .current-date-btn:hover {
+	background: var(--surface-3);
+	border-color: transparent;
+}
+
+.date-picker-container .date-picker-popup {
+	min-width: 15rem;
+	padding: 0.75rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-lg);
+}
+
+.date-picker-container .date-picker-popup::before {
+	border-color: transparent transparent var(--surface) transparent;
+}
+
+.date-picker-popup .dp-header {
+	border-bottom-color: var(--border);
+}
+
+.date-picker-popup .dp-header button {
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	color: var(--text-2);
+}
+
+.date-picker-popup .dp-header button:hover,
+.date-picker-popup .dp-month-btn:hover {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+.date-picker-popup .dp-header .dp-year {
+	font-size: var(--fs-lg);
+}
+
+.date-picker-popup .dp-months-grid {
+	gap: 0.25rem;
+	justify-items: stretch;
+}
+
+.date-picker-popup .dp-month-btn {
+	width: 100%;
+	height: 2.25rem;
+	padding: 0 0.5rem;
+	border-radius: var(--radius-sm);
+	color: var(--text);
+	font-size: var(--fs-md);
+	font-weight: 500;
+}
+
+.date-picker-popup .dp-month-btn.active {
+	background: var(--primary);
+	color: #fff;
+	font-weight: 700;
+}
+
+.calendar-wrapper-month {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+}
+
+.weekday-header {
+	background: var(--surface-2);
+	border-bottom: 1px solid var(--border);
+}
+
+.weekday-cell {
+	padding: 0.45rem 0;
+	border-right: 1px solid var(--border);
+	color: var(--text-3);
+	font-size: var(--fs-md);
+	font-weight: 700;
+	letter-spacing: 0.1em;
+	text-transform: uppercase;
+}
+
+.calendar-cell {
+	padding: 0.3rem 0.4rem 0.4rem;
+	background: var(--surface);
+	border-right: 1px solid var(--border);
+	border-bottom: 1px solid var(--border);
+}
+
+.calendar-cell.empty,
+.calendar-cell.past {
+	background: var(--surface-2);
+	color: var(--text-3);
+}
+
+.calendar-cell.today-cell {
+	background: var(--accent-soft);
+	background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface));
+}
+
+.cell-header {
+	gap: 0.3rem;
+	min-height: 1.9rem;
+	margin-bottom: 0.2rem;
+	padding-right: 0;
+}
+
+.day-number {
+	width: 1.85rem;
+	font-size: 1.0625rem;
+	font-weight: 700;
+}
+
+.today-badge {
+	background: var(--accent);
+	color: var(--accent-ink);
+}
+
+.event-pill {
+	padding: 0.12rem 0.5rem;
+	border-radius: 6px;
+	font-size: var(--fs-md);
+	line-height: 1.5;
+	transition: filter 0.15s;
+}
+
+.event-pill:hover {
+	filter: brightness(0.94);
+}
+
+/* 科目顏色由後端決定，home.jsx 用 --event-color (底色) 與 --event-ink (配它的字色) 傳進來。
+   淺色模式：整塊實色配黑字太重，改成淡化的底色 + 同色系的深色字，左側留一條原色方便辨識科目
+   (底色 38%、字色 30% 的混色比例，常見的科目顏色對比度都在 5.6:1 以上)。
+   前兩行是不支援 color-mix 時的備援；深色模式維持實色，見第 12 節 */
+.event-pill {
+	background: var(--event-color, var(--surface-3));
+	background: color-mix(in srgb, var(--event-color, var(--surface-3)) 38%, var(--surface));
+	border-left: 3px solid var(--event-color, var(--border-strong));
+	color: var(--event-ink, var(--text));
+	color: color-mix(in srgb, var(--event-color, var(--text)) 30%, var(--text));
+	cursor: pointer;
+}
+
+/* disabled-pill 只是變淡 (額滿、已取消仍可點開查看)；locked 才是真的不能點 */
+.event-pill.disabled-pill {
+	cursor: pointer;
+}
+
+.event-pill.locked,
+.more-events-btn.locked {
+	cursor: not-allowed;
+}
+
+.event-time-pill {
+	margin-right: 0.35rem;
+}
+
+.event-title-pill {
+	flex: 1 1 0;
+	min-width: 0;
+	font-size: var(--fs-md);
+	font-weight: 700;
+}
+
+/* 色塊右側的名額標籤 (剩 N 位、額滿、未開放…)。名額快沒了用提醒色 */
+.event-seats {
+	flex-shrink: 0;
+	margin-left: 0.35rem;
+	padding: 0 0.4rem;
+	background: color-mix(in srgb, var(--surface) 65%, transparent);
+	border-radius: 999px;
+	font-size: var(--fs-xs);
+	font-weight: 700;
+	line-height: 1.55;
+	white-space: nowrap;
+}
+
+.event-seats.warning {
+	background: var(--warning-soft);
+	color: var(--warning-text);
+}
+
+.event-seats.danger {
+	background: var(--danger-soft);
+	color: var(--danger-text);
+}
+
+.event-seats.neutral {
+	color: var(--text-3);
+}
+
+.deadline-badge {
+	margin: 0 0 0 auto;
+	padding: 0.05rem 0.45rem;
+	background: var(--danger-soft);
+	border-radius: 999px;
+	color: var(--danger-text);
+	font-size: var(--fs-xs);
+}
+
+.more-events-btn {
+	padding: 0 0.25rem;
+	border-radius: 6px;
+	color: var(--text-3);
+	font-size: var(--fs-sm);
+}
+
+.more-events-btn:hover {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+.day-popover {
+	min-width: 14rem;
+	padding: 0.75rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-lg);
+}
+
+.popover-date {
+	color: var(--text);
+	font-size: var(--fs-md);
+}
+
+/* 手機版考試清單 (預設隱藏，窄螢幕時取代月曆格) */
+.calendar-agenda {
+	display: none;
+}
+
+.agenda-day {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+}
+
+.agenda-day-header {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	display: flex;
+	align-items: baseline;
+	gap: 0.5rem;
+	padding: 0.25rem 0;
+	background: var(--surface);
+}
+
+.agenda-date {
+	color: var(--text);
+	font-size: var(--fs-lg);
+	font-weight: 700;
+}
+
+.agenda-weekday {
+	color: var(--text-3);
+	font-size: var(--fs-sm);
+	font-weight: 700;
+}
+
+.agenda-today {
+	padding: 0 0.5rem;
+	background: var(--accent);
+	border-radius: 999px;
+	color: var(--accent-ink);
+	font-size: var(--fs-xs);
+	font-weight: 700;
+}
+
+.centered-form .agenda-item {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	width: 100%;
+	height: auto;
+	padding: 0.7rem 0.8rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-left: 4px solid var(--event-color, var(--border-strong));
+	border-radius: var(--radius);
+	color: var(--text);
+	font-weight: 400;
+	letter-spacing: 0.01em;
+	line-height: 1.4;
+	text-align: left;
+	white-space: normal;
+}
+
+.centered-form .agenda-item {
+	box-shadow: var(--shadow-sm);
+}
+
+.centered-form .agenda-item:hover,
+.centered-form .agenda-item:active {
+	background: var(--surface-2);
+	border-color: var(--border-strong);
+	border-left-color: var(--event-color, var(--border-strong));
+}
+
+.agenda-arrow {
+	flex: 0 0 auto;
+	color: var(--text-3);
+	font-size: 0.8rem;
+}
+
+/* 不可點的場次 (報名已截止、已取消)：虛線框、無陰影、文字變淡，右側是鎖頭 */
+.centered-form .agenda-item.unavailable,
+.centered-form .agenda-item.unavailable:hover {
+	background: transparent;
+	border-style: dashed;
+	border-left-style: solid;
+	border-color: var(--border-strong);
+	box-shadow: none;
+	cursor: not-allowed;
+	opacity: 1;
+}
+
+.agenda-item.unavailable :is(.agenda-time, .agenda-title) {
+	color: var(--text-3);
+}
+
+.agenda-day.closed .agenda-date {
+	color: var(--text-2);
+}
+
+.agenda-time {
+	display: flex;
+	flex: 0 0 auto;
+	flex-direction: column;
+	min-width: 3rem;
+	color: var(--text);
+	font-size: var(--fs-md);
+	font-weight: 700;
+}
+
+.agenda-time small {
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+	font-weight: 400;
+}
+
+.agenda-main {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	gap: 0.1rem;
+	min-width: 0;
+}
+
+.agenda-title {
+	font-size: var(--fs-base);
+	font-weight: 700;
+}
+
+.agenda-meta {
+	color: var(--text-3);
+	font-size: var(--fs-sm);
+}
+
+.agenda-meta i {
+	margin-right: 0.3rem;
+}
+
+.agenda-side {
+	display: flex;
+	flex: 0 0 auto;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 0.25rem;
+}
+
+.agenda-badge {
+	padding: 0.1rem 0.6rem;
+	border-radius: 999px;
+	font-size: var(--fs-xs);
+	font-weight: 700;
+	white-space: nowrap;
+}
+
+.agenda-badge.success {
+	background: var(--success-soft);
+	color: var(--success-text);
+}
+
+.agenda-badge.warning {
+	background: var(--warning-soft);
+	color: var(--warning-text);
+}
+
+.agenda-badge.danger {
+	background: var(--danger-soft);
+	color: var(--danger-text);
+}
+
+.agenda-badge.neutral {
+	background: var(--surface-3);
+	color: var(--text-2);
+}
+
+.agenda-badge.registered {
+	background: var(--primary-soft);
+	color: var(--primary-text);
+}
+
+.agenda-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 3rem 1rem;
+	color: var(--text-3);
+	text-align: center;
+}
+
+.agenda-empty i {
+	font-size: 2.5rem;
+}
+
+/* --- 10.9 彈出視窗 --- */
+.modal-overlay {
+	padding: 1rem;
+	background: rgba(15, 23, 32, 0.55);
+	backdrop-filter: blur(3px);
+}
+
+.modal-content {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-lg);
+}
+
+.modal-content h3 {
+	font-size: var(--fs-2xl);
+}
+
+.modal-info-block {
+	background: var(--surface-2);
+	border-radius: var(--radius);
+}
+
+.modal-info-block p {
+	font-size: var(--fs-md);
+}
+
+.modal-info-block p strong {
+	color: var(--text-2);
+}
+
+.modal-subtitle {
+	color: var(--text-3);
+	font-size: var(--fs-md);
+}
+
+/* 考試資訊摘要 (報名視窗) */
+.exam-summary {
+	display: flex;
+	flex-direction: column;
+	gap: 0.85rem;
+	padding: 1rem 1.1rem;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-left: 4px solid var(--event-color, var(--border-strong));
+	border-radius: var(--radius);
+	text-align: left;
+}
+
+.exam-summary-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+}
+
+.exam-summary-title {
+	color: var(--text);
+	font-size: var(--fs-lg);
+	font-weight: 700;
+	line-height: 1.35;
+}
+
+.exam-summary-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.6rem 1rem;
+}
+
+.exam-summary-grid>div {
+	display: grid;
+	grid-template-columns: 1.25rem minmax(0, 1fr);
+	align-items: center;
+	column-gap: 0.55rem;
+}
+
+.exam-summary-grid i {
+	grid-row: 1 / span 2;
+	color: var(--text-3);
+	text-align: center;
+}
+
+.exam-summary-grid span {
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+	line-height: 1.3;
+}
+
+.exam-summary-grid strong {
+	color: var(--text);
+	font-size: var(--fs-md);
+	line-height: 1.4;
+}
+
+.exam-seats {
+	display: flex;
+	flex-direction: column;
+	gap: 0.3rem;
+	color: var(--text-2);
+	font-size: var(--fs-sm);
+}
+
+.exam-seats-bar {
+	height: 6px;
+	background: var(--surface-3);
+	border-radius: 999px;
+	overflow: hidden;
+}
+
+.exam-seats-bar span {
+	display: block;
+	height: 100%;
+	background: var(--primary);
+	border-radius: inherit;
+}
+
+.exam-notice {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	padding: 0.6rem 0.85rem;
+	border-radius: var(--radius-sm);
+	font-size: var(--fs-md);
+	font-weight: 500;
+	text-align: left;
+}
+
+.exam-notice.info {
+	background: var(--primary-soft);
+	color: var(--primary-text);
+}
+
+/* 提示裡的連結：跟著提示的字色，用底線表示可以點 */
+.exam-notice a {
+	color: inherit;
+	font-weight: 700;
+	text-decoration: underline;
+	text-underline-offset: 0.2em;
+}
+
+.exam-notice.warning {
+	background: var(--warning-soft);
+	color: var(--warning-text);
+}
+
+.exam-notice.danger {
+	background: var(--danger-soft);
+	color: var(--danger-text);
+}
+
+.exam-notice.neutral {
+	background: var(--surface-3);
+	color: var(--text-2);
+}
+
+/* 標籤在上、內容在下的兩欄資訊格 (審核視窗) */
+.info-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 0.55rem 1.25rem;
+}
+
+.info-grid p,
+.payment-detail-block .info-grid p {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	margin: 0;
+	line-height: 1.4;
+}
+
+.info-grid p strong {
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+	letter-spacing: 0.03em;
+}
+
+.info-grid p span {
+	color: var(--text);
+	font-size: var(--fs-md);
+	overflow-wrap: anywhere;
+}
+
+.info-grid .info-grid-wide {
+	grid-column: 1 / -1;
+}
+
+/* 審核視窗：左欄是付款明細與證明，右欄是報名資訊與審核表單 */
+.review-modal-wide {
+	width: 100%;
+	max-width: 60rem;
+}
+
+.review-modal-narrow {
+	width: 100%;
+	max-width: 32rem;
+}
+
+.review-modal-layout {
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+	align-items: stretch;
+	gap: 1.25rem;
+}
+
+.review-modal-main {
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+	min-width: 0;
+}
+
+/* 付款明細排在左欄：左邊看證明、右邊做決定，確認鍵也和其他視窗一樣落在右下角 */
+.review-modal-layout .payment-detail-block {
+	order: -1;
+}
+
+.review-modal-title {
+	margin-bottom: 0;
+}
+
+.review-form textarea {
+	min-height: 4.5rem;
+}
+
+.payment-detail-block {
+	gap: 0.75rem;
+	min-width: 0;
+	padding: 1rem 1.1rem;
+	border-radius: var(--radius);
+}
+
+.payment-detail-block h4 {
+	margin: 0;
+	color: var(--warning-text);
+	font-size: var(--fs-lg);
+}
+
+.payment-proof-container {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	min-height: 0;
+	margin-top: 0;
+	padding: 0.6rem;
+	border-radius: var(--radius-sm);
+}
+
+/* 圖片高度跟著視窗縮放，整個審核視窗才放得進一頁 */
+.payment-proof-img {
+	width: auto;
+	max-width: 100%;
+	max-height: min(38vh, 21rem);
+}
+
+.payment-proof-hint {
+	margin-top: 0.4rem;
+	font-size: var(--fs-xs);
+}
+
+/* 再確認與提示對話框 (取代原生 confirm / alert)，疊在所有彈出視窗之上 */
+.dialog-overlay {
+	position: fixed;
+	inset: 0;
+	z-index: 100002;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 1rem;
+	background: rgba(15, 23, 32, 0.55);
+	backdrop-filter: blur(3px);
+}
+
+.dialog-box {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.6rem;
+	width: min(24rem, 100%);
+	padding: 1.75rem 1.5rem 1.25rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-lg);
+	text-align: center;
+	animation: dialogIn 0.16s ease-out;
+}
+
+@keyframes dialogIn {
+	from {
+		opacity: 0;
+		transform: translateY(8px) scale(0.98);
+	}
+
+	to {
+		opacity: 1;
+		transform: none;
+	}
+}
+
+.dialog-icon {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 3rem;
+	height: 3rem;
+	background: var(--primary-soft);
+	border-radius: 50%;
+	color: var(--primary-text);
+	font-size: 1.35rem;
+}
+
+.dialog-box.danger .dialog-icon {
+	background: var(--danger-soft);
+	color: var(--danger-text);
+}
+
+.dialog-box.warning .dialog-icon {
+	background: var(--warning-soft);
+	color: var(--warning-text);
+}
+
+.dialog-box.success .dialog-icon {
+	background: var(--success-soft);
+	color: var(--success-text);
+}
+
+.dialog-title {
+	margin: 0;
+	font-size: var(--fs-xl);
+}
+
+.dialog-message {
+	width: 100%;
+	max-height: 50vh;
+	margin: 0;
+	overflow-y: auto;
+	color: var(--text-2);
+	font-size: var(--fs-md);
+	line-height: 1.7;
+	overflow-wrap: anywhere;
+	white-space: pre-line;
+}
+
+.dialog-message.multiline {
+	text-align: left;
+}
+
+.dialog-actions {
+	display: flex;
+	gap: 0.6rem;
+	width: 100%;
+	margin-top: 0.75rem;
+}
+
+.dialog-btn {
+	flex: 1 1 0;
+}
+
+.dialog-btn.secondary {
+	background: var(--surface);
+	border: 1.5px solid var(--border-strong);
+	color: var(--text-2);
+}
+
+.dialog-btn.secondary:hover {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+.dialog-btn.danger {
+	background: var(--danger);
+}
+
+.dialog-btn.danger:hover {
+	background: var(--danger-hover);
+}
+
+/* 新增表單的按鈕：取消與確認並排 */
+.side-panel.add-panel .button-container {
+	flex-wrap: nowrap;
+	gap: 0.6rem;
+}
+
+.side-panel.add-panel .button-container>button {
+	flex: 1 1 0;
+	padding: 0 0.75rem;
+}
+
+/* --- 10.10 登入、個人資料、聯絡我們 --- */
+.centered-form.login-card {
+	gap: 0.5rem;
+	width: min(26rem, calc(100% - 2rem));
+	padding: 2.5rem 2rem;
+}
+
+.login-logo {
+	width: 4rem;
+	margin-bottom: 0.5rem;
+}
+
+.centered-form.login-card .loginH1 {
+	margin: 0;
+}
+
+.login-subtitle {
+	margin-bottom: 1.25rem;
+	text-wrap: balance;
+	color: var(--text-2);
+	font-size: var(--fs-md);
+}
+
+.loginBTNArea {
+	width: 100%;
+	margin-bottom: 0;
+}
+
+.loginBTNArea::before {
+	display: none;
+}
+
+.centered-form:has(> .contact-form) {
+	max-width: 42rem;
+}
+
+.contact-title {
+	margin-bottom: 1.25rem;
+}
+
+.contact-form-group,
+.contact-form-group-mb2 {
+	display: flex;
+	flex-direction: column;
+	gap: 0.35rem;
+	margin-bottom: 1rem;
+}
+
+.info-area {
+	align-items: center;
+	gap: 2rem;
+	margin-top: 1rem;
+}
+
+.profile-pic-section {
+	gap: 1.25rem;
+	margin: 0;
+	padding-bottom: 0;
+}
+
+.profile-pic {
+	width: 9rem;
+	height: 9rem;
+	border: 3px solid var(--surface-3);
+}
+
+.centered-form .account {
+	gap: 0.25rem;
+}
+
+.centered-form .button-container {
+	margin-top: 0.75rem;
+}
+
+/* --- 10.11 舊樣式中寫死的顏色，統一改用變數 --- */
+.required-mark,
+.rejected-title {
+	color: var(--danger-text);
+}
+
+.paid-status {
+	color: var(--success-text);
+}
+
+.modal-info-block.rejected {
+	border-left: 4px solid var(--danger);
+}
+
+/* 審核視窗的報考人區塊：很淡的資訊色，和上方的考試資訊區塊做區隔 */
+.modal-info-block.info-highlight,
+.modal-info-block.applicant-highlight {
+	background: var(--info-soft);
+	background: color-mix(in srgb, var(--info-soft) 55%, var(--surface));
+	border: 1px solid var(--border);
+}
+
+.payment-detail-block {
+	background: var(--warning-soft);
+	background: color-mix(in srgb, var(--warning-soft) 45%, var(--surface));
+	border: 1px solid var(--border);
+}
+
+.payment-proof-container {
+	background: var(--surface);
+	border: 1px solid var(--border);
+}
+
+.payment-proof-link,
+.previous-proof a {
+	color: var(--info-text);
+}
+
+.payment-proof-hint,
+.payment-no-image,
+.text-placeholder,
+.time-separator,
+.cell-loading-text,
+.popover-close {
+	color: var(--text-3);
+}
+
+.payment-no-image {
+	border: 1px dashed var(--border-strong);
+}
+
+.popover-close:hover {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+hr {
+	border-top-color: var(--border);
+}
+
+/* 開關：關閉是灰色、開啟是主色 (原本是彩色漸層，和整體色系不搭) */
+.theme-switch {
+	background: var(--border-strong);
+	box-shadow: none;
+}
+
+.theme-switch.dark {
+	background: var(--primary);
+}
+
+/* 上傳繳費資訊視窗裡「前一次上傳的證明」區塊 */
+.modal-info-block.previous-proof {
+	margin-top: 0.6rem;
+}
+
+.previous-proof p {
+	margin-bottom: 0.4rem;
+	font-weight: 700;
+}
+
+.previous-proof a {
+	display: inline-block;
+	margin-bottom: 0.4rem;
+}
+
+/* reCAPTCHA 驗證視窗 */
+.modal-content.captcha-modal {
+	gap: 1.5rem;
+}
+
+.captcha-box {
+	display: flex;
+	justify-content: center;
+}
+
+/* --- 10.12 其他 --- */
+#footer {
+	padding: 0.6rem 1rem;
+	background: #2b353a;
+	border-top: 0;
+	color: rgba(255, 255, 255, 0.55);
+	line-height: 1.5;
+}
+
+#footer ul.menu li {
+	font-size: var(--fs-sm);
+}
+
+.loading-overlay {
+	background-color: rgba(243, 244, 247, 0.75);
+	color: var(--text-2);
+	font-size: var(--fs-md);
+}
+
+.loading-spinner {
+	width: 2.75rem;
+	height: 2.75rem;
+	border: 4px solid var(--surface-3);
+	border-top: 4px solid var(--primary);
+}
+
+/* ============================================
+   11. APP SHELL & RESPONSIVE
+   版面原則：整頁 (body) 不捲動，Header / Footer 固定，
+   清單、月曆等區塊在自己的範圍內捲動。
+   視窗斷點：1200 小筆電、1024 平板橫向 (漢堡選單)、900 面板上下堆疊、
+             768 平板直向、600 手機、480 小手機
+   清單列的版面依「清單面板本身的寬度」切換 (container query)，
+   因為側邊面板會佔掉一部分寬度：
+     寬 (> 820px)  表格式，欄位與表頭對齊
+     中 (≤ 820px)  靠左的精簡列：名稱與狀態一行，其餘資訊接在下一行
+     窄 (≤ 440px)  手機用的置中卡片
+   ============================================ */
+
+/* --- 11.1 App shell --- */
+body {
+	overflow: hidden;
+}
+
+.layout-root {
+	height: 100vh;
+	height: 100dvh;
+	min-height: 0;
+}
+
+/* overflow-y: auto 是視窗太矮、內容真的放不下時的備援捲動 */
+#content {
+	flex: 1 1 0;
+	min-height: 0;
+	justify-content: flex-start;
+	padding: 1.25rem 0;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+#footer {
+	flex-shrink: 0;
+}
+
+/* 一般表單頁 (登入、個人資料、聯絡我們)：垂直置中 */
+#content>.centered-form {
+	flex-shrink: 0;
+	margin-top: auto;
+	margin-bottom: auto;
+}
+
+/* 滿版頁 (月曆、各管理頁)：填滿可用高度 */
+#content>.manager-wrapper,
+#content>.calendar-container.centered-form,
+#content>.centered-form.userManage {
+	flex: 1 1 0;
+	min-height: 22rem;
+	margin-top: 0;
+	margin-bottom: 0;
+}
+
+.manager-wrapper {
+	align-items: stretch;
+}
+
+.manager-container {
+	flex-wrap: nowrap;
+	min-height: 0;
+}
+
+/* justify-content 不能置中：內容超出時頂端會被裁掉且捲不回去 */
+.side-panel.add-panel {
+	justify-content: flex-start;
+	max-height: 100%;
+	overflow-y: auto;
+}
+
+.side-panel.list-panel {
+	align-self: stretch;
+}
+
+.side-panel.list-panel,
+.centered-form.userManage {
+	overflow: hidden;
+	container: listpanel / inline-size;
+}
+
+.scroll-area {
+	flex: 1 1 auto;
+	height: auto;
+	min-height: 0;
+}
+
+/* --- 11.2 按鈕與彈出視窗 --- */
+
+/* 按鈕文字不換行，空間不足時整顆換到下一行 */
+input[type="button"],
+input[type="submit"],
+input[type="reset"],
+.button,
+button {
+	white-space: nowrap;
+}
+
+.button-container {
+	flex-wrap: wrap;
+}
+
+.button-container>button,
+.modal-actions>button {
+	flex-shrink: 0;
+}
+
+.button-container .captcha-group {
+	flex: 0 1 auto;
+	margin: 0 auto 0 0;
+}
+
+/* 狀態分頁按鈕：文字過長時正常換行，不溢出固定高度 */
+.centered-form .status-vertical-menu {
+	width: 100%;
+}
+
+.centered-form .status-vertical-menu .tab-item-btn {
+	gap: 0.5rem;
+	height: auto;
+	line-height: 1.4;
+	white-space: normal;
+}
+
+.centered-form .status-vertical-menu .tab-item-btn span {
+	display: flex;
+	align-items: center;
+	text-align: left;
+}
+
+/* 彈出視窗：限制高度並在內部捲動、標題置中、元素之間留白 */
+
+/* :where() 不增加權重，才不會蓋掉各種視窗自己的寬度上限 (.review-modal-narrow 等) */
+:where(.modal-content) {
+	max-width: calc(100vw - 2rem);
+}
+
+.modal-content {
+	justify-content: flex-start;
+	gap: 0.75rem;
+	max-height: calc(100vh - 2rem);
+	max-height: calc(100dvh - 2rem);
+	padding: 2rem 2.25rem;
+	overflow-y: auto;
+}
+
+.modal-content h3,
+.modal-content .modal-subtitle {
+	text-align: center;
+}
+
+.modal-content .modal-subtitle {
+	margin-bottom: 0.5rem;
+}
+
+.modal-content .exam-form {
+	gap: 1.1rem;
+}
+
+.modal-content .form-group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.4rem;
+}
+
+.modal-content .modal-info-block {
+	margin-bottom: 0.25rem;
+	padding: 0.85rem 1.1rem;
+	line-height: 1.75;
+}
+
+.modal-content .modal-actions {
+	margin-top: 0.75rem;
+}
+
+/* 標題兩側留出關閉鍵的位置，長標題才不會和它重疊 */
+.modal-content h3 {
+	padding: 0 2.5rem;
+}
+
+/* 右上角關閉鍵：右緣對齊下方欄位的右緣，垂直對齊標題。
+   sticky + 負邊界讓它在內容捲動時仍留在右上角，且不佔版面高度
+   (高度 2.25 + 上 -0.25 + 下 -2.75 + 與下一個元素的間距 0.75 = 0)。
+   sticky 的 top 是從內容區上緣算起 (不含視窗內距)，所以要和 margin-top 一樣用 -0.25rem，
+   否則會被往下推、對不齊標題 */
+.modal-content .modal-close {
+	position: sticky;
+	top: -0.25rem;
+	z-index: 2;
+	align-self: flex-end;
+	flex-shrink: 0;
+	width: 2.25rem;
+	height: 2.25rem;
+	margin: -0.25rem 0 -2.75rem 0;
+	padding: 0;
+	background: var(--surface-3);
+	border-radius: 50%;
+	color: var(--text-2);
+	font-size: 1.5rem;
+	font-weight: 400;
+	line-height: 1;
+}
+
+.modal-content .modal-close:hover {
+	background: var(--border-strong);
+	color: var(--text);
+}
+
+/* --- 11.3 漢堡選單按鈕 (預設隱藏，平板以下顯示) --- */
+#header .nav-toggle {
+	display: none;
+	flex-shrink: 0;
+	width: 2.5rem;
+	height: 2.5rem;
+	padding: 0;
+	background: transparent;
+	border-radius: var(--radius-sm);
+	color: var(--text);
+	font-size: 1.25rem;
+	line-height: 1;
 }
 
 #header .nav-toggle:hover,
 #header .nav-toggle:active {
-	background-color: rgba(0, 0, 0, 0.06);
+	background: var(--surface-3);
 }
 
 #header .logo {
+	justify-content: flex-start;
 	white-space: nowrap;
 }
 
-/* --- 小筆電 --- */
-@media screen and (max-width: 1280px) {
-	#header {
-		padding: 0 2rem;
+/* 空間真的不夠時裁掉 Logo 文字，不讓右上角的按鈕被擠出畫面 */
+#header .left {
+	min-width: 0;
+	overflow: hidden;
+}
+
+/* 未登入時顯示在導覽列的主題切換鈕 */
+#header .theme-icon-btn {
+	width: 2.5rem;
+	height: 2.5rem;
+	margin: 0;
+	padding: 0;
+	background: transparent;
+	border: 0;
+	border-radius: 50%;
+	color: var(--text-2);
+}
+
+#header .theme-icon-btn:hover {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+/* 新增面板的收合箭頭 (只在上下堆疊時顯示) */
+.add-panel-chevron {
+	display: none;
+}
+
+/* --- 11.4 清單列：依清單面板寬度切換 --- */
+
+/* 中：靠左的精簡列 */
+@container listpanel (max-width: 820px) {
+
+	/* 表頭篩選器改為可點擊的篩選標籤 (只保留有篩選功能的欄位) */
+	.list-header-row {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 0.4rem;
+		position: relative;
+		margin: 0 0 0.6rem;
+		padding: 0;
+		background: transparent;
+		border: 0;
 	}
 
-	#header .logo {
-		font-size: 1.6rem;
+	.list-header-row::before {
+		content: "篩選";
+		margin-right: 0.2rem;
+		color: var(--text-3);
 	}
 
-	#header .right ul {
-		gap: 0.6rem;
+	.list-header-row .header-cell {
+		position: static;
+		padding: 0.3rem 0.8rem;
+		background: var(--surface-2);
+		border: 1px solid var(--border);
+		border-radius: 999px;
 	}
 
-	#header .right ul li {
-		font-size: 1.05rem;
+	/* 已套用篩選的項目整顆變色，一眼看得出目前有哪些條件 */
+	.list-header-row .header-cell:has(.fa-filter.active) {
+		background: var(--accent-soft);
+		border-color: var(--accent);
+		color: var(--accent-text);
+	}
+
+	.list-header-row .header-cell:has(.fa-filter.active) .fa-filter {
+		color: inherit;
+	}
+
+	.list-header-row .header-cell:not(:has(.fa-filter)) {
+		display: none;
+	}
+
+	/* 展開中的篩選鈕加上外框，看得出下拉框是哪一顆打開的 */
+	.list-header-row .header-cell:has(.header-filter-dropdown) {
+		border-color: var(--primary);
+		box-shadow: var(--ring);
+	}
+
+	/* 下拉框置中在篩選列下方，寬度跟著內容走，不再拉成整排 */
+	.header-filter-dropdown {
+		top: calc(100% + 6px);
+		left: 50%;
+		right: auto;
+		width: max-content;
+		max-width: 100%;
+		transform: translateX(-50%);
+	}
+
+	.header-filter-dropdown select,
+	.header-filter-dropdown input {
+		width: 100%;
+		min-width: 12rem;
+	}
+
+	.header-filter-dropdown.filter-search {
+		width: min(22rem, 100%);
+		min-width: 0;
+	}
+
+	.header-filter-dropdown.filter-search input {
+		min-width: 0;
+	}
+
+	/* 用 flex + order 排成兩層：第一行是名稱與狀態 / 操作，其餘資訊接在下一行 */
+	.modern-list .list-item .text-group {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.3rem 1.1rem;
+	}
+
+	/* 強制換行用的空白項目，排在第一行 (order 0、1) 之後 */
+	.modern-list .list-item .text-group::after {
+		content: "";
+		order: 2;
+		flex-basis: 100%;
+		height: 0;
+	}
+
+	.modern-list .list-item .text-group>* {
+		order: 3;
+		flex: 0 1 auto;
+		width: auto;
+		min-width: 0;
+		padding: 0;
+	}
+
+	.modern-list .list-item .text-group> :is(.subject-info, .subject-col, .user-col, .room-name-cell) {
+		order: 0;
+		flex: 1 1 0;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: baseline;
+		justify-content: flex-start;
+		gap: 0 0.6rem;
+		min-width: 8rem;
+	}
+
+	.modern-list .list-item .text-group> :is(.status-tags, .action-col) {
+		order: 1;
+		flex: 0 0 auto;
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.modern-list .list-item .text-group> :is(.rejection-box, .inCharge) {
+		order: 4;
+		flex: 1 1 100%;
+	}
+
+	.modern-list .list-item .text-group>.rejection-box {
+		padding: 0.4rem 0.75rem;
+	}
+
+	.modern-list .list-item .text-group>.inCharge {
+		padding-top: 0.4rem;
+	}
+
+	.modern-list .list-item .text-group> :is(.reserved-col, .status-col) {
+		flex-direction: row;
+		align-items: center;
+		gap: 0.9rem;
+	}
+
+	.modern-list .list-item .text-group .personal-info .personal-info-div {
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 0.1rem 0.9rem;
+	}
+
+	.modern-list .list-item .time-text {
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 0 0.35rem;
+	}
+
+	.modern-list .list-item .text-group> :is(.role-col, .membership-col) {
+		flex: 0 1 9rem;
 	}
 }
 
-/* --- 平板 (橫向) 以下：導覽列收合為漢堡選單 --- */
+/* 窄：手機用的置中卡片，每個欄位各佔一行 */
+@container listpanel (max-width: 440px) {
+	.modern-list .list-item {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 0.5rem;
+	}
+
+	.modern-list .list-item .item-info {
+		flex: none;
+		width: 100%;
+	}
+
+	.modern-list .list-item .text-group {
+		justify-content: center;
+		gap: 0.35rem 1rem;
+		text-align: center;
+	}
+
+	.modern-list .list-item .text-group::after {
+		display: none;
+	}
+
+	.modern-list .list-item .text-group>*,
+	.modern-list .list-item .text-group> :is(.status-tags, .action-col, .role-col, .membership-col) {
+		order: 0;
+		flex: 1 1 100%;
+		justify-content: center;
+	}
+
+	.modern-list .list-item .text-group> :is(.subject-info, .subject-col, .user-col, .room-name-cell) {
+		flex: 1 1 100%;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.modern-list .list-item .text-group> :is(.reserved-col, .status-col),
+	.modern-list .list-item .text-group .personal-info .personal-info-div,
+	.modern-list .list-item .time-text {
+		justify-content: center;
+	}
+
+	.modern-list .list-item .text-group>.rejection-box {
+		text-align: center;
+	}
+
+	.modern-list .list-item .status-tags {
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		width: 100%;
+	}
+}
+
+/* 科目清單的列很單純 (色塊、名稱、刪除)，各種寬度都維持橫排靠左 */
+@container listpanel (max-width: 820px) {
+	.subject-content .modern-list .list-item {
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.subject-content .modern-list .list-item .item-info {
+		flex: 1 1 0;
+		width: auto;
+	}
+
+	.subject-content .modern-list .list-item .text-group {
+		flex-direction: column-reverse;
+		flex-wrap: nowrap;
+		align-items: flex-start;
+		gap: 0;
+		text-align: left;
+	}
+
+	.subject-content .modern-list .list-item .text-group>* {
+		flex: 0 0 auto;
+	}
+
+	.subject-content .modern-list .list-item .text-group::after {
+		display: none;
+	}
+}
+
+/* --- 11.5 視窗斷點 --- */
+
+/* 視窗較矮：新增表單縮小間距，盡量一頁顯示完 */
+@media screen and (max-height: 820px) {
+	.side-panel.add-panel {
+		padding: 1.1rem 1.5rem;
+	}
+
+	.side-panel.add-panel h3 {
+		margin-bottom: 1.25rem;
+	}
+
+	.side-panel.add-panel h3::after {
+		bottom: -0.6rem;
+	}
+
+	.side-panel.add-panel .modern-form,
+	.centered-form.exam-panel .modern-form {
+		gap: 0.5rem;
+	}
+
+	.side-panel.add-panel .input-field,
+	.centered-form.exam-panel .input-field {
+		gap: 0.2rem;
+	}
+
+	.side-panel.add-panel .modern-form input,
+	.side-panel.add-panel .modern-form select {
+		padding-top: 0.4rem;
+		padding-bottom: 0.4rem;
+	}
+
+	.side-panel.add-panel .custom-multi-select {
+		min-height: 2.25rem;
+	}
+
+	.time-separator {
+		margin-top: 20px;
+	}
+}
+
+/* 小筆電：導覽列縮小間距，避免過早收合 */
+@media screen and (max-width: 1200px) {
+	#header .logo {
+		font-size: 1.2rem;
+	}
+
+	#header .right ul li a,
+	#header .right ul li a.dark-background {
+		padding: 0.45rem 0.55rem;
+		font-size: var(--fs-base);
+	}
+}
+
+/* 平板 (橫向) 以下：導覽列收合為漢堡選單 */
 @media screen and (max-width: 1024px) {
 	:root {
 		--header-height: 3.75rem;
-		--header-content-height: 2.25rem;
 	}
 
+	/* backdrop-filter 會讓 fixed 的側邊選單改以 header 為定位基準，收合模式改用不透明底色 */
 	#header {
-		padding: 0 1rem 0 1.25rem;
-	}
-
-	#header .logo {
-		font-size: 1.5rem;
-		letter-spacing: 0.02rem;
+		background: var(--surface);
+		backdrop-filter: none;
 	}
 
 	#header .nav-toggle {
-		display: flex;
+		display: inline-flex;
 	}
 
+	/* 側邊選單開啟時，後方畫面變暗；點暗處關閉 */
+	.nav-scrim {
+		display: block;
+		position: fixed;
+		inset: 0;
+		z-index: 1;
+		background: rgba(15, 23, 32, 0.5);
+	}
+
+	/* 頁面導覽：從右側滑出的側邊選單 */
 	#header .right {
-		display: none;
-		position: absolute;
-		top: 100%;
-		left: 0;
+		position: fixed;
+		top: 0;
 		right: 0;
+		bottom: 0;
+		z-index: 2;
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		width: min(20rem, 86vw);
 		margin: 0;
-		padding: 0.5rem 0 0.75rem;
-		line-height: normal;
-		background: #fff;
-		border-top: 1px solid #eee;
-		box-shadow: 0 6px 12px rgba(0, 0, 0, 0.12);
-		max-height: calc(100vh - var(--header-height));
+		padding: 0 0.75rem 1rem;
+		background: var(--surface);
+		box-shadow: var(--shadow-lg);
 		overflow-y: auto;
+		transform: translateX(100%);
+		visibility: hidden;
+		transition: transform 0.25s ease, visibility 0.25s;
 	}
 
 	#header .right.open {
-		display: block;
+		transform: none;
+		visibility: visible;
+	}
+
+	.nav-drawer-head {
+		display: flex;
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: space-between;
+		height: var(--header-height);
+		margin-bottom: 0.5rem;
+		padding: 0 0.25rem 0 0.9rem;
+		border-bottom: 1px solid var(--border);
+		color: var(--text);
+		font-size: var(--fs-lg);
+		font-weight: 700;
+	}
+
+	#header .nav-close {
+		width: 2.5rem;
+		height: 2.5rem;
+		padding: 0;
+		background: transparent;
+		border-radius: var(--radius-sm);
+		color: var(--text-2);
+		font-size: 1.2rem;
+	}
+
+	#header .nav-close:hover {
+		background: var(--surface-3);
+		color: var(--text);
 	}
 
 	#header .right ul {
 		flex-direction: column;
-		gap: 0.25rem;
+		align-items: stretch;
+		gap: 0.2rem;
 	}
 
 	#header .right ul li {
 		justify-content: flex-start;
-		padding: 0 1rem;
-		font-size: 1.1rem;
+		font-size: var(--fs-base);
 	}
 
-	#header .right ul li a {
-		width: 100%;
-		height: auto;
+	#header .right ul li a,
+	#header .right ul li a.dark-background {
 		justify-content: flex-start;
-		padding: 0.75rem 1rem;
-		line-height: 1.5rem;
+		gap: 0.85rem;
+		width: 100%;
+		padding: 0.8rem 0.9rem;
 	}
 
-	#header .right ul li a.btn {
-		justify-content: center;
-		margin: 0.25rem 0;
+	/* 主題切換：登入後改放側邊選單底部，header 上的圖示隱藏 */
+	#header .theme-icon-btn.desktop-only {
+		display: none;
 	}
 
-	#header .dark-background::before {
-		top: 0.15rem;
-		bottom: 0.15rem;
+	.nav-drawer-foot {
+		display: block;
+		margin-top: auto;
+		padding-top: 0.75rem;
+		border-top: 1px solid var(--border);
 	}
 
-	/* 大頭貼選單改為在面板內展開 */
-	#header .right ul li.user-menu-li {
-		flex-direction: column;
-		align-items: stretch;
-		margin-top: 0.25rem;
-		padding-top: 0.5rem;
-		border-top: 1px solid #eee;
+	.drawer-theme-toggle {
+		display: flex;
+		align-items: center;
+		gap: 0.85rem;
+		padding: 0.8rem 0.9rem;
+		border-radius: var(--radius-sm);
+		color: var(--text-2);
+		font-weight: 500;
+		cursor: pointer;
+		user-select: none;
 	}
 
-	#header .user-menu-btn {
-		align-self: flex-start;
-		margin-left: 0.5rem;
+	.drawer-theme-toggle:hover {
+		background: var(--surface-3);
+		color: var(--text);
 	}
 
-	#header .dropdown-menu {
-		position: static;
-		width: auto;
-		min-width: 0;
-		padding: 0.25rem 0 0;
-		box-shadow: none;
-		animation: none;
+	.drawer-theme-toggle svg {
+		flex-shrink: 0;
+		color: var(--text-3);
 	}
 
-	#header .dropdown-menu .menu-item {
-		padding: 0.75rem 1rem;
+	.nav-icon {
+		display: inline-block;
+		width: 1.25rem;
+		color: var(--text-3);
+		text-align: center;
 	}
 
-	body.dark #header .right {
-		background: #1a1a2e;
-		border-top-color: #2a2a4a;
+	#header .right ul li a.dark-background .nav-icon {
+		color: inherit;
 	}
 
 	/* 版面寬度 */
 	.centered-form,
-	.centered-form.history-panel,
 	.centered-form.userManage {
 		width: 92%;
 	}
 
 	.calendar-container.centered-form {
-		width: 95%;
-		padding: 1rem 1.5rem;
-	}
-
-	.manager-wrapper {
-		width: 95%;
-	}
-
-	.manager-container {
-		flex-direction: column;
-		align-items: stretch;
-		gap: 1.5rem;
-	}
-
-	.side-panel.add-panel,
-	.side-panel.list-panel {
-		flex: none;
-		width: 100%;
-		min-width: 0;
+		width: 96%;
 	}
 
 	/* 月曆標頭：篩選列換到第二行 */
-	.calendar-header {
-		gap: 1rem;
-	}
-
 	.header-options {
 		order: 3;
 		flex: 1 1 100%;
-		padding: 0;
-	}
-
-	/* 彈出視窗：內容過長時可捲動 */
-	.modal-content {
-		justify-content: flex-start;
-		max-width: calc(100vw - 2rem);
-		max-height: calc(100vh - 2rem);
-		max-height: calc(100dvh - 2rem);
-		overflow-y: auto;
+		max-width: none;
 	}
 }
 
-/* --- 平板 (直向) / 大手機 --- */
+/* 面板上下堆疊 */
+@media screen and (max-width: 900px) {
+	.manager-container {
+		flex-direction: column;
+		align-items: stretch;
+		gap: 0.75rem;
+	}
+
+	.side-panel.add-panel {
+		flex: 0 1 auto;
+		gap: 0.5rem;
+		width: 100%;
+		max-height: 60%;
+		padding: 0.9rem 1.25rem;
+	}
+
+	.side-panel.list-panel {
+		flex: 1 1 0;
+		width: 100%;
+		min-height: 0;
+	}
+
+	.side-panel.add-panel h3 {
+		margin-bottom: 0.5rem;
+		font-size: var(--fs-lg);
+	}
+
+	.side-panel.add-panel h3::after {
+		display: none;
+	}
+
+	.list-title-row h3,
+	.list-panel-header h3,
+	.side-panel.list-panel>h3 {
+		font-size: var(--fs-xl);
+	}
+
+	/* 新增表單預設收合，點標題展開，把空間留給清單 */
+	.side-panel.add-panel.collapsible h3 {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.6rem;
+		margin-bottom: 0;
+		cursor: pointer;
+		user-select: none;
+	}
+
+	.add-panel-chevron {
+		display: inline-block;
+		color: var(--text-3);
+		font-size: 0.8rem;
+		transition: transform 0.2s ease;
+	}
+
+	.side-panel.add-panel.collapsible.open .add-panel-chevron {
+		transform: rotate(180deg);
+	}
+
+	.side-panel.add-panel.collapsible:not(.open)>.modern-form {
+		display: none;
+	}
+
+	.side-panel.add-panel.collapsible.open h3 {
+		margin-bottom: 0.75rem;
+	}
+
+	/* 考試、考場的表單欄位多：展開時佔用整個面板區，清單暫時收起，表單本身就不需要捲動；
+	   按取消或標題回到清單。科目表單只有一個欄位，不需要這樣做，清單照常顯示 */
+	.side-panel.add-panel:is(.exam-panel, .room-panel).collapsible.open {
+		max-height: 100%;
+	}
+
+	.manager-container:has(.add-panel:is(.exam-panel, .room-panel).collapsible.open) .side-panel.list-panel {
+		display: none;
+	}
+
+	/* 狀態分頁：直排選單改為可橫向滑動的標籤列 */
+	/* 可以左右滑動，但不顯示捲軸 (切換分頁時會自動捲到目前的分頁) */
+	.centered-form .status-vertical-menu {
+		flex-direction: row;
+		gap: 0.4rem;
+		overflow-x: auto;
+		padding-bottom: 0;
+		scrollbar-width: none;
+	}
+
+	.centered-form .status-vertical-menu::-webkit-scrollbar {
+		display: none;
+	}
+
+	.centered-form .status-vertical-menu .tab-item-btn {
+		flex: 0 0 auto;
+		min-height: 0;
+		padding: 0.45rem 0.8rem;
+		background: var(--surface-2);
+		white-space: nowrap;
+	}
+
+	.centered-form .status-vertical-menu .tab-item-btn span i {
+		margin-right: 0.4rem;
+	}
+
+	/* 左邊或右邊還有分頁沒顯示完時：邊緣蓋一層往面板底色淡出的漸層，上面放箭頭按鈕 */
+	.status-tabs .tabs-arrow {
+		position: absolute;
+		top: 0;
+		bottom: 0;
+		z-index: 1;
+		width: 3.25rem;
+		height: auto;
+		padding: 0;
+		border-radius: 0;
+		color: var(--text-2);
+	}
+
+	.status-tabs .tabs-arrow.left {
+		left: 0;
+		justify-content: flex-start;
+		background: linear-gradient(to left, transparent, var(--surface) 55%);
+	}
+
+	.status-tabs .tabs-arrow.right {
+		right: 0;
+		justify-content: flex-end;
+		background: linear-gradient(to right, transparent, var(--surface) 55%);
+	}
+
+	.status-tabs.can-scroll-left .tabs-arrow.left,
+	.status-tabs.can-scroll-right .tabs-arrow.right {
+		display: flex;
+	}
+
+	/* 全站按鈕 hover 會換底色，這裡要維持透明，漸層才不會被蓋掉 */
+	.status-tabs .tabs-arrow:hover,
+	.status-tabs .tabs-arrow:active {
+		background-color: transparent;
+	}
+
+	.status-tabs .tabs-arrow span {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 1.75rem;
+		height: 1.75rem;
+		background: var(--surface);
+		border: 1px solid var(--border-strong);
+		border-radius: 50%;
+		box-shadow: var(--shadow-sm);
+	}
+
+	.status-tabs .tabs-arrow:hover span {
+		background: var(--surface-3);
+		color: var(--text);
+	}
+}
+
+/* 平板 (直向) / 大手機 */
 @media screen and (max-width: 768px) {
+	#content {
+		padding: 0.75rem 0;
+	}
+
 	.centered-form,
-	.centered-form.history-panel,
 	.centered-form.userManage {
-		width: calc(100% - 2rem);
-		margin: 1rem;
-		padding: 1.5rem 1.25rem;
+		width: calc(100% - 1.5rem);
+		margin-left: 0.75rem;
+		margin-right: 0.75rem;
+		padding: 1.25rem 1rem;
 	}
 
 	.centered-form form {
 		width: 100%;
+		max-width: 100%;
 		padding: 0;
 	}
 
 	.manager-wrapper {
 		width: 100%;
-		padding: 0 1rem;
+		padding: 0 0.75rem;
 	}
 
-	.side-panel.add-panel h3 {
-		font-size: 1.5rem;
-		margin-bottom: 1.5rem;
+	.side-panel.add-panel,
+	.side-panel.list-panel,
+	.centered-form.userManage {
+		padding: 0.9rem 0.85rem;
 	}
 
-	/* 登入頁 */
-	.centered-form .loginH1 {
-		font-size: 1.9rem;
-		margin: 0.5rem 0 3rem;
-	}
-
-	.loginBTNArea {
-		width: 100%;
-	}
-
-	.centered-form .google-custom-btn {
-		width: 100%;
-		gap: 0.75rem;
-		font-size: 1.15rem;
-	}
-
-	/* 個人資料頁 */
+	/* 個人資料頁：大頭貼與同步按鈕並排，節省高度 */
 	.info-area {
 		flex-direction: column;
-		margin-top: 0.5rem;
+		gap: 0.75rem;
+		margin-top: 0.25rem;
 	}
 
 	.profile-pic-section {
+		flex-direction: row;
 		gap: 1.25rem;
-		margin: 0.5rem 0;
-		padding-bottom: 1rem;
 	}
 
 	.profile-pic {
-		width: 8rem;
-		height: 8rem;
+		width: 5rem;
+		height: 5rem;
+	}
+
+	.centered-form .row-group {
+		gap: 0.75rem;
+	}
+
+	.button-container {
+		justify-content: center;
+	}
+
+	.button-container .captcha-group {
+		flex: 1 1 100%;
+		margin: 0;
+	}
+
+	/* 表單與彈出視窗 */
+	.form-row {
+		gap: 0.75rem;
+	}
+
+	/* 審核視窗改為單欄，順序：報名資訊 → 付款明細 → 審核表單 */
+	.review-modal-layout {
+		grid-template-columns: minmax(0, 1fr);
+		gap: 0.75rem;
+	}
+
+	.review-modal-layout .review-modal-main {
+		display: contents;
+	}
+
+	.review-modal-layout .payment-detail-block {
+		order: 1;
+	}
+
+	.review-modal-layout .review-form {
+		order: 2;
+	}
+
+	/* 視窗內容仍可上下滑動，但不顯示捲軸 */
+	.modal-content {
+		scrollbar-width: none;
+	}
+
+	.modal-content::-webkit-scrollbar {
+		display: none;
+	}
+
+	.modal-content,
+	.modal-content.exam-form-modal {
+		padding: 1.75rem 1.5rem;
+	}
+
+	.modal-content.exam-form-modal {
+		width: 100%;
+		max-width: none;
+	}
+
+	.modal-actions {
+		gap: 0.75rem;
+	}
+
+	.modal-actions>button {
+		flex: 1 1 0;
+		margin: 0;
+	}
+
+	/* 「聯絡管理員」是次要動作：換到主要按鈕下方，獨立一行 */
+	.modal-actions {
+		flex-wrap: wrap;
+	}
+
+	.modal-actions button.btn-contact-admin {
+		flex: 1 1 100%;
+		order: 1;
+		margin: 0;
+	}
+
+	/* 「修改報名資料」的取消 / 確認外面多包了一層 .flex-gap-1，同樣撐滿整列、各佔一半 */
+	.modal-actions>.flex-gap-1 {
+		flex: 1 1 100%;
+		gap: 0.75rem;
+	}
+
+	.modal-actions>.flex-gap-1>button {
+		flex: 1 1 0;
+	}
+
+	/* 月曆 */
+	.calendar-container.centered-form {
+		width: calc(100% - 1rem);
+		margin-left: 0.5rem;
+		margin-right: 0.5rem;
+		padding: 0.9rem 0.75rem;
+	}
+
+	.header-controls {
+		flex-wrap: wrap;
+	}
+
+	.calendar-header {
+		justify-content: space-between;
+		gap: 0.6rem;
+	}
+
+	.custom-select-bar {
+		min-width: 0;
+	}
+}
+
+/* Footer 精簡版：窄螢幕或視窗較矮時，把高度留給內容 */
+@media screen and (max-width: 768px),
+screen and (max-height: 760px) {
+	#footer {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 0 1rem;
+		padding: 0.3rem 0.75rem;
+		line-height: 1.4;
+	}
+
+	#footer>* {
+		margin: 0;
+	}
+
+	#footer ul.icons a {
+		width: 1.6rem;
+		height: 1.6rem;
+	}
+
+	#footer ul.menu {
+		flex-direction: row;
+		flex-wrap: wrap;
+		width: auto;
+	}
+
+	#footer ul.menu li {
+		display: block;
+		margin: 0 0.4rem;
+		padding: 0;
+		font-size: var(--fs-xs);
+		line-height: 1.4;
+	}
+}
+
+/* 手機：月曆改成依日期排列的考試清單，不再顯示整個月的格子 */
+@media screen and (max-width: 600px) {
+	.calendar-wrapper-month {
+		display: none;
+	}
+
+	.calendar-agenda {
+		display: flex;
+		flex: 1 1 0;
+		flex-direction: column;
+		gap: 1rem;
+		width: 100%;
+		min-height: 0;
+		padding-right: 2px;
+		overflow-y: auto;
+	}
+
+	.header-left h1,
+	.calendar-header h1 {
+		font-size: var(--fs-xl);
+	}
+
+	.header-controls {
+		flex: 1 1 100%;
+		justify-content: flex-start;
+	}
+
+	.header-controls .btn-today {
+		margin-left: auto;
+	}
+}
+
+/* 小手機 */
+@media screen and (max-width: 480px) {
+	#header {
+		padding: 0 0.5rem 0 0.75rem;
+	}
+
+	#header .logo {
+		font-size: clamp(0.9rem, 4vw, 1.2rem);
+		letter-spacing: 0;
+	}
+
+	/* 未登入時右上角有主題切換與登入鈕：縮小登入鈕，首頁連結交給 Logo */
+	#header .header-link:not(.btn) {
+		display: none;
+	}
+
+	#header .header-link.btn {
+		margin: 0;
+		padding: 0.45rem 0.7rem;
+		font-size: var(--fs-sm);
+	}
+
+	.header-actions {
+		gap: 0.2rem;
+		margin-left: 0.35rem;
+	}
+
+	#header .logo .logoIMG {
+		height: 2rem;
 	}
 
 	.centered-form .row-group {
@@ -4195,206 +7399,8 @@ body.dark .menu-divider {
 		gap: 0;
 	}
 
-	/* 表單 */
 	.form-row {
 		flex-direction: column;
-		gap: 0.7rem;
-	}
-
-	.review-modal-layout {
-		flex-direction: column;
-		align-items: stretch;
-		gap: 0;
-	}
-
-	/* 狀態分頁：直排選單改為可橫向滑動的標籤列 */
-	.centered-form .status-vertical-menu {
-		flex-direction: row;
-		width: 100%;
-		gap: 0.5rem;
-		overflow-x: auto;
-		padding-bottom: 0.25rem;
-	}
-
-	.centered-form .status-vertical-menu .tab-item-btn {
-		flex: 0 0 auto;
-		white-space: nowrap;
-		padding: 0.6rem 1rem;
-		font-size: 1rem;
-	}
-
-	.centered-form .status-vertical-menu .tab-item-btn>.fa-chevron-right {
-		display: none;
-	}
-
-	/* 清單：取消內層捲動，改用整頁捲動 */
-	.scroll-area {
-		height: auto;
-		overflow: visible;
-		padding-right: 0;
-	}
-
-	.list-item {
-		padding: 1rem;
-	}
-
-	/* 單欄排列時清除桌機版的 grid 定位，避免產生多餘欄位 */
-	.scroll-area .modern-list .list-item .text-group>* {
-		grid-column: auto;
-		grid-row: auto;
-	}
-
-	.manager-list .list-item .text-group {
-		justify-items: stretch;
-	}
-
-	.text-group>div {
-		justify-content: flex-start;
-	}
-
-	.text-group .name {
-		font-size: 1.35rem;
-	}
-
-	.rejection-box {
-		margin: 0;
-	}
-
-	.color-indicator {
-		width: 3.5rem;
-		height: 3.5rem;
-	}
-
-	.clear-filter-btn {
-		margin-left: 0;
-	}
-
-	/* 表頭篩選器：改為可點擊的篩選標籤 (只保留有篩選功能的欄位) */
-	.list-header-row {
-		display: flex;
-		flex-wrap: wrap;
-		gap: 0.5rem;
-		position: relative;
-		padding: 0.75rem;
-		border-radius: 0.75rem;
-	}
-
-	.list-header-row .header-cell {
-		position: static;
-		padding: 0.35rem 0.75rem;
-		font-size: 0.95rem;
-		background: #fff;
-		border: 1px solid #ddd;
-		border-radius: 999px;
-	}
-
-	.list-header-row .header-cell:not(:has(.fa-filter)) {
-		display: none;
-	}
-
-	.header-filter-dropdown {
-		top: calc(100% + 4px);
-		left: 0.5rem;
-		right: 0.5rem;
-	}
-
-	.header-filter-dropdown.filter-search {
-		min-width: 0;
-	}
-
-	/* 月曆 */
-	.calendar-container.centered-form {
-		width: calc(100% - 1.5rem);
-		margin: 0.75rem;
-		padding: 1rem 0.75rem;
-	}
-
-	.header-left {
-		padding: 0;
-	}
-
-	.header-options {
-		flex-direction: column;
-		gap: 0.75rem;
-	}
-
-	.header-controls {
-		flex-wrap: wrap;
-	}
-}
-
-/* --- 手機 --- */
-@media screen and (max-width: 600px) {
-
-	/* 月曆維持 7 欄，改為可左右滑動 */
-	.calendar-wrapper-month {
-		overflow-x: auto;
-		-webkit-overflow-scrolling: touch;
-	}
-
-	.weekday-header,
-	.month-grid {
-		min-width: 600px;
-	}
-
-	.weekday-cell {
-		font-size: 1rem;
-	}
-
-	.calendar-cell {
-		padding: 0.1rem 0.3rem;
-	}
-
-	.day-number {
-		width: 1.75rem;
-		font-size: 1.1rem;
-	}
-
-	.event-pill {
-		font-size: 0.85rem;
-	}
-
-	.event-title-pill {
-		font-size: 0.95rem;
-	}
-
-	.deadline-badge {
-		padding: 0 4px;
-		font-size: 0.75rem;
-	}
-
-	/* 「還有 N 個考試」彈出框改為底部面板 (覆蓋 JS 計算的位置) */
-	.day-popover {
-		left: 0.75rem !important;
-		right: 0.75rem !important;
-		top: auto !important;
-		bottom: 0.75rem !important;
-		max-height: 60vh !important;
-	}
-
-	.modal-content {
-		padding: 1.25rem 1rem;
-	}
-}
-
-/* --- 小手機 --- */
-@media screen and (max-width: 480px) {
-	#header {
-		padding: 0 0.5rem 0 0.75rem;
-	}
-
-	#header .logo {
-		font-size: clamp(0.95rem, 4.4vw, 1.25rem);
-		letter-spacing: 0;
-	}
-
-	#header .logo .logoIMG {
-		height: 2rem;
-		margin-right: 0.35rem;
-	}
-
-	.centered-form .loginH1 {
-		font-size: 1.6rem;
 	}
 
 	.split-group {
@@ -4407,12 +7413,1823 @@ body.dark .menu-divider {
 	}
 }
 
-/* --- 觸控裝置：取消 hover 位移，避免點擊後卡片跳動 --- */
-@media (hover: none) {
+/* reCAPTCHA 元件固定 304px 寬，小螢幕等比縮小避免超出 */
+@media screen and (max-width: 400px) {
 
-	.centered-form:hover,
-	.day-popover:hover,
-	.list-item.clickable:hover {
-		transform: none;
+	.captcha-group>div,
+	.captcha-box>div {
+		transform: scale(0.85);
+		transform-origin: center;
+	}
+}
+
+/* 使用者偏好減少動態效果時，側邊選單不做滑動動畫 */
+@media (prefers-reduced-motion: reduce) {
+	#header .right {
+		transition: none;
+	}
+}
+
+/* ============================================
+   12. DARK MODE (body.dark)
+   由主題開關切換 (src/theme.js)。
+   元件的顏色都來自第 10 節的變數，深色模式只需要換掉變數的值；
+   下方少數規則是變數換不掉的例外。
+   ============================================ */
+body.dark {
+	--bg: #121626;
+	--surface: #1c2239;
+	--surface-2: #232a45;
+	--surface-3: #2e3757;
+	--border: #323b5f;
+	--border-strong: #465078;
+	--text: #e9ebf3;
+	--text-2: #b7bed1;
+	--text-3: #8f98b3;
+
+	/* 實心按鈕的底色沿用淺色模式的深度 (白字才清楚)；文字用的 -text 色則調亮 */
+	--primary: #1c7d77;
+	--primary-hover: #23968e;
+	--primary-soft: rgba(53, 179, 171, 0.18);
+	--primary-text: #5fd0c7;
+	--accent-soft: rgba(239, 190, 41, 0.18);
+	--accent-text: #f3d16b;
+	--accent-ink: #1a1a2e;
+	--brand: #efbe29;
+	--danger: #cf3f34;
+	--danger-hover: #e0554a;
+	--danger-soft: rgba(240, 113, 103, 0.18);
+	--danger-text: #ff8f85;
+	--warning-text: #f2ad5e;
+	--warning-soft: rgba(224, 138, 44, 0.2);
+	--success-text: #6fd29a;
+	--success-soft: rgba(92, 192, 136, 0.18);
+	--info: #4a8fd6;
+	--info-text: #84b9f0;
+	--info-soft: rgba(90, 155, 224, 0.18);
+	--pending: #b08d7c;
+	--pending-text: #d0ad9c;
+	--pending-soft: rgba(176, 141, 124, 0.18);
+
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+	--shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 10px 28px -12px rgba(0, 0, 0, 0.6);
+	--shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.45), 0 24px 48px -16px rgba(0, 0, 0, 0.7);
+	--ring: 0 0 0 3px rgba(53, 179, 171, 0.4);
+
+	color-scheme: dark;
+}
+
+body.dark #header {
+	background: rgba(18, 22, 38, 0.88);
+}
+
+@media screen and (max-width: 1024px) {
+	body.dark #header {
+		background: var(--surface);
+	}
+}
+
+/* Logo 的深棕色果蒂在深色底上對比偏低，加一圈很淡的亮邊把輪廓襯出來 */
+body.dark #header .logo .logoIMG,
+body.dark .login-logo {
+	filter: drop-shadow(0 0 1px rgba(255, 255, 255, 0.55));
+}
+
+body.dark #footer {
+	background: #0c0f1c;
+	border-top: 1px solid var(--border);
+}
+
+body.dark .loading-overlay {
+	background-color: rgba(18, 22, 38, 0.8);
+}
+
+body.dark .modal-overlay,
+body.dark .dialog-overlay {
+	background: rgba(0, 0, 0, 0.65);
+}
+
+/* 目前分頁：深色模式用品牌黃當底，字要換成深色 */
+body.dark .centered-form .status-vertical-menu .tab-item-btn.active {
+	box-shadow: none;
+	color: var(--accent-ink);
+}
+
+body.dark .centered-form .status-vertical-menu .tab-item-btn.active .tab-count {
+	background: rgba(0, 0, 0, 0.18);
+	color: var(--accent-ink);
+}
+
+/* select 的下拉箭頭是內嵌的 SVG，顏色寫在圖裡，深色模式換一張較亮的 */
+body.dark select {
+	background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='%23b7bed1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 6l4 4 4-4'/%3E%3C/svg%3E");
+}
+
+/* Google 登入按鈕：使用 Google 品牌規範的深色版配色 (底 #131314、框 #8E918F、字 #E3E3E3) */
+body.dark .centered-form .google-custom-btn {
+	background: #131314;
+	border-color: #8e918f;
+	color: #e3e3e3;
+}
+
+body.dark .centered-form .google-custom-btn:hover {
+	background: #25262a;
+	box-shadow: none;
+}
+
+body.dark .calendar-cell.past .event-pill {
+	opacity: 0.4;
+}
+
+/* 色塊在深色模式是實色淺底配深色字，名額標籤改用半透明的深色底才看得清楚 */
+body.dark .event-seats {
+	background: rgba(0, 0, 0, 0.14);
+	color: inherit;
+}
+
+body.dark .event-seats:is(.warning, .danger) {
+	background: rgba(0, 0, 0, 0.6);
+	color: #fff;
+}
+
+/* 科目色塊：深色背景上淡化的底色會變髒，維持實色與原本的字色 */
+body.dark .event-pill {
+	background: var(--event-color, var(--surface-3));
+	border-left: 0;
+	color: var(--event-ink, var(--text));
+}
+
+/* 今天的格子：深色模式的淡黃底本身是半透明的，不需要再和底色混一次 (混了會偏灰) */
+body.dark .calendar-cell.today-cell {
+	background: var(--accent-soft);
+}
+
+/* 頁面是深色配色時，瀏覽器會幫配色不同的 iframe 墊一層白底，reCAPTCHA 邊緣因此露出白邊 */
+body.dark iframe {
+	color-scheme: light;
+}
+
+/* ============================================
+   13. BOOKING SERVICES
+   報名服務各頁 (通知中心、名單與統計、操作紀錄、通知管理、考試須知)
+   與「報名詳細資訊」「處理退費申請」「場次詳細資訊」視窗。元件在 src/features/booking/。
+   顏色只用第 10 節的變數與 .tone-<名稱>，所以深色模式不需要另外寫規則
+   ============================================ */
+
+/* --- 13.2 頁面外框：填滿可用高度，只有內容區捲動 --- */
+.svc-shell {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	gap: 0.75rem;
+	width: min(96%, 64rem);
+	min-height: 22rem;
+}
+
+.svc-page {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	min-height: 0;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow);
+	overflow: hidden;
+}
+
+.svc-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	padding: 1.25rem 1.5rem 1rem;
+}
+
+.svc-head-text {
+	min-width: 0;
+	text-align: left;
+}
+
+.svc-head h1 {
+	margin: 0;
+	font-size: var(--fs-2xl);
+	line-height: 1.3;
+}
+
+.svc-head p {
+	margin: 0.15rem 0 0;
+	color: var(--text-3);
+	font-size: var(--fs-sm);
+	line-height: 1.5;
+}
+
+.svc-head-actions {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	gap: 0.5rem;
+}
+
+.svc-body {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	gap: 1rem;
+	min-height: 0;
+	padding: 1rem 1.5rem 1.5rem;
+	overflow-y: auto;
+	text-align: left;
+	transition: opacity 0.15s;
+}
+
+/* 重新讀取時先留著上一次的內容，淡化表示正在更新 */
+.svc-body.is-loading {
+	opacity: 0.55;
+	pointer-events: none;
+}
+
+.svc-body>.exam-notice {
+	flex-shrink: 0;
+}
+
+.svc-loading {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.6rem;
+	padding: 3rem 0;
+	color: var(--text-3);
+	font-size: var(--fs-md);
+}
+
+.svc-spinner {
+	width: 1.1rem;
+	height: 1.1rem;
+	border: 2px solid var(--border-strong);
+	border-top-color: var(--primary);
+	border-radius: 50%;
+	animation: spin 0.8s linear infinite;
+}
+
+.svc-empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.6rem;
+	margin: auto 0;
+	padding: 2.5rem 1rem;
+}
+
+.svc-empty i {
+	margin-bottom: 0.25rem;
+	font-style: normal;
+}
+
+.svc-empty p {
+	margin: 0;
+}
+
+.svc-hint {
+	margin: 0;
+	color: var(--text-3);
+	font-size: var(--fs-sm);
+	line-height: 1.5;
+}
+
+.svc-hint i {
+	font-style: normal;
+}
+
+.svc-subhead {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	margin: 0.25rem 0 0;
+	padding: 0;
+	color: var(--text);
+	font-size: var(--fs-md);
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	line-height: 1.4;
+	text-align: left;
+}
+
+.svc-subhead-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem 1rem;
+}
+
+.svc-count {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 1.4rem;
+	height: 1.4rem;
+	padding: 0 0.45rem;
+	background: var(--surface-3);
+	border-radius: 999px;
+	color: var(--text-2);
+	font-size: var(--fs-xs);
+	font-weight: 700;
+	letter-spacing: 0;
+}
+
+.svc-count.accent {
+	background: var(--accent-soft);
+	color: var(--accent-text);
+}
+
+/* --- 13.3 按鈕、標籤 --- */
+/* 次要的小按鈕 (外框)。全站的 button 預設是實心主色，這裡蓋掉 */
+.svc-btn,
+button.svc-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	gap: 0.45rem;
+	height: 2.25rem;
+	padding: 0 0.9rem;
+	background: var(--surface);
+	border: 1.5px solid var(--border-strong);
+	border-radius: var(--radius-sm);
+	color: var(--text-2);
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	line-height: 1.2;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.svc-btn i {
+	font-size: 0.9em;
+	font-style: normal;
+}
+
+.svc-btn:hover,
+button.svc-btn:hover {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+button.svc-btn.primary {
+	background: var(--primary);
+	border-color: var(--primary);
+	color: #fff;
+}
+
+button.svc-btn.primary:hover {
+	background: var(--primary-hover);
+	border-color: var(--primary-hover);
+}
+
+button.svc-btn.danger {
+	border-color: color-mix(in srgb, var(--danger) 45%, var(--border-strong));
+	color: var(--danger-text);
+}
+
+button.svc-btn.danger:hover {
+	background: var(--danger-soft);
+}
+
+button.svc-btn:disabled {
+	cursor: not-allowed;
+	opacity: 0.55;
+}
+
+.svc-pill {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
+	padding: 0.2rem 0.7rem;
+	background: var(--tone-soft, var(--surface-3));
+	border-radius: 999px;
+	color: var(--tone, var(--text-2));
+	font-size: var(--fs-xs);
+	font-weight: 700;
+	line-height: 1.5;
+	white-space: nowrap;
+}
+
+.svc-meta code,
+.svc-id code {
+	margin: 0;
+	padding: 0.05rem 0.4rem;
+	background: var(--surface-3);
+	border: 0;
+	border-radius: 4px;
+	color: var(--text-2);
+	font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+	font-size: 0.85em;
+}
+
+/* --- 13.4 篩選列 --- */
+.svc-toolbar {
+	display: flex;
+	flex-shrink: 0;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 0.75rem;
+	padding: 0 1.5rem 1rem;
+	border-bottom: 1px solid var(--border);
+}
+
+.svc-filters {
+	display: flex;
+	flex: 1 1 0;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	gap: 0.75rem;
+	min-width: 0;
+}
+
+.svc-filters>.svc-chips {
+	flex: 1 1 100%;
+}
+
+.svc-field {
+	display: flex;
+	flex: 1 1 8.5rem;
+	flex-direction: column;
+	gap: 0.25rem;
+	min-width: 0;
+	max-width: 16rem;
+	text-align: left;
+}
+
+.svc-field.wide {
+	flex: 2 1 14rem;
+	max-width: 24rem;
+}
+
+.svc-field label {
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+	letter-spacing: 0.03em;
+}
+
+.svc-field :is(input, select),
+.svc-search input {
+	width: 100%;
+	height: 2.5rem;
+	padding-block: 0;
+	font-size: var(--fs-md);
+}
+
+/* 手機上才出現的「篩選」開關 */
+button.svc-filter-toggle {
+	display: none;
+}
+
+.svc-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.4rem;
+}
+
+button.svc-chip {
+	flex-shrink: 0;
+	height: 2rem;
+	padding: 0 0.85rem;
+	background: var(--surface);
+	border: 1.5px solid var(--border-strong);
+	border-radius: 999px;
+	color: var(--text-2);
+	font-size: var(--fs-sm);
+	letter-spacing: 0;
+}
+
+button.svc-chip:hover {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+button.svc-chip.active {
+	background: var(--primary-soft);
+	border-color: var(--primary);
+	color: var(--primary-text);
+}
+
+.svc-search {
+	position: relative;
+	flex: 1 1 16rem;
+	max-width: 26rem;
+}
+
+.svc-search i {
+	position: absolute;
+	top: 50%;
+	left: 0.9rem;
+	color: var(--text-3);
+	font-style: normal;
+	transform: translateY(-50%);
+	pointer-events: none;
+}
+
+.svc-search input {
+	padding-left: 2.5rem;
+}
+
+.svc-pager {
+	display: flex;
+	flex-shrink: 0;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.5rem 0.75rem;
+	padding: 0.75rem 1.5rem;
+	border-top: 1px solid var(--border);
+	color: var(--text-3);
+	font-size: var(--fs-sm);
+}
+
+/* --- 13.5 卡片、紀錄列 --- */
+.svc-list {
+	display: flex;
+	flex-direction: column;
+	gap: 0.85rem;
+}
+
+.svc-list.dense {
+	gap: 0.6rem;
+}
+
+.svc-list:empty {
+	display: none;
+}
+
+.svc-card,
+.svc-log {
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	padding: 1rem 1.15rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-left: 4px solid var(--tone-line, var(--border-strong));
+	border-radius: var(--radius);
+	text-align: left;
+}
+
+.svc-log {
+	gap: 0.45rem;
+	padding: 0.8rem 1rem;
+	border-radius: var(--radius-sm);
+}
+
+/* 沒有狀態色調的紀錄 (操作紀錄) 不需要左側色條 */
+.svc-log:not([class*="tone-"]) {
+	border-left-width: 1px;
+}
+
+.svc-card-head,
+.svc-log-head {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.4rem 0.65rem;
+}
+
+.svc-log-head {
+	justify-content: space-between;
+}
+
+.svc-log-head strong {
+	min-width: 0;
+	color: var(--text);
+	font-size: var(--fs-md);
+	overflow-wrap: anywhere;
+}
+
+.svc-type {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	color: var(--text);
+	font-size: var(--fs-md);
+	font-weight: 700;
+}
+
+.svc-type i {
+	color: var(--tone-line, var(--text-3));
+	font-style: normal;
+}
+
+.svc-time {
+	margin-left: auto;
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+	white-space: nowrap;
+}
+
+.svc-card h3,
+.modal-content .svc-card h3 {
+	margin: 0;
+	padding: 0;
+	color: var(--text);
+	font-size: var(--fs-lg);
+	line-height: 1.35;
+	text-align: left;
+}
+
+.svc-card-head h3 {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.svc-meta {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.3rem 1.25rem;
+	margin: 0;
+	padding: 0;
+	color: var(--text-2);
+}
+
+.svc-meta li {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	min-width: 0;
+	padding: 0;
+	font-size: var(--fs-sm);
+	overflow-wrap: anywhere;
+}
+
+.svc-meta i {
+	flex-shrink: 0;
+	width: 1rem;
+	color: var(--text-3);
+	font-style: normal;
+	text-align: center;
+}
+
+.svc-meta span {
+	color: var(--text-3);
+}
+
+.svc-meta span::before {
+	margin-right: 0.45rem;
+	content: "·";
+}
+
+.svc-meta .svc-move,
+.svc-meta .svc-move i {
+	color: var(--info-text);
+	font-weight: 700;
+}
+
+.svc-reason {
+	margin: 0;
+	padding: 0.6rem 0.85rem;
+	background: var(--surface-2);
+	border-radius: var(--radius-sm);
+	color: var(--text);
+	font-size: var(--fs-md);
+	line-height: 1.6;
+	white-space: pre-line;
+	overflow-wrap: anywhere;
+}
+
+.svc-error {
+	margin: 0;
+	color: var(--danger-text);
+	font-size: var(--fs-sm);
+	overflow-wrap: anywhere;
+}
+
+.svc-facts {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.4rem 1rem;
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+}
+
+.svc-id,
+.svc-fact {
+	display: inline-flex;
+	align-items: baseline;
+	gap: 0.35rem;
+}
+
+.svc-fact strong {
+	color: var(--text);
+	font-size: var(--fs-sm);
+}
+
+/* 卡片底部：左邊是可展開的處理進度，右邊是操作按鈕 */
+.svc-card-foot {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 0.5rem 1rem;
+}
+
+.svc-card-foot>.svc-details {
+	flex: 1 1 16rem;
+	min-width: 0;
+	padding-top: 0.35rem;
+}
+
+.svc-card-actions {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 0.5rem;
+	margin-left: auto;
+}
+
+/* 可展開的區塊 (處理進度、變更內容) */
+.svc-details>summary {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.45rem;
+	color: var(--text-2);
+	font-size: var(--fs-sm);
+	font-weight: 700;
+	cursor: pointer;
+	list-style: none;
+	user-select: none;
+}
+
+.svc-details>summary::-webkit-details-marker,
+.svc-note>summary::-webkit-details-marker,
+.svc-faq>summary::-webkit-details-marker {
+	display: none;
+}
+
+.svc-details>summary:hover {
+	color: var(--text);
+}
+
+.svc-details>summary>i {
+	color: var(--text-3);
+	font-size: 0.7em;
+	font-style: normal;
+	transition: transform 0.15s;
+}
+
+.svc-details[open]>summary>i {
+	transform: rotate(90deg);
+}
+
+.svc-details>.svc-table-wrap {
+	margin-top: 0.6rem;
+}
+
+.svc-timeline {
+	display: flex;
+	flex-direction: column;
+	margin: 0.7rem 0 0 0.35rem;
+	padding: 0;
+}
+
+.svc-timeline li {
+	position: relative;
+	padding: 0 0 0.9rem 1.25rem;
+	border-left: 2px solid var(--border);
+}
+
+.svc-timeline li:last-child {
+	padding-bottom: 0;
+	border-left-color: transparent;
+}
+
+.svc-timeline li::before {
+	position: absolute;
+	top: 0.3rem;
+	left: -0.45rem;
+	width: 0.6rem;
+	height: 0.6rem;
+	background: var(--tone-line, var(--border-strong));
+	border: 2px solid var(--surface);
+	border-radius: 50%;
+	content: "";
+}
+
+.svc-timeline div {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: baseline;
+	gap: 0.15rem 0.75rem;
+}
+
+.svc-timeline strong {
+	color: var(--tone, var(--text));
+	font-size: var(--fs-sm);
+}
+
+.svc-timeline time {
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+}
+
+.svc-timeline p {
+	margin: 0.15rem 0 0;
+	color: var(--text-2);
+	font-size: var(--fs-sm);
+	line-height: 1.55;
+	white-space: pre-line;
+	overflow-wrap: anywhere;
+}
+
+.svc-timeline p span {
+	margin-right: 0.5rem;
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+}
+
+/* --- 13.6 通知、常見問題 (點一下展開) --- */
+.svc-note,
+.svc-faq {
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	text-align: left;
+}
+
+.svc-note>summary,
+.svc-faq>summary {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.75rem 1rem;
+	cursor: pointer;
+	list-style: none;
+}
+
+.svc-note>summary:hover,
+.svc-faq>summary:hover {
+	background: var(--surface-2);
+}
+
+.svc-note[open],
+.svc-faq[open] {
+	border-color: var(--border-strong);
+}
+
+.svc-note-icon {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	width: 2.25rem;
+	height: 2.25rem;
+	background: var(--surface-3);
+	border-radius: 50%;
+	color: var(--text-3);
+}
+
+.svc-note-icon i,
+.svc-note-chevron,
+.svc-faq>summary>i {
+	font-style: normal;
+}
+
+.svc-note-text {
+	display: flex;
+	flex: 1 1 0;
+	flex-direction: column;
+	min-width: 0;
+	line-height: 1.4;
+}
+
+.svc-note-text strong {
+	color: var(--text-2);
+	font-size: var(--fs-md);
+	font-weight: 500;
+	overflow-wrap: anywhere;
+}
+
+.svc-note-text small {
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+}
+
+/* 未讀：粗體、圖示上色並加上小圓點 */
+.svc-note.unread .svc-note-text strong {
+	color: var(--text);
+	font-weight: 700;
+}
+
+.svc-note.unread .svc-note-icon {
+	background: var(--primary-soft);
+	color: var(--primary-text);
+}
+
+.svc-note.unread .svc-note-icon::after {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 0.6rem;
+	height: 0.6rem;
+	background: var(--danger);
+	border: 2px solid var(--surface);
+	border-radius: 50%;
+	content: "";
+}
+
+.svc-note-chevron,
+.svc-faq>summary>i {
+	flex-shrink: 0;
+	color: var(--text-3);
+	font-size: 0.8em;
+	transition: transform 0.15s;
+}
+
+.svc-note[open] .svc-note-chevron,
+.svc-faq[open]>summary>i {
+	transform: rotate(180deg);
+}
+
+.svc-note-body,
+.svc-faq-body {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 0.75rem;
+	padding: 0.25rem 1rem 1rem 4rem;
+}
+
+.svc-faq-body {
+	padding-left: 1rem;
+}
+
+.svc-note-body p,
+.svc-faq-body p {
+	margin: 0;
+	color: var(--text);
+	font-size: var(--fs-md);
+	line-height: 1.75;
+	white-space: pre-line;
+	overflow-wrap: anywhere;
+}
+
+.svc-faq>summary strong {
+	flex: 1 1 0;
+	min-width: 0;
+	color: var(--text);
+	font-size: var(--fs-md);
+	line-height: 1.5;
+}
+
+.svc-faq-tag {
+	flex-shrink: 0;
+	padding: 0.15rem 0.65rem;
+	background: var(--primary-soft);
+	border-radius: 999px;
+	color: var(--primary-text);
+	font-size: var(--fs-xs);
+	font-weight: 700;
+}
+
+/* --- 13.7 設定區塊、開關 --- */
+.svc-panel {
+	display: flex;
+	flex-shrink: 0;
+	flex-direction: column;
+	gap: 0.75rem;
+	margin: 0;
+	padding: 1rem 1.15rem;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-radius: var(--radius);
+}
+
+.svc-panel .svc-subhead {
+	margin: 0;
+}
+
+.svc-panel-actions {
+	display: flex;
+	justify-content: flex-end;
+}
+
+.svc-switches,
+.svc-rules {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+	gap: 0.75rem 1.5rem;
+}
+
+.svc-rules {
+	gap: 0.75rem;
+}
+
+.svc-rule {
+	display: flex;
+	flex-direction: column;
+	gap: 0.65rem;
+	padding: 0.85rem 1rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+}
+
+label.svc-rule-hours {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+	color: var(--text-2);
+	font-size: var(--fs-sm);
+	font-weight: 400;
+}
+
+.svc-rule-hours input {
+	width: 5rem;
+	height: 2.25rem;
+	padding-block: 0;
+	text-align: center;
+}
+
+label.svc-switch {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	margin: 0;
+	font-weight: 400;
+	cursor: pointer;
+}
+
+.svc-switch.disabled {
+	cursor: not-allowed;
+	opacity: 0.6;
+}
+
+/* 原生勾選框留著給鍵盤與螢幕閱讀器，畫面上只顯示軌道 */
+.svc-switch input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	opacity: 0;
+}
+
+.svc-switch-track {
+	position: relative;
+	flex-shrink: 0;
+	width: 2.6rem;
+	height: 1.5rem;
+	background: var(--border-strong);
+	border-radius: 999px;
+	transition: background-color 0.15s;
+}
+
+.svc-switch-track::after {
+	position: absolute;
+	top: 0.15rem;
+	left: 0.15rem;
+	width: 1.2rem;
+	height: 1.2rem;
+	background: #fff;
+	border-radius: 50%;
+	box-shadow: var(--shadow-sm);
+	content: "";
+	transition: transform 0.15s;
+}
+
+.svc-switch input:checked+.svc-switch-track {
+	background: var(--primary);
+}
+
+.svc-switch input:checked+.svc-switch-track::after {
+	transform: translateX(1.1rem);
+}
+
+.svc-switch input:focus-visible+.svc-switch-track {
+	box-shadow: var(--ring);
+}
+
+.svc-switch-text {
+	display: flex;
+	flex-direction: column;
+	line-height: 1.35;
+}
+
+.svc-switch-text strong {
+	color: var(--text);
+	font-size: var(--fs-md);
+}
+
+.svc-switch-text small {
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+}
+
+.svc-callout {
+	padding: 0.75rem 0.95rem;
+	background: var(--warning-soft);
+	border-radius: var(--radius-sm);
+	color: var(--warning-text);
+	text-align: left;
+}
+
+.svc-callout strong {
+	display: flex;
+	align-items: center;
+	gap: 0.45rem;
+	font-size: var(--fs-sm);
+}
+
+.svc-callout i {
+	font-style: normal;
+}
+
+.svc-callout p {
+	margin: 0.3rem 0 0;
+	color: var(--text);
+	font-size: var(--fs-md);
+	white-space: pre-line;
+	overflow-wrap: anywhere;
+}
+
+/* --- 13.8 統計、名額、表格 --- */
+.svc-stats {
+	display: grid;
+	flex-shrink: 0;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 0.75rem;
+}
+
+.svc-stats.money {
+	grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.svc-stat {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+	min-width: 0;
+	padding: 0.8rem 1rem;
+	background: var(--surface-2);
+	border: 1px solid var(--border);
+	border-top: 3px solid var(--tone-line, var(--primary));
+	border-radius: var(--radius-sm);
+}
+
+.svc-stat span {
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+	font-weight: 700;
+	letter-spacing: 0.03em;
+}
+
+.svc-stat strong {
+	color: var(--text);
+	font-size: var(--fs-2xl);
+	font-variant-numeric: tabular-nums;
+	line-height: 1.3;
+	overflow-wrap: anywhere;
+}
+
+.svc-stats.money .svc-stat strong {
+	font-size: var(--fs-lg);
+}
+
+.svc-stat small {
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+}
+
+.svc-groups {
+	display: grid;
+	flex-shrink: 0;
+	grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+	gap: 0.75rem;
+}
+
+.svc-groups:empty {
+	display: none;
+}
+
+.svc-group {
+	display: flex;
+	flex-direction: column;
+	gap: 0.55rem;
+	min-width: 0;
+	padding: 0.8rem 1rem;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+}
+
+.svc-group-title {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 0.75rem;
+}
+
+.svc-group-title strong {
+	min-width: 0;
+	color: var(--text);
+	font-size: var(--fs-md);
+	overflow-wrap: anywhere;
+}
+
+.svc-group-title span {
+	flex-shrink: 0;
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+}
+
+.svc-table-wrap {
+	flex-shrink: 0;
+	border: 1px solid var(--border);
+	border-radius: var(--radius-sm);
+	overflow-x: auto;
+}
+
+.svc-table {
+	width: 100%;
+	margin: 0;
+	border-collapse: collapse;
+	font-size: var(--fs-sm);
+}
+
+.svc-table th {
+	padding: 0.55rem 0.85rem;
+	background: var(--surface-2);
+	border-bottom: 1px solid var(--border);
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+	font-weight: 700;
+	letter-spacing: 0.03em;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.svc-table td {
+	padding: 0.6rem 0.85rem;
+	border-bottom: 1px solid var(--border);
+	color: var(--text);
+	line-height: 1.45;
+	vertical-align: middle;
+}
+
+.svc-table tbody tr:last-child td {
+	border-bottom: 0;
+}
+
+.svc-table td small {
+	display: block;
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+	overflow-wrap: anywhere;
+}
+
+.svc-table :is(th, td).num {
+	font-variant-numeric: tabular-nums;
+	text-align: right;
+	white-space: nowrap;
+}
+
+.svc-table.compact td {
+	padding: 0.4rem 0.85rem;
+	overflow-wrap: anywhere;
+}
+
+.svc-table.compact td:first-child {
+	color: var(--text-2);
+	white-space: nowrap;
+}
+
+.svc-table td.before {
+	color: var(--text-3);
+}
+
+.svc-table td.after {
+	font-weight: 700;
+}
+
+/* --- 13.9 視窗內的元件 (報名詳細資訊、處理退費申請、場次詳細資訊) --- */
+.modal-content.svc-modal {
+	width: 100%;
+	max-width: 36rem;
+}
+
+.svc-amounts {
+	display: grid;
+	grid-template-columns: repeat(3, minmax(0, 1fr));
+	gap: 0.5rem;
+	padding-top: 0.6rem;
+	border-top: 1px dashed var(--border);
+}
+
+.svc-amounts div {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.svc-amounts span {
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+}
+
+.svc-amounts strong {
+	color: var(--text);
+	font-size: var(--fs-md);
+	font-variant-numeric: tabular-nums;
+}
+
+.svc-tiles,
+.svc-choices {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+	grid-auto-columns: minmax(0, 1fr);
+	grid-auto-flow: column;
+	gap: 0.6rem;
+}
+
+/* 只剩一個按鈕時 (已結束的考試只留確認單) 不要拉成整列 */
+.svc-tiles>:only-child {
+	justify-self: start;
+	min-width: 12rem;
+}
+
+/* 大按鈕：圖示在上、說明在下。選項 (svc-choice) 選中時上色 */
+a.svc-tile,
+button.svc-tile,
+button.svc-choice {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.15rem;
+	height: auto;
+	min-width: 0;
+	padding: 0.85rem 0.5rem;
+	background: var(--surface);
+	border: 1.5px solid var(--border-strong);
+	border-radius: var(--radius-sm);
+	color: var(--text);
+	letter-spacing: 0;
+	white-space: normal;
+}
+
+:is(.svc-tile, .svc-choice) i {
+	margin-bottom: 0.25rem;
+	color: var(--primary-text);
+	font-size: 1.25rem;
+	font-style: normal;
+}
+
+:is(.svc-tile, .svc-choice) strong {
+	font-size: var(--fs-sm);
+}
+
+:is(.svc-tile, .svc-choice) small {
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+	font-weight: 400;
+	line-height: 1.35;
+}
+
+a.svc-tile:hover,
+button.svc-tile:hover:not(:disabled),
+button.svc-choice:hover:not(:disabled) {
+	background: var(--surface-2);
+	border-color: var(--primary);
+}
+
+button.svc-choice.active {
+	background: var(--tone-soft, var(--primary-soft));
+	border-color: var(--tone-line, var(--primary));
+	box-shadow: inset 0 0 0 1px var(--tone-line, var(--primary));
+	color: var(--tone, var(--primary-text));
+}
+
+button.svc-tile:disabled,
+button.svc-choice:disabled {
+	background: var(--surface-2);
+	border-style: dashed;
+	color: var(--text-3);
+	cursor: not-allowed;
+	opacity: 1;
+}
+
+:is(.svc-tile, .svc-choice):disabled i {
+	color: var(--text-3);
+}
+
+.svc-form .svc-hint {
+	margin-top: 0.1rem;
+}
+
+.svc-contact {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	margin: 0;
+	padding: 0;
+}
+
+.svc-contact li {
+	display: flex;
+	align-items: center;
+	gap: 0.65rem;
+	padding: 0;
+	color: var(--text-2);
+	font-size: var(--fs-md);
+	text-align: left;
+}
+
+.svc-contact li>i {
+	flex-shrink: 0;
+	width: 1.25rem;
+	color: var(--text-3);
+	font-style: normal;
+	text-align: center;
+}
+
+.svc-contact li>span {
+	flex: 1 1 0;
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.svc-inline-link {
+	display: inline-flex;
+	align-items: center;
+	align-self: flex-start;
+	gap: 0.45rem;
+	font-size: var(--fs-sm);
+	font-weight: 700;
+}
+
+.svc-inline-link i {
+	font-style: normal;
+}
+
+.svc-inline-link:hover {
+	text-decoration: underline;
+}
+
+/* 報名管理的退費申請分頁不套用欄位篩選，表頭只當欄位名稱用 */
+.list-header-row.no-filters .header-cell {
+	pointer-events: none;
+}
+
+.list-header-row.no-filters :is(.fa-filter, .header-filter-dropdown) {
+	display: none;
+}
+
+/* 報名詳細資訊：目前狀態的說明與下一步，文字在左、按鈕在右 */
+.exam-notice.svc-next {
+	flex-wrap: wrap;
+}
+
+.exam-notice.svc-next>span {
+	flex: 1 1 12rem;
+	min-width: 0;
+	overflow-wrap: anywhere;
+	white-space: pre-line;
+}
+
+.exam-notice.svc-next>button.svc-btn {
+	margin-left: auto;
+}
+
+.svc-info {
+	padding: 0.85rem 1rem;
+	background: var(--surface-2);
+	border-radius: var(--radius-sm);
+}
+
+/* 「我的考試」的第二層分頁 (待處理、審核中、歷史紀錄底下的確切狀態)，放在清單標題下方。
+   元件是 statusTabs.jsx 的 chips 樣式：放得下時置中；太窄時和左側的狀態分頁一樣，
+   變成一列可以左右滑動的標籤，邊緣出現漸層與箭頭 (左側選單的箭頭樣式只在 900px 以下生效，這裡各種寬度都需要) */
+.status-tabs.chips-strip {
+	flex-shrink: 0;
+	margin-bottom: 0.6rem;
+}
+
+.chips-track {
+	display: flex;
+	gap: 0.4rem;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.chips-track::-webkit-scrollbar {
+	display: none;
+}
+
+/* 用左右的 auto 邊界置中：放不下時邊界歸零，開頭不會被切掉 (justify-content: center 會切掉) */
+.chips-track>:first-child {
+	margin-left: auto;
+}
+
+.chips-track>:last-child {
+	margin-right: auto;
+}
+
+.chips-track button.svc-chip {
+	flex-shrink: 0;
+	gap: 0.4rem;
+	padding-right: 0.5rem;
+	white-space: nowrap;
+}
+
+.chips-track .svc-count {
+	min-width: 1.25rem;
+	height: 1.25rem;
+	padding: 0 0.35rem;
+}
+
+.chips-track .svc-chip.active .svc-count {
+	background: var(--surface);
+	color: var(--primary-text);
+}
+
+.chips-strip .tabs-arrow {
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	z-index: 1;
+	width: 3rem;
+	height: auto;
+	padding: 0;
+	border-radius: 0;
+	color: var(--text-2);
+}
+
+.chips-strip .tabs-arrow.left {
+	left: 0;
+	justify-content: flex-start;
+	background: linear-gradient(to left, transparent, var(--surface) 55%);
+}
+
+.chips-strip .tabs-arrow.right {
+	right: 0;
+	justify-content: flex-end;
+	background: linear-gradient(to right, transparent, var(--surface) 55%);
+}
+
+.chips-strip.can-scroll-left .tabs-arrow.left,
+.chips-strip.can-scroll-right .tabs-arrow.right {
+	display: flex;
+}
+
+.chips-strip .tabs-arrow:hover,
+.chips-strip .tabs-arrow:active {
+	background-color: transparent;
+}
+
+.chips-strip .tabs-arrow span {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	background: var(--surface);
+	border: 1px solid var(--border-strong);
+	border-radius: 50%;
+	box-shadow: var(--shadow-sm);
+}
+
+.chips-strip .tabs-arrow:hover span {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+/* 考試成績：分數放大，旁邊是通過／未通過 */
+.svc-score {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.25rem 0.85rem;
+}
+
+.svc-score span:first-child {
+	flex-basis: 100%;
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+	font-weight: 700;
+	letter-spacing: 0.03em;
+}
+
+.svc-score strong {
+	color: var(--text);
+	font-size: 2.25rem;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.1;
+}
+
+/* 視窗裡的原因、收款資料等短欄位，不需要預設那麼高 */
+textarea.svc-short {
+	min-height: 4.5rem;
+}
+
+/* 付款證明：按下才讀取圖片 */
+.svc-proof {
+	display: flex;
+	justify-content: center;
+}
+
+/* --- 13.11 平板與手機 --- */
+@media (max-width: 900px) {
+	.svc-head {
+		padding: 1rem 1rem 0.75rem;
+	}
+
+	.svc-body {
+		padding: 0.85rem 1rem 1rem;
+	}
+
+	.svc-toolbar {
+		padding: 0 1rem 0.75rem;
+	}
+
+	.svc-pager {
+		padding: 0.6rem 1rem;
+	}
+
+	/* 欄位多的篩選列收合起來，按「篩選」才展開成兩欄 */
+	.svc-toolbar.collapsible button.svc-filter-toggle {
+		display: inline-flex;
+	}
+
+	.svc-toolbar.collapsible .svc-filters {
+		display: none;
+	}
+
+	.svc-toolbar.collapsible.open .svc-filters {
+		display: grid;
+		flex: 1 1 100%;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		order: 3;
+	}
+
+	.svc-toolbar.collapsible .svc-field {
+		max-width: none;
+	}
+
+}
+
+@media (max-width: 600px) {
+	.svc-head h1 {
+		font-size: var(--fs-xl);
+	}
+
+	.svc-head-actions .svc-btn span {
+		display: none;
+	}
+
+	.svc-time {
+		flex-basis: 100%;
+		margin-left: 0;
+	}
+
+	/* 篩選按鈕列不換行，改成左右滑動 */
+	.svc-chips {
+		flex-wrap: nowrap;
+		margin-inline: -1rem;
+		padding-inline: 1rem;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+
+	.svc-chips::-webkit-scrollbar {
+		display: none;
+	}
+
+	.svc-toolbar>.svc-chips,
+	.svc-filters>.svc-chips {
+		flex: 1 1 100%;
+		max-width: calc(100% + 2rem);
+	}
+
+	.svc-search {
+		flex-basis: 100%;
+		max-width: none;
+	}
+
+	/* 類型與搜尋並排，篩選列才不會佔掉太多高度 */
+	.svc-field,
+	.svc-field.wide {
+		flex: 1 1 8.5rem;
+		max-width: none;
+	}
+
+	.svc-note-body {
+		padding-left: 1rem;
+	}
+
+	/* 四個件數排成緊湊的一列，金額兩欄 */
+	.svc-stats {
+		gap: 0.5rem;
+	}
+
+	.svc-stats:not(.money) .svc-stat {
+		padding: 0.55rem 0.5rem;
+	}
+
+	.svc-stats:not(.money) .svc-stat span {
+		letter-spacing: 0;
+		line-height: 1.3;
+	}
+
+	.svc-stats:not(.money) .svc-stat strong {
+		font-size: var(--fs-xl);
+	}
+
+	.svc-stats:not(.money) .svc-stat small {
+		display: none;
+	}
+
+	.svc-stats.money {
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+	}
+
+	.svc-stats.money .svc-stat:last-child {
+		grid-column: 1 / -1;
+	}
+
+	.svc-pager {
+		flex-wrap: nowrap;
+		gap: 0.5rem;
+	}
+
+	.svc-pager span {
+		font-size: var(--fs-xs);
+		text-align: center;
+	}
+
+	.svc-tiles,
+	.svc-choices {
+		gap: 0.4rem;
+	}
+
+	a.svc-tile,
+	button.svc-tile,
+	button.svc-choice {
+		padding: 0.7rem 0.3rem;
+	}
+}
+
+/* --- 13.12 手機清單列的資訊標籤 --- */
+/* 清單面板窄到改成卡片時 (手機)：時間、考場、語言改成一顆顆標籤，排在名稱下方同一區塊。
+   「我的考試」與「報名管理」的清單都適用；聯絡資訊 (姓名、Email、電話) 維持原本的排法 */
+@container listpanel (max-width: 440px) {
+	.modern-list .list-item .text-group> :is(.time-info, .location-info, .language-info) {
+		display: inline-flex;
+		flex: 0 1 auto;
+		align-items: center;
+		gap: 0.35rem;
+		max-width: 100%;
+		padding: 0.25rem 0.7rem;
+		background: var(--surface-2);
+		border: 1px solid var(--border);
+		border-radius: 999px;
+		line-height: 1.4;
+	}
+
+	.modern-list .list-item .text-group> :is(.time-info, .location-info, .language-info) :is(span, .time-text) {
+		display: inline;
+		color: var(--text-2);
+		font-size: var(--fs-sm);
+	}
+
+	.modern-list .list-item .text-group> :is(.time-info, .location-info, .language-info) i {
+		margin-right: 0.3rem;
+		font-size: 0.85em;
+	}
+}
+
+/* --- 13.13 彈出視窗的標題列固定在上方 --- */
+/* 內容很長、需要捲動的視窗 (修改報名資料、報名詳細資訊、審核…)，捲動時標題留在最上方，右上角的關閉鍵也一直看得到。
+   作法：標題 sticky，用負邊界延伸到視窗頂端和左右邊緣、再用同樣大小的內距把文字推回原位，
+   底色才蓋得住捲上來的內容。sticky 的 top 是從內容區上緣算起，所以要減掉視窗的上方內距。
+   --modal-pad-* 要和 .modal-content 的 padding 一致 (第 11 節：一般 2rem 2.25rem，768px 以下 1.75rem 1.5rem) */
+.modal-content {
+	--modal-pad-top: 2rem;
+	--modal-pad-x: 2.25rem;
+}
+
+.modal-content>h3 {
+	position: sticky;
+	top: calc(var(--modal-pad-top) * -1);
+	z-index: 1;
+	flex-shrink: 0;
+	margin: calc(var(--modal-pad-top) * -1) calc(var(--modal-pad-x) * -1) 0;
+	padding: var(--modal-pad-top) calc(var(--modal-pad-x) + 2.5rem) 0.9rem;
+	background: var(--surface);
+	border-bottom: 1px solid var(--border);
+}
+
+@media screen and (max-width: 768px) {
+	.modal-content {
+		--modal-pad-top: 1.75rem;
+		--modal-pad-x: 1.5rem;
 	}
 }

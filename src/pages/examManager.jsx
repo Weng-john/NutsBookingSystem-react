@@ -9,6 +9,7 @@ import {
   deleteExamAPI,
   updateExamAPI
 } from "../api";
+import { confirmDialog, notify } from "../dialog";
 
 // --- 設定參數：隱藏過期超過 N 天的考試 ---
 const EXPIRED_DAYS_LIMIT = 30;
@@ -101,6 +102,7 @@ export default function ExamManager() {
 
   // --- 資料清單 State ---
   const [exams, setExams] = useState([]);
+  const [isAddOpen, setIsAddOpen] = useState(false); // 窄螢幕時「新增」表單是否展開
   const [subjects, setSubjects] = useState([]);
   const [rooms, setRooms] = useState([]);
 
@@ -162,7 +164,7 @@ export default function ExamManager() {
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      alert("讀取資料失敗：" + err.message);
+      notify("讀取資料失敗：" + err.message);
     } finally {
       setGlobalLoading(false);
       setLoadingText("");
@@ -171,7 +173,7 @@ export default function ExamManager() {
   }, [setGlobalLoading, setLoadingText, setSubmit]); // 👈 依賴陣列記得補上 setSubmit
 
   useEffect(() => {
-    if (user && !isTeacher) { alert("權限不足，將返回首頁"); navigate("/"); return; }
+    if (user && !isTeacher) { notify("權限不足，將返回首頁"); navigate("/"); return; }
     if (user && isTeacher) fetchInitialData();
   }, [user, isTeacher, navigate, fetchInitialData]);
 
@@ -207,15 +209,19 @@ export default function ExamManager() {
   async function handleAdd(e) {
     e.preventDefault();
     if (!formData.subjectID || formData.roomIDs.length === 0 || !formData.examDate || !formData.startTime || !formData.endTime) {
-      return alert("請完整填寫必填欄位！");
+      return notify("請完整填寫必填欄位！");
     }
-    if (formData.startTime >= formData.endTime) return alert("結束時間必須晚於開始時間！");
-    if (!window.confirm("確定要新增這筆考試場次嗎？")) return;
+    if (formData.startTime >= formData.endTime) return notify("結束時間必須晚於開始時間！");
+    if (!(await confirmDialog("確定要新增這筆考試場次嗎？"))) return;
+
+    const captchaToken = await requestCaptcha();
+    if (!captchaToken) return;
 
     setLoadingText("正在新增考試場次...");
     setSubmit(true); setGlobalLoading(true);
     try {
       const res = await addExamAPI({
+        captchaToken,
         subjectID: formData.subjectID,
         roomIDs: formData.roomIDs,
         examStartTime: `${formData.examDate}T${formData.startTime}:00`,
@@ -224,12 +230,12 @@ export default function ExamManager() {
         status: formData.status
       });
       if (res.ok) {
-        alert("✅ 新增成功！");
+        notify("✅ 新增成功！");
         setFormData((prev) => ({ ...prev, startTime: "", endTime: "" }));
         await fetchInitialData();
-      } else alert("❌ 新增失敗：" + (res.message || "未知錯誤"));
+      } else notify("❌ 新增失敗：" + (res.message || "未知錯誤"));
     } catch (err) {
-      alert("⚠️ 系統錯誤，新增失敗：" + err.message);
+      notify("⚠️ 系統錯誤，新增失敗：" + err.message);
     } finally {
       setGlobalLoading(false); setSubmit(false); setLoadingText("");
     }
@@ -237,7 +243,7 @@ export default function ExamManager() {
 
   // 3. 刪除考試 (整合全局 ReCAPTCHA Promise)
   async function handleDeleteClick(examID) {
-    if (!window.confirm(`確定要刪除這筆考試嗎？\nID為 ${examID}\n注意：這將會同步刪除該場次所有的預約、留言與繳費紀錄！`)) return;
+    if (!(await confirmDialog(`確定要刪除這筆考試嗎？\nID為 ${examID}\n已有報名紀錄的場次需改為取消，保留報名與財務紀錄。`))) return;
 
     // 呼叫全局驗證並等待結果
     const captchaToken = await requestCaptcha();
@@ -256,13 +262,13 @@ export default function ExamManager() {
       const res = await deleteExamAPI({ examID, captchaToken });
 
       if (res.ok) {
-        alert("場次刪除成功！");
+        notify("場次刪除成功！");
         await fetchInitialData();
       } else {
-        alert("刪除失敗：" + (res.message || "無法刪除該場次"));
+        notify("刪除失敗：" + (res.message || "無法刪除該場次"));
       }
     } catch (err) {
-      alert("⚠️ 系統錯誤，刪除失敗：" + err.message);
+      notify("⚠️ 系統錯誤，刪除失敗：" + err.message);
     } finally {
       setGlobalLoading(false);
       setSubmit(false);
@@ -309,7 +315,7 @@ export default function ExamManager() {
     }
 
     if (editFormData.startTime >= editFormData.endTime) {
-      return alert("結束時間必須晚於開始時間！");
+      return notify("結束時間必須晚於開始時間！");
     }
 
     // 呼叫全局驗證並等待結果
@@ -333,12 +339,12 @@ export default function ExamManager() {
         captchaToken
       });
       if (res.ok) {
-        alert("✅ 更新成功！");
+        notify("✅ 更新成功！");
         cancelEditing();
         await fetchInitialData();
-      } else alert("❌ 更新失敗：" + (res.message || "未知錯誤"));
+      } else notify("❌ 更新失敗：" + (res.message || "未知錯誤"));
     } catch (err) {
-      alert("⚠️ 系統錯誤，更新失敗：" + err.message);
+      notify("⚠️ 系統錯誤，更新失敗：" + err.message);
     } finally {
       setGlobalLoading(false); setSubmit(false); setLoadingText("");
     }
@@ -369,8 +375,10 @@ export default function ExamManager() {
       <div className="manager-container">
 
         {/* 左側：新增區塊 */}
-        <div className="centered-form side-panel add-panel exam-panel">
-          <h3>新增考試場次</h3>
+        <div className={`centered-form side-panel add-panel exam-panel collapsible ${isAddOpen ? "open" : ""}`}>
+          <h3 onClick={() => setIsAddOpen(!isAddOpen)}>
+            新增考試場次 <i className="fa-solid fa-chevron-down add-panel-chevron"></i>
+          </h3>
           <form onSubmit={handleAdd} className="modern-form">
             <div className="input-field">
               <label>對應科目 </label>
@@ -426,6 +434,10 @@ export default function ExamManager() {
             </div>
 
             <div className="button-container">
+              {/* 取消：清空表單；窄螢幕時同時收合表單回到清單 */}
+              <button type="button" className="cancel-button" disabled={globalLoading} onClick={() => { setFormData({ subjectID: subjects[0]?.subjectID || "", examDate: "", startTime: "", endTime: "", roomIDs: rooms[0] ? [rooms[0].roomID] : [], fee: 0, status: "Draft" }); setIsAddOpen(false); }}>
+                取消
+              </button>
               <button type="submit" className="btn-primary full-width" disabled={globalLoading}>
                 {globalLoading ? "處理中..." : "確認新增"}
               </button>
@@ -435,7 +447,7 @@ export default function ExamManager() {
 
         {/* 右側：列表區塊 */}
         <div className="centered-form side-panel list-panel">
-          <div className="list-title-row" style={{ marginBottom: "16px" }}>
+          <div className="list-title-row">
             <h3>現有場次清單</h3>
             {(filters.targetDate || filters.roomID || !filters.subjectID) && (
               <button className="clear-filter-btn" onClick={() => setFilters({ subjectID: subjects[0]?.subjectID || "", targetDate: "", roomID: "" })}>
@@ -446,7 +458,7 @@ export default function ExamManager() {
 
           <div className="list-header-row">
             <div className="header-cell subject-col" onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'subject' ? null : 'subject'); }}>
-              科目 <i className="fa-solid fa-filter" style={{ color: filters.subjectID ? "#d9534f" : "#ccc" }}></i>
+              科目 <i className={`fa-solid fa-filter ${filters.subjectID ? "active" : ""}`}></i>
               {openFilterMenu === 'subject' && (
                 <div className="header-filter-dropdown" onClick={(e) => e.stopPropagation()}>
                   <select value={filters.subjectID} onChange={(e) => { setFilters(p => ({ ...p, subjectID: e.target.value })); setOpenFilterMenu(null); }}>
@@ -457,7 +469,7 @@ export default function ExamManager() {
             </div>
 
             <div className="header-cell time-col" onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'date' ? null : 'date'); }}>
-              考試時間 <i className="fa-solid fa-filter" style={{ color: filters.targetDate ? "#d9534f" : "#ccc" }}></i>
+              考試時間 <i className={`fa-solid fa-filter ${filters.targetDate ? "active" : ""}`}></i>
               {openFilterMenu === 'date' && (
                 <div className="header-filter-dropdown" onClick={(e) => e.stopPropagation()}>
                   <input type="date" value={filters.targetDate} onChange={(e) => { setFilters(p => ({ ...p, targetDate: e.target.value })); setOpenFilterMenu(null); }} />
@@ -466,7 +478,7 @@ export default function ExamManager() {
             </div>
 
             <div className="header-cell room-col" onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'room' ? null : 'room'); }}>
-              地點 <i className="fa-solid fa-filter" style={{ color: filters.roomID ? "#d9534f" : "#ccc" }}></i>
+              地點 <i className={`fa-solid fa-filter ${filters.roomID ? "active" : ""}`}></i>
               {openFilterMenu === 'room' && (
                 <div className="header-filter-dropdown" onClick={(e) => e.stopPropagation()}>
                   <select value={filters.roomID} onChange={(e) => { setFilters(p => ({ ...p, roomID: e.target.value })); setOpenFilterMenu(null); }}>

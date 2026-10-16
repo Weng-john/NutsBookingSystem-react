@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { listUsersAPI, setUserRoleAPI, setUserMembershipAPI, adminDeleteUserAPI } from "../api";
+import { confirmDialog, notify } from "../dialog";
 
 export default function MemberManager() {
   const { user, setGlobalLoading, globalLoading, setLoadingText, setSubmit, requestCaptcha } = useOutletContext();
@@ -30,7 +31,7 @@ export default function MemberManager() {
       if (Array.isArray(list)) setAllUsers(list);
     } catch (err) {
       console.error("Fetch users error:", err);
-      alert("讀取使用者清單失敗：" + err.message);
+      notify("讀取使用者清單失敗：" + err.message);
     } finally {
       setGlobalLoading(false);
       setLoadingText("");
@@ -40,7 +41,7 @@ export default function MemberManager() {
   // 權限檢查與初始化 (只在剛進入或權限確認後抓取一次)
   useEffect(() => {
     if (user && !isAdmin) {
-      alert("權限不足，將返回首頁");
+      notify("權限不足，將返回首頁");
       navigate("/");
       return;
     }
@@ -82,7 +83,7 @@ export default function MemberManager() {
 
   // 2. 變更 Role
   async function handleChangeRole(name, targetEmail, newRole) {
-    if (!window.confirm(`確定要將 ${name} 的角色改為「${newRole}」嗎？`)) return;
+    if (!(await confirmDialog(`確定要將 ${name} 的角色改為「${newRole}」嗎？`))) return;
 
     const token = await requestCaptcha();
     if (!token) return; 
@@ -93,14 +94,14 @@ export default function MemberManager() {
     try {
       const res = await setUserRoleAPI(targetEmail, newRole, token); 
       if (res.ok) {
-        alert("✅ 角色已更新！");
+        notify("✅ 角色已更新！");
         await fetchUsers(); // 👉 更新資料庫後，重新抓取最新狀態
       } else {
-        alert("❌ 更新失敗：" + (res.message || "未知錯誤"));
+        notify("❌ 更新失敗：" + (res.message || "未知錯誤"));
       }
     } catch (err) {
       console.error(err);
-      alert("⚠️ 系統錯誤，更新失敗：" + err.message);
+      notify("⚠️ 系統錯誤，更新失敗：" + err.message);
     } finally {
       setSubmit(false); 
       setGlobalLoading(false);
@@ -111,9 +112,9 @@ export default function MemberManager() {
   // 3. 變更 Membership
   async function handleChangeMembership(targetEmail, membership) {
     const trimmed = String(membership || "").trim();
-    if (!trimmed) return alert("membership 不能為空");
+    if (!trimmed) return notify("membership 不能為空");
 
-    if (!window.confirm(`確定要將 ${targetEmail} 的 membership 改為「${trimmed}」嗎？`)) return;
+    if (!(await confirmDialog(`確定要將 ${targetEmail} 的 membership 改為「${trimmed}」嗎？`))) return;
 
     const token = await requestCaptcha();
     if (!token) return;
@@ -124,14 +125,14 @@ export default function MemberManager() {
     try {
       const res = await setUserMembershipAPI(targetEmail, trimmed, token); 
       if (res.ok) {
-        alert("✅ membership 已更新！");
+        notify("✅ membership 已更新！");
         await fetchUsers();
       } else {
-        alert("❌ 更新失敗：" + (res.message || "未知錯誤"));
+        notify("❌ 更新失敗：" + (res.message || "未知錯誤"));
       }
     } catch (err) {
       console.error(err);
-      alert("⚠️ 系統錯誤，更新失敗：" + err.message);
+      notify("⚠️ 系統錯誤，更新失敗：" + err.message);
     } finally {
       setSubmit(false); 
       setGlobalLoading(false);
@@ -141,7 +142,7 @@ export default function MemberManager() {
 
   // 4. 管理員刪除 User
   async function handleAdminDelete(targetEmail) {
-    const ok = window.confirm(
+    const ok = await confirmDialog(
       `⚠️ 確定要刪除使用者？\n\n${targetEmail}\n\n` +
       `此操作會：\n- 刪除 Users 帳號\n- 取消該使用者所有預約（名額扣回）\n- 金流資料不會刪除\n`
     );
@@ -156,14 +157,14 @@ export default function MemberManager() {
     try {
       const res = await adminDeleteUserAPI(targetEmail, token); 
       if (res.ok) {
-        alert("✅ 使用者已刪除（預約已取消、金流保留）");
+        notify("✅ 使用者已刪除（預約已取消、金流保留）");
         await fetchUsers();
       } else {
-        alert("❌ 刪除失敗：" + (res.message || "未知錯誤"));
+        notify("❌ 刪除失敗：" + (res.message || "未知錯誤"));
       }
     } catch (err) {
       console.error(err);
-      alert("⚠️ 系統錯誤，刪除失敗：" + err.message);
+      notify("⚠️ 系統錯誤，刪除失敗：" + err.message);
     } finally {
       setSubmit(false); 
       setGlobalLoading(false);
@@ -194,7 +195,7 @@ export default function MemberManager() {
           <div className="list-header-row userManage-col">
             
             <div className="header-cell cell-user filterable" onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'user' ? null : 'user'); }}>
-              使用者 <i className="fa-solid fa-filter" style={{ color: query ? "#d9534f" : "#ccc" }}></i>
+              使用者 <i className={`fa-solid fa-filter ${query ? "active" : ""}`}></i>
               {openFilterMenu === 'user' && (
                 <div className="header-filter-dropdown filter-search" onClick={(e) => e.stopPropagation()}>
                   <input 
@@ -215,7 +216,7 @@ export default function MemberManager() {
             </div>
 
             <div className="header-cell cell-role filterable" onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'role' ? null : 'role'); }}>
-              角色 <i className="fa-solid fa-filter" style={{ color: roleFilter ? "#d9534f" : "#ccc" }}></i>
+              角色 <i className={`fa-solid fa-filter ${roleFilter ? "active" : ""}`}></i>
               {openFilterMenu === 'role' && (
                 <div className="header-filter-dropdown" onClick={(e) => e.stopPropagation()}>
                   <select value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setOpenFilterMenu(null); }}>

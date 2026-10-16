@@ -3,6 +3,8 @@ import { NavLink, Link } from "react-router-dom";
 import nutsLogo from "../assets/image/nuts.png";
 import { STORAGE_KEYS } from "../config";
 import { logoutUser } from "../api";
+import { useTheme, toggleTheme as toggleStoredTheme } from "../theme";
+import { confirmDialog } from "../dialog";
 
 // --- SVG 圖示元件 ---
 const IconUser = () => (
@@ -17,11 +19,32 @@ const IconLogout = () => (
 const IconMail = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
 );
+const IconChart = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
+);
+const IconHistory = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /><polyline points="12 7 12 12 15 14" /></svg>
+);
+const IconSend = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
+);
+const IconBell = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
+);
+const IconHelp = () => (
+  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><line x1="12" y1="17" x2="12.01" y2="17" /></svg>
+);
 const IconSun = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></svg>
 );
 const IconMoon = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+);
+const IconMenu = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round"><line x1="4" y1="6" x2="20" y2="6" /><line x1="4" y1="12" x2="20" y2="12" /><line x1="4" y1="18" x2="20" y2="18" /></svg>
+);
+const IconClose = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round"><line x1="6" y1="6" x2="18" y2="18" /><line x1="18" y1="6" x2="6" y2="18" /></svg>
 );
 const IconUserPlaceholder = () => (
   <svg
@@ -38,30 +61,22 @@ export default function Header({ user, page }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNavOpen, setIsNavOpen] = useState(false); // 手機/平板的漢堡選單
   const [imgError, setImgError] = useState(false);
-  const [theme, setTheme] = useState(localStorage.getItem("theme") || "light");
+  const theme = useTheme();
   const menuRef = useRef(null);
   const headerRef = useRef(null);
 
   const activeClass = ({ isActive }) => (isActive ? "dark-background" : undefined);
 
-  useEffect(() => {
-    if (theme === "dark") {
-      document.body.classList.add("dark");
-    } else {
-      document.body.classList.remove("dark");
-    }
-    localStorage.setItem("theme", theme);
-  }, [theme]);
-
   const toggleTheme = (e) => {
     e.stopPropagation();
-    setTheme(theme === "light" ? "dark" : "light");
+    toggleStoredTheme();
   };
 
   // --- 權限判斷外提 ---
   const isAdmin = user?.role === "admin";
   const isTeacherOrAdmin = user?.role === "teacher" || isAdmin;
   const showAvatarImage = user?.picture?.trim() && !imgError;
+  const displayName = `${user?.lastname || ""}${user?.firstname || ""}` || user?.nickname || user?.email || "";
 
   // 點擊外部關閉選單
   useEffect(() => {
@@ -77,19 +92,39 @@ export default function Header({ user, page }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const logout = () => {
-    // 關閉選單
+  const logout = async () => {
     setIsMenuOpen(false);
-    // 呼叫 api.js 的統一登出 (預設 isAutoLogout 為 false，會跳 confirm)
-    logoutUser();
+    const ok = await confirmDialog("確定要登出嗎？", { title: "登出", confirmText: "登出", tone: "warning" });
+    // 已經在這裡確認過，傳 true 讓 api.js 略過它自己的確認
+    if (ok) logoutUser(true);
   };
 
   const handleLinkClick = () => setIsMenuOpen(false);
 
-  // 點擊導覽列中的任一連結後收合漢堡選單
+  // 點擊側邊選單中的任一連結後收合
   const handleNavClick = (e) => {
     if (e.target.closest("a")) setIsNavOpen(false);
   };
+
+  // 頁面導覽項目 (依權限)。圖示只在平板/手機的側邊選單顯示
+  const navItems = [
+    page !== "index" && { to: "/", label: "首頁", icon: "fa-house" },
+    isAdmin && { to: "/subjectManager", label: "科目管理", icon: "fa-book" },
+    isTeacherOrAdmin && { to: "/examManager", label: "考試管理", icon: "fa-file-pen" },
+    isTeacherOrAdmin && { to: "/roomManager", label: "考場管理", icon: "fa-building" },
+    isAdmin && { to: "/memberManager", label: "會員管理", icon: "fa-users" },
+    isAdmin && { to: "/reservationManager", label: "報名管理", icon: "fa-clipboard-check" },
+    { to: "/myReserve", label: "我的考試", icon: "fa-calendar-check" },
+  ].filter(Boolean);
+
+  const themeLabel = theme === "light" ? "切換為深色模式" : "切換為淺色模式";
+
+  // header 上的主題切換圖示。登入後在平板/手機會隱藏 (改放側邊選單底部)，避免右上角太擠
+  const renderThemeButton = (className) => (
+    <button type="button" className={className} onClick={toggleTheme} title={themeLabel} aria-label={themeLabel}>
+      {theme === "light" ? <IconMoon /> : <IconSun />}
+    </button>
+  );
 
   return (
     <header id="header" ref={headerRef}>
@@ -105,109 +140,155 @@ export default function Header({ user, page }) {
           </h2>
         </div>
 
-        {/* 漢堡選單按鈕 (僅在手機/平板顯示) */}
-        <button
-          type="button"
-          className="nav-toggle"
-          aria-label={isNavOpen ? "關閉選單" : "開啟選單"}
-          aria-expanded={isNavOpen}
-          onClick={() => setIsNavOpen(!isNavOpen)}
-        >
-          <i className={`fa-solid ${isNavOpen ? "fa-xmark" : "fa-bars"}`}></i>
-        </button>
+        {/* 頁面導覽 (登入後才有)：桌機版排成一列；平板/手機是從右側滑出的側邊選單 */}
+        {user && (
+          <>
+            {isNavOpen && <div className="nav-scrim" onClick={() => setIsNavOpen(false)}></div>}
+            <nav className={`right ${isNavOpen ? "open" : ""}`} aria-label="主選單">
+              <div className="nav-drawer-head">
+                <span>選單</span>
+                <button type="button" className="nav-close" aria-label="關閉選單" onClick={() => setIsNavOpen(false)}>
+                  <IconClose />
+                </button>
+              </div>
+              <ul onClick={handleNavClick}>
+                {navItems.map((item) => (
+                  <li key={item.to}>
+                    <NavLink to={item.to} className={activeClass}>
+                      <i className={`nav-icon fa-solid ${item.icon}`}></i>
+                      {item.label}
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
 
-        {/* 右側導覽列 */}
-        <div className={`right ${isNavOpen ? "open" : ""}`}>
-          <ul onClick={handleNavClick}>
-            {page !== "index" && (
-              <li><NavLink to="/" className={activeClass}>首頁</NavLink></li>
-            )}
-
-            {user ? (
-              <>
-                {/* 權限導向的按鈕 */}
-                {isTeacherOrAdmin && (
-                  <>
-                    <li><NavLink to="/subjectManager" className={activeClass}>科目管理</NavLink></li>
-                    <li><NavLink to="/examManager" className={activeClass}>考試管理</NavLink></li>
-                    <li><NavLink to="/roomManager" className={activeClass}>考場管理</NavLink></li>
-                  </>
-                )}
-                {isAdmin && (
-                  <>
-                    <li><NavLink to="/memberManager" className={activeClass}>會員管理</NavLink></li>
-                    <li><NavLink to="/reservationManager" className={activeClass}>報名管理</NavLink></li>
-                  </>
-                )}
-
-                <li><NavLink to="/myReserve" className={activeClass}>我的考試</NavLink></li>
-
-                {/* --- 大頭貼與懸浮選單 --- */}
-                <li ref={menuRef} className="user-menu-li">
-                  <div
-                    className={`user-menu-btn ${isMenuOpen ? 'active' : ''}`}
-                    onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    title="使用者選單"
-                  >
-                    {showAvatarImage ? (
-                      <img
-                        src={user.picture}
-                        alt="avatar"
-                        className="user-avatar"
-                        onError={() => setImgError(true)}
-                      />
-                    ) : (
-                      <IconUserPlaceholder />
-                    )}
+              {/* 主題切換：平板/手機放在側邊選單底部 (桌機版是 header 上的圖示) */}
+              <div className="nav-drawer-foot">
+                <div className="drawer-theme-toggle" role="switch" aria-checked={theme === "dark"} onClick={toggleTheme}>
+                  <IconMoon />
+                  <span>深色模式</span>
+                  <div className={`theme-switch ${theme}`}>
+                    <div className="switch-handle"></div>
                   </div>
+                </div>
+              </div>
+            </nav>
+          </>
+        )}
 
-                  {isMenuOpen && (
-                    <div className="dropdown-menu">
-                      <Link to="/account" className="menu-item" onClick={handleLinkClick}>
-                        <span className="menu-icon"><IconUser /></span>
-                        <span>我的資料</span>
-                      </Link>
+        {/* 右上角：帳號與選單按鈕，任何寬度都顯示 */}
+        <div className="header-actions">
+          {user ? (
+            <>
+              {renderThemeButton("theme-icon-btn desktop-only")}
 
-                      <Link to="/myReserve" className="menu-item" onClick={handleLinkClick}>
-                        <span className="menu-icon"><IconCalendar /></span>
-                        <span>我的考試</span>
-                      </Link>
-
-                      <Link to="/contact" className="menu-item" onClick={handleLinkClick}>
-                        <span className="menu-icon"><IconMail /></span>
-                        <span>聯絡我們</span>
-                      </Link>
-
-                      {/* <div className="menu-divider"></div>
-
-                      <div className="menu-item theme-toggle-item" onClick={toggleTheme}>
-                        <span className="menu-icon">
-                          {theme === 'light' ? <IconSun /> : <IconMoon />}
-                        </span>
-                        <span>{theme === 'light' ? '淺色模式' : '深色模式'}</span>
-                        <div className={`theme-switch ${theme}`}>
-                          <div className="switch-handle"></div>
-                        </div>
-                      </div> */}
-
-                      <div className="menu-divider"></div>
-
-                      <div className="menu-item logout" onClick={logout}>
-                        <span className="menu-icon"><IconLogout /></span>
-                        <span>登出</span>
-                      </div>
-                    </div>
+              {/* --- 大頭貼與帳號選單 --- */}
+              <div className="user-menu" ref={menuRef}>
+                <div
+                  className={`user-menu-btn ${isMenuOpen ? 'active' : ''}`}
+                  onClick={() => setIsMenuOpen(!isMenuOpen)}
+                  title="帳號選單"
+                >
+                  {showAvatarImage ? (
+                    <img
+                      src={user.picture}
+                      alt="avatar"
+                      className="user-avatar"
+                      onError={() => setImgError(true)}
+                    />
+                  ) : (
+                    <IconUserPlaceholder />
                   )}
-                </li>
-              </>
-            ) : (
-              page !== "login" && (
-                <li>
-                  <NavLink to="/login" className="btn">登入 / 註冊</NavLink>
-                </li>
-              )
-            )}
-          </ul>
+                </div>
+
+                {isMenuOpen && (
+                  <div className="dropdown-menu">
+                    <div className="menu-profile">
+                      <span className="user-menu-name">{displayName}</span>
+                      {user.email && user.email !== displayName && <span className="user-menu-email">{user.email}</span>}
+                    </div>
+
+                    <div className="menu-divider"></div>
+
+                    <Link to="/account" className="menu-item" onClick={handleLinkClick}>
+                      <span className="menu-icon"><IconUser /></span>
+                      <span>我的資料</span>
+                    </Link>
+
+                    <Link to="/myReserve" className="menu-item" onClick={handleLinkClick}>
+                      <span className="menu-icon"><IconCalendar /></span>
+                      <span>我的考試</span>
+                    </Link>
+
+                    <Link to="/notifications" className="menu-item" onClick={handleLinkClick}>
+                      <span className="menu-icon"><IconBell /></span>
+                      <span>通知中心</span>
+                    </Link>
+
+                    {/* 管理員的其他工具 (報名審核與退費在導覽列的「報名管理」) */}
+                    {isAdmin && (
+                      <>
+                        <div className="menu-divider"></div>
+
+                        <Link to="/reservationReport" className="menu-item" onClick={handleLinkClick}>
+                          <span className="menu-icon"><IconChart /></span>
+                          <span>名單與統計</span>
+                        </Link>
+
+                        <Link to="/auditLogs" className="menu-item" onClick={handleLinkClick}>
+                          <span className="menu-icon"><IconHistory /></span>
+                          <span>操作紀錄</span>
+                        </Link>
+
+                        <Link to="/notificationManager" className="menu-item" onClick={handleLinkClick}>
+                          <span className="menu-icon"><IconSend /></span>
+                          <span>通知管理</span>
+                        </Link>
+                      </>
+                    )}
+
+                    <div className="menu-divider"></div>
+
+                    <Link to="/guidelines" className="menu-item" onClick={handleLinkClick}>
+                      <span className="menu-icon"><IconHelp /></span>
+                      <span>考試須知</span>
+                    </Link>
+
+                    <Link to="/contact" className="menu-item" onClick={handleLinkClick}>
+                      <span className="menu-icon"><IconMail /></span>
+                      <span>聯絡我們</span>
+                    </Link>
+
+                    <div className="menu-divider"></div>
+
+                    <div className="menu-item logout" onClick={logout}>
+                      <span className="menu-icon"><IconLogout /></span>
+                      <span>登出</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 選單按鈕 (僅在平板/手機顯示) */}
+              <button
+                type="button"
+                className="nav-toggle"
+                aria-label="開啟選單"
+                aria-expanded={isNavOpen}
+                onClick={() => setIsNavOpen(true)}
+              >
+                <IconMenu />
+              </button>
+            </>
+          ) : (
+            <>
+              {/* 未登入：沒有帳號選單，首頁、主題切換與登入直接放在右上角 */}
+              {page !== "index" && <NavLink to="/" className="header-link">首頁</NavLink>}
+              <NavLink to="/guidelines" className="header-link">考試須知</NavLink>
+              {renderThemeButton("theme-icon-btn")}
+              {page !== "login" && <NavLink to="/login" className="header-link btn">登入 / 註冊</NavLink>}
+            </>
+          )}
         </div>
       </div>
     </header>

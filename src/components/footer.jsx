@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   // 自動取得當前年份，不用每年手動改程式碼
@@ -47,6 +48,7 @@ export default function Footer() {
 
       {/* Menu / Copyright */}
       <ul className="menu">
+        <li><Link to="/guidelines">考試須知與常見問題</Link></li>
         <li>聯絡電話: (03) 6686917</li>
         <li>&copy; {currentYear} 核果資訊學苑. All rights reserved.</li>
         <li>Design: Weng-john</li>

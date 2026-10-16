@@ -1,21 +1,22 @@
-import React, { useEffect, useState, useMemo, useCallback, useRef } from "react";
+import React, { useEffect, useState, useMemo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useOutletContext, useNavigate } from "react-router-dom";
+import ReservationDetail from "../features/booking/ReservationDetail.jsx";
+import PaymentProof from "../features/booking/PaymentProof.jsx";
 import { fetchMyReservationsWithDetailsAPI, submitPaymentProofAPI, updateReservationAPI } from "../api";
-import { reserveStatus, EXAM_LANGUAGE, DEADLINE_CONFIG, REGISTRATION_DEADLINE_DAYS } from "../config";
-
-const checkIsExpired = (res) => {
-  const timeStr = res.examInfo?.examEndTime || res.examInfo?.examStartTime;
-  if (!timeStr) return false;
-  return new Date(timeStr) < new Date();
-};
+import { examStarted, reservationGroup, reservationStatusKey, resultSummary } from "../features/booking/utils";
+import { reserveGroups, EXAM_LANGUAGE, DEADLINE_CONFIG, REGISTRATION_DEADLINE_DAYS } from "../config";
+import { confirmDialog, notify } from "../dialog";
+import StatusTabs from "../components/statusTabs";
 
 export default function MyReserve() {
   const { user, setGlobalLoading, setLoadingText, setSubmit, requestCaptcha } = useOutletContext();
   const navigate = useNavigate();
 
   const [reservations, setReservations] = useState([]);
-  const [activeTab, setActiveTab] = useState("reviewing");
+  const [activeTab, setActiveTab] = useState("todo");
+  // 第二層分頁 (待處理、審核中底下的確切狀態)。空字串代表還沒選，會自動停在第一個有項目的
+  const [activeStatus, setActiveStatus] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // 繳費表單狀態
@@ -23,7 +24,6 @@ export default function MyReserve() {
   const [paymentMethod, setPaymentMethod] = useState("轉帳");
   const [paymentFile, setPaymentFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
-  const paymentFileInputRef = useRef(null);
 
   // 修改資料 / 重新報名表單狀態
   const [updateModalData, setUpdateModalData] = useState(null);
@@ -41,11 +41,11 @@ export default function MyReserve() {
     certiportAccount: ""
   });
 
-  // 查看報名資訊狀態
-  const [infoModalData, setInfoModalData] = useState(null);
+  // 報名詳細資訊視窗 (點選任一筆報名開啟；修改資料、上傳繳費證明都從這裡進去)
+  const [detailData, setDetailData] = useState(null);
 
   const activeTabInfo = useMemo(
-    () => reserveStatus.find((t) => t.id === activeTab) || reserveStatus[0],
+    () => reserveGroups.find((t) => t.id === activeTab) || reserveGroups[0],
     [activeTab]
   );
 
@@ -63,18 +63,9 @@ export default function MyReserve() {
         setReservations(data);
 
         if (isInitial) {
-          const activeData = data.filter((r) => !checkIsExpired(r));
-          const priorityIds = ["payment_rejected", "unpaid", "rejected", "payment_review"];
-          let targetTabId = "reviewing";
-
-          for (const id of priorityIds) {
-            if (activeData.some((r) => r.statusInfo?.id === id)) {
-              targetTabId = id;
-              break;
-            }
-          }
-
-          setActiveTab(targetTabId);
+          // 進頁面時停在第一個有項目的分頁 (依分頁順序，待處理優先)
+          const groups = new Set(data.map(reservationGroup));
+          setActiveTab((reserveGroups.find((group) => groups.has(group.id)) || reserveGroups[0]).id);
         }
       } catch (err) {
         console.error("無法取得報名資料:", err);
@@ -92,23 +83,43 @@ export default function MyReserve() {
     else fetchData(true);
   }, [user, navigate, fetchData]);
 
-  const filteredReservations = useMemo(() => {
-    const isHistoryTab = activeTab === "history";
-
-    let filtered = reservations.filter((res) => {
-      const statusId = res.statusInfo?.id;
-      const isExpired = checkIsExpired(res);
-
-      if (isHistoryTab) {
-        return isExpired || statusId === "history";
-      }
-
-      if (isExpired) return false;
-      return statusId === activeTab;
+  // 各分頁的筆數 (與下方清單的篩選條件一致)
+  const tabCounts = useMemo(() => {
+    const counts = {};
+    reservations.forEach((res) => {
+      const id = reservationGroup(res);
+      counts[id] = (counts[id] || 0) + 1;
     });
+    return counts;
+  }, [reservations]);
 
-    return isHistoryTab ? filtered.reverse() : filtered;
-  }, [reservations, activeTab]);
+  // 第二層分頁與各自的筆數
+  const statusTabs = useMemo(() => {
+    const counts = {};
+    reservations.forEach((res) => {
+      if (reservationGroup(res) !== activeTab) return;
+      const key = reservationStatusKey(res);
+      counts[key] = (counts[key] || 0) + 1;
+    });
+    return (activeTabInfo.statuses || [])
+      .map((status) => ({ ...status, count: counts[status.id] || 0 }))
+      .filter((status) => !status.optional || status.count > 0);
+  }, [reservations, activeTab, activeTabInfo]);
+
+  // 目前的第二層分頁：使用者選的那個，沒選或已經不存在時停在第一個有項目的
+  const currentStatus = statusTabs.find((status) => status.id === activeStatus)
+    || statusTabs.find((status) => status.count > 0)
+    || statusTabs[0]
+    || null;
+
+  const filteredReservations = useMemo(() => {
+    const filtered = reservations.filter((res) =>
+      reservationGroup(res) === activeTab && (!currentStatus || reservationStatusKey(res) === currentStatus.id));
+    // 歷史紀錄把新的排前面
+    return activeTab === "history" ? filtered.reverse() : filtered;
+  }, [reservations, activeTab, currentStatus]);
+
+  const tabMessage = currentStatus?.message || activeTabInfo.message;
 
   // --- 繳費處理邏輯 ---
   const handleFileChange = (e) => setPaymentFile(e.target.files[0] || null);
@@ -123,7 +134,7 @@ export default function MyReserve() {
 
   const handleSubmitPayment = async (e) => {
     e.preventDefault();
-    if (!paymentFile) return alert("請先上傳繳費證明截圖！");
+    if (!paymentFile) return notify("請先上傳繳費證明截圖！");
 
     const token = await requestCaptcha();
     if (!token) return;
@@ -145,13 +156,13 @@ export default function MyReserve() {
       };
 
       await submitPaymentProofAPI(payload);
-      alert("繳費資訊送出成功！請靜候管理員審核。");
+      notify("繳費資訊送出成功！請靜候管理員審核。");
       setPaymentModalData(null);
       setPaymentFile(null);
       await fetchData(false);
     } catch (error) {
       console.error("上傳失敗:", error);
-      alert("上傳失敗，請稍後再試。");
+      notify("上傳失敗，請稍後再試。");
     } finally {
       setIsUploading(false);
       setSubmit(false);
@@ -171,7 +182,7 @@ export default function MyReserve() {
 
   const handleUpdateSubmit = async (e) => {
     e.preventDefault();
-    if (!window.confirm(`確定要提交 ${updateFormData.subject} 的修改資料嗎？`)) return;
+    if (!(await confirmDialog(`確定要提交 ${updateFormData.subject} 的修改資料嗎？`))) return;
 
     const token = await requestCaptcha();
     if (!token) return;
@@ -194,11 +205,11 @@ export default function MyReserve() {
         token
       });
 
-      alert("資料更新成功！請靜候審核。");
+      notify("資料更新成功！請靜候審核。");
       setUpdateModalData(null);
       await fetchData(false);
     } catch (error) {
-      alert(`更新失敗：${error.message}`);
+      notify(`更新失敗：${error.message}`);
     } finally {
       setSubmit(false);
       setLoadingText("");
@@ -206,8 +217,33 @@ export default function MyReserve() {
     }
   };
 
+  // 從報名詳細資訊進入「上傳繳費證明」「修改報名資料」
+  const openPayment = (res) => {
+    setDetailData(null);
+    setPaymentModalData(res);
+  };
+
+  const openUpdate = (res) => {
+    setDetailData(null);
+    setUpdateModalData(res);
+    setUpdateFormData({
+      reserveID: res.reserveID,
+      examID: res.examInfo?.examID || "",
+      email: user?.email || "",
+      lastname: res.lastname || user?.lastname || "",
+      firstname: res.firstname || user?.firstname || "",
+      phone: res.phoneNumber || user?.phoneNumber || "",
+      subject: res.examInfo?.subjectName || "未知考試",
+      language: res.language || "繁體中文",
+      room: res.examInfo?.location || "未註明地點",
+      certiport: res.additional || false,
+      certiportAccount: res.certiportAccount || ""
+    });
+  };
+
   if (!user) return null;
-  const isHistoryTab = activeTab === "history";
+  // 歷史紀錄的報名都已結束，標籤顯示結果 (成績、缺考、已取消…) 而不是報名狀態
+  const isClosedTab = activeTab === "history";
 
   const handleRefresh = async () => {
     await fetchData(false);
@@ -219,44 +255,25 @@ export default function MyReserve() {
         {/* 左側：狀態切換面板 */}
         <div className="centered-form side-panel add-panel" title="篩選預約狀態">
           <h3>進度查詢</h3>
-          <div className="status-vertical-menu">
-            {reserveStatus.map((tab) => {
-              const isActive = activeTab === tab.id;
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={`tab-item-btn ${isActive ? "active" : ""}`}
-                  style={{
-                    backgroundColor: isActive ? "#594945" : "#eaeaea",
-                    color: isActive ? "#fff" : "#594945",
-                    boxShadow: isActive ? "0 4px 12px #59494575" : "none",
-                    fontWeight: isActive ? "600" : "400"
-                  }}
-                >
-                  <span>
-                    <i className={`fa-solid ${tab.icon}`}></i> {tab.label}
-                  </span>
-                  {isActive && <i className="fa-solid fa-chevron-right"></i>}
-                </button>
-              );
-            })}
-          </div>
+          <StatusTabs
+            tabs={reserveGroups}
+            activeId={activeTab}
+            onSelect={(id) => {
+              setActiveTab(id);
+              setActiveStatus("");
+            }}
+            getCount={(tab) => tabCounts[tab.id] || 0}
+          />
         </div>
 
         {/* 右側：列表區塊 */}
         <div className="centered-form side-panel list-panel" title="詳細內容">
           <div className="list-title-row">
-            <h3>{activeTabInfo.label} 的考試</h3>
+            <h3>{activeTabInfo.label}</h3>
             <button
               onClick={handleRefresh}
               disabled={isRefreshing}
-              className="btn-refresh"
-              style={{
-                cursor: isRefreshing ? "not-allowed" : "pointer",
-                transform: isRefreshing ? "rotate(360deg)" : "none",
-                transition: isRefreshing ? "transform 1s linear infinite" : "all 1s"
-              }}
+              className={`btn-refresh ${isRefreshing ? "is-loading" : ""}`}
               title="重新整理"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
@@ -269,13 +286,25 @@ export default function MyReserve() {
             </button>
           </div>
 
-          {activeTabInfo.message && <span className="tab-message">* {activeTabInfo.message}</span>}
+          {/* 第二層分頁：這一組裡各個確切的狀態 */}
+          {statusTabs.length > 0 && (
+            <StatusTabs
+              variant="chips"
+              label={`${activeTabInfo.label}的狀態`}
+              tabs={statusTabs}
+              activeId={currentStatus?.id}
+              onSelect={setActiveStatus}
+              getCount={(status) => status.count}
+            />
+          )}
+
+          {tabMessage && <span className="tab-message">* {tabMessage}</span>}
 
           <div className="scroll-area reserved-content">
             {filteredReservations.length === 0 ? (
               <div className="empty-state">
                 <i className="fa-regular fa-folder-open"></i>
-                <p>目前沒有{activeTabInfo.label}的項目</p>
+                <p>目前沒有{currentStatus?.label || activeTabInfo.label}的項目</p>
               </div>
             ) : (
               <ul className="modern-list">
@@ -300,45 +329,33 @@ export default function MyReserve() {
                       ? Math.max(0, Math.floor((endTime - startTime) / (1000 * 60 * 60)))
                       : 0;
 
-                  const displayColor = isHistoryTab ? "#999999" : statusInfo?.color || "#999999";
-                  const displayText = isHistoryTab ? "已結束" : statusInfo?.text || "狀態未知";
+                  // 狀態色調 (對應 CSS 的 .tone-*) 與標籤文字
+                  const [resultText, resultTone] = resultSummary(res);
+                  const tone = isClosedTab ? resultTone : statusInfo?.tone || "muted";
+                  const displayText = isClosedTab ? resultText : statusInfo?.text || "狀態未知";
 
                   const statusId = statusInfo?.id;
 
-                  const isReviewing = statusId === "reviewing" && !isHistoryTab;
-                  const isUnpaid = statusId === "unpaid" && !isHistoryTab;
-                  const isRejected = statusId === "rejected" && !isHistoryTab;
-                  const isPaymentRejected = statusId === "payment_rejected" && !isHistoryTab;
-                  const isPaid = statusId === "paid" && !isHistoryTab;
-
-                  const isClickable =
-                    isReviewing || isUnpaid || isRejected || isPaymentRejected || isPaid;
+                  const isReviewing = statusId === "reviewing" && !isClosedTab;
+                  const isUnpaid = statusId === "unpaid" && !isClosedTab;
+                  const isRejected = statusId === "rejected" && !isClosedTab;
+                  const isPaymentRejected = statusId === "payment_rejected" && !isClosedTab;
 
                   let daysLeftElement = null;
                   if ((isUnpaid || isPaymentRejected) && examInfo?.examStartTime) {
                     const examDate = new Date(examInfo.examStartTime);
-                    const deadlineDate = new Date(
-                      examDate.getTime() - (REGISTRATION_DEADLINE_DAYS || 3) * 24 * 60 * 60 * 1000
-                    );
+                    const deadlineDate = new Date(res.paymentDeadline || examDate.getTime() - (REGISTRATION_DEADLINE_DAYS || 3) * 24 * 60 * 60 * 1000);
                     const daysLeft = Math.ceil(
                       (deadlineDate.getTime() - new Date().getTime()) / (1000 * 3600 * 24)
                     );
 
-                    let tagColor = DEADLINE_CONFIG.COLORS.SAFE;
-                    if (daysLeft <= DEADLINE_CONFIG.URGENT_DAYS) tagColor = DEADLINE_CONFIG.COLORS.URGENT;
-                    else if (daysLeft <= DEADLINE_CONFIG.WARNING_DAYS) tagColor = DEADLINE_CONFIG.COLORS.WARNING;
+                    let deadlineLevel = "safe"; // 對應 CSS 的 .deadline-safe / -warning / -urgent
+                    if (daysLeft <= DEADLINE_CONFIG.URGENT_DAYS) deadlineLevel = "urgent";
+                    else if (daysLeft <= DEADLINE_CONFIG.WARNING_DAYS) deadlineLevel = "warning";
 
                     daysLeftElement = (
-                      <span
-                        className="additional-tag"
-                        style={{
-                          color: tagColor,
-                          borderColor: tagColor,
-                          backgroundColor: `${tagColor}15`,
-                          marginLeft: "8px"
-                        }}
-                      >
-                        <i className="fa-regular fa-clock" style={{ marginRight: "4px" }}></i>
+                      <span className={`additional-tag deadline-${deadlineLevel}`}>
+                        <i className="fa-regular fa-clock"></i>
                         再 {daysLeft} 天繳費截止
                       </span>
                     );
@@ -347,49 +364,9 @@ export default function MyReserve() {
                   return (
                     <li
                       key={reserveID}
-                      className="list-item"
-                      style={{
-                        borderLeft: `8px solid ${displayColor}`,
-                        cursor: isClickable ? "pointer" : "default",
-                        transition: "0.2s"
-                      }}
-                      onClick={() => {
-                        if (isUnpaid || isPaymentRejected) {
-                          setPaymentModalData(res);
-                          return;
-                        }
-
-                        if (isRejected || isReviewing) {
-                          setUpdateModalData(res);
-                          setUpdateFormData({
-                            reserveID: res.reserveID,
-                            examID: res.examInfo?.examID || "",
-                            email: user?.email || "",
-                            lastname: res.lastname || user?.lastname || "",
-                            firstname: res.firstname || user?.firstname || "",
-                            phone: res.phoneNumber || user?.phoneNumber || "",
-                            subject: subjectName,
-                            language: res.language || "繁體中文",
-                            room: location,
-                            certiport: res.additional || false,
-                            certiportAccount: res.certiportAccount || ""
-                          });
-                          return;
-                        }
-
-                        if (isPaid) {
-                          setInfoModalData({ ...res, examTimeStr, subjectName, location });
-                        }
-                      }}
-                      title={
-                        isUnpaid || isPaymentRejected
-                          ? "點擊上傳繳費證明"
-                          : isRejected || isReviewing
-                            ? "點擊修改報名資料"
-                            : isPaid
-                              ? "點擊查看報名資訊"
-                              : ""
-                      }
+                      className={`list-item tone-${tone} clickable`}
+                      onClick={() => setDetailData(res)}
+                      title="點擊查看報名詳細資訊"
                     >
                       <div className="item-info reserved-col">
                         <div className="text-group">
@@ -398,7 +375,7 @@ export default function MyReserve() {
                           </div>
 
                           <div className="time-info">
-                            <i className="fa-regular fa-calendar-check" style={{ color: displayColor }}></i>
+                            <i className="fa-regular fa-calendar-check"></i>
                             <div className="time-text">
                               <span>{examTimeStr}</span>
                               {duration > 0 && <span> ({duration} 小時)</span>}
@@ -407,27 +384,21 @@ export default function MyReserve() {
 
                           <div className="location-info">
                             <span>
-                              <i
-                                className="fa-solid fa-location-dot"
-                                style={{ color: isHistoryTab ? "#999" : "#d9534f" }}
-                              ></i>
+                              <i className="fa-solid fa-location-dot"></i>
                               {location}
                             </span>
                           </div>
 
                           <div className="language-info">
                             <span>
-                              <i
-                                className="fa-solid fa-language"
-                                style={{ color: isHistoryTab ? "#999" : "#5bc0de" }}
-                              ></i>
+                              <i className="fa-solid fa-language"></i>
                               {language || "預設語言"}
                             </span>
                           </div>
 
                           {(isRejected || isPaymentRejected) && comment && (
-                            <div className="rejection-box" style={{ color: displayColor }}>
-                              <i className="fa-solid fa-circle-exclamation" style={{ marginRight: "6px" }}></i>
+                            <div className="rejection-box">
+                              <i className="fa-solid fa-circle-exclamation"></i>
                               {comment}
                             </div>
                           )}
@@ -436,34 +407,18 @@ export default function MyReserve() {
 
                       <div className="item-actions status-tags">
                         {additional && (
-                          <span
-                            className="additional-tag"
-                            style={{
-                              color: isHistoryTab ? "#999" : undefined,
-                              border: isHistoryTab ? "1px solid #999" : undefined
-                            }}
-                          >
-                            <i
-                              className="fa-solid fa-certificate"
-                              style={{ color: isHistoryTab ? displayColor : "#e67e22" }}
-                            ></i>
+                          <span className="additional-tag">
+                            <i className="fa-solid fa-certificate"></i>
                             需證書
                           </span>
                         )}
 
                         {daysLeftElement}
 
-                        <span
-                          className="reviewStatus"
-                          style={{
-                            color: displayColor,
-                            backgroundColor: isHistoryTab ? "#f5f5f5" : `${displayColor}15`
-                          }}
-                        >
+                        <span className="reviewStatus">
                           {displayText}
                           {(isUnpaid || isPaymentRejected) && <i className="fa-solid fa-upload"></i>}
                           {(isRejected || isReviewing) && <i className="fa-solid fa-pen"></i>}
-                          {isPaid && <i className="fa-solid fa-file-lines"></i>}
                         </span>
                       </div>
                     </li>
@@ -480,26 +435,21 @@ export default function MyReserve() {
         createPortal(
           <div className="modal-overlay" onClick={() => setPaymentModalData(null)}>
             <div className="modal-content exam-form-modal" onClick={(e) => e.stopPropagation()}>
+              <button type="button" className="modal-close" aria-label="關閉" title="關閉" onClick={() => setPaymentModalData(null)}>&times;</button>
               <h3>{paymentModalData.statusInfo?.id === "payment_rejected" ? "重新上傳繳費資訊" : "上傳繳費資訊"}</h3>
               <div className="modal-info-block">
                 <p>
                   您正在為 <strong>{paymentModalData.examInfo?.subjectName}</strong>
                   {paymentModalData.statusInfo?.id === "payment_rejected" ? " 重新提交繳費證明。" : " 提交繳費證明。"}
                 </p>
-                {paymentModalData.statusInfo?.id === "payment_rejected" && /^https?:\/\//i.test(paymentModalData.paymentData?.imageUrl || "") && (
-                  <div className="modal-info-block" style={{ marginTop: "10px" }}>
-                    <p style={{ marginBottom: "8px", fontWeight: 600 }}>前一次上傳的繳費證明：</p>
-                    <a
-                      href={paymentModalData.paymentData.imageUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      style={{ display: "inline-block", marginBottom: "8px" }}
-                    >
-                      開啟原始圖片
-                    </a>
+                {paymentModalData.statusInfo?.id === "payment_rejected" && paymentModalData.paymentData && (
+                  <div className="modal-info-block previous-proof">
+                    <p>前一次上傳的繳費證明：</p>
+                    <PaymentProof reserveID={paymentModalData.reserveID} />
                   </div>
                 )}
-                <p>匯款帳號：國泰世華(013) 1234-5678-9012 (請依實際修改)</p>
+                <p>{paymentModalData.paymentInstructions || "請聯絡學苑取得正式付款資訊；目前尚未設定匯款帳號。"}</p>
+                <p>尚需繳費：NT$ {Math.max(0, Number(paymentModalData.amountDue || 0) - Number(paymentModalData.paidAmount || 0))}</p>
               </div>
 
               <form onSubmit={handleSubmitPayment} className="exam-form">
@@ -515,7 +465,7 @@ export default function MyReserve() {
 
                 <div className="form-group">
                   <label>繳費證明截圖/照片：</label>
-                  <input type="file" accept="image/*" onChange={handleFileChange} required />
+                  <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleFileChange} required />
                 </div>
 
                 <div className="modal-actions">
@@ -542,6 +492,7 @@ export default function MyReserve() {
         createPortal(
           <div className="modal-overlay" onClick={() => setUpdateModalData(null)}>
             <div className="modal-content exam-form-modal" onClick={(e) => e.stopPropagation()}>
+              <button type="button" className="modal-close" aria-label="關閉" title="關閉" onClick={() => setUpdateModalData(null)}>&times;</button>
               <h3>修改報名資料</h3>
 
               {updateModalData.comment && updateModalData.statusInfo?.id === "rejected" && (
@@ -685,86 +636,17 @@ export default function MyReserve() {
           document.body
         )}
 
-      {/* 查看報名資訊 Modal */}
-      {infoModalData &&
-        createPortal(
-          <div className="modal-overlay" onClick={() => setInfoModalData(null)}>
-            <div className="modal-content exam-form-modal" onClick={(e) => e.stopPropagation()}>
-              <h3>報名詳細資訊</h3>
-
-              <div className="modal-info-block">
-                <p>
-                  <strong>考試科目：</strong> {infoModalData.subjectName}
-                </p>
-                <p>
-                  <strong>考試時間：</strong> {infoModalData.examTimeStr}
-                </p>
-                <p>
-                  <strong>考場地點：</strong> {infoModalData.location}
-                </p>
-              </div>
-
-              <div className="modal-info-block info-highlight">
-                <p>
-                  <strong>報名序號：</strong> {infoModalData.reserveID}
-                </p>
-                <p>
-                  <strong>報考人姓名：</strong> {infoModalData.lastname}
-                  {infoModalData.firstname}
-                </p>
-                <p>
-                  <strong>電子郵件：</strong> {user?.email || "未提供"}
-                </p>
-                <p>
-                  <strong>聯絡電話：</strong> {infoModalData.phoneNumber}
-                </p>
-                <p>
-                  <strong>考試語言：</strong> {infoModalData.language || "預設語言"}
-                </p>
-                <p>
-                  <strong>Certiport 帳號：</strong> {infoModalData.certiportAccount}
-                </p>
-                <p>
-                  <strong>加值方案：</strong> {infoModalData.additional ? "有加購" : "無"}
-                </p>
-                <p>
-                  <strong>繳費狀態：</strong> <span className="paid-status">已繳費</span>
-                </p>
-              </div>
-
-              <div className="modal-actions modal-actions-end">
-                <button type="button" className="btn-cancel" onClick={() => setInfoModalData(null)}>
-                  關閉視窗
-                </button>
-
-                {/* <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => {
-                    setUpdateModalData(infoModalData);
-                    setUpdateFormData({
-                      reserveID: infoModalData.reserveID,
-                      examID: infoModalData.examInfo?.examID || "",
-                      email: user?.email || "",
-                      lastname: infoModalData.lastname || user?.lastname || "",
-                      firstname: infoModalData.firstname || user?.firstname || "",
-                      phone: infoModalData.phoneNumber || user?.phoneNumber || "",
-                      subject: infoModalData.subjectName,
-                      language: infoModalData.language || "繁體中文",
-                      room: infoModalData.location,
-                      certiport: infoModalData.additional || false,
-                      certiportAccount: infoModalData.certiportAccount || ""
-                    });
-                    setInfoModalData(null);
-                  }}
-                >
-                  修改資料
-                </button> */}
-              </div>
-            </div>
-          </div>,
-          document.body
-        )}
+      {/* 報名詳細資訊：一筆報名的狀態、內容與所有操作 */}
+      {detailData && (
+        <ReservationDetail
+          reservation={detailData}
+          expired={examStarted(detailData)}
+          onClose={() => setDetailData(null)}
+          onEdit={() => openUpdate(detailData)}
+          onPay={() => openPayment(detailData)}
+          onChanged={() => fetchData(false)}
+        />
+      )}
     </div>
   );
 }

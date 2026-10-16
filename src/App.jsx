@@ -15,6 +15,8 @@ import MemberManager from "./pages/memberManager.jsx";
 import ExamManager from "./pages/examManager.jsx";
 import RoomManager from "./pages/roomManager.jsx";
 import ReservationManager from "./pages/reservationManager.jsx";
+import Guidelines from "./features/booking/Guidelines.jsx";
+import { ReservationReportPage, AuditLogsPage, NotificationsPage, NotificationManagerPage } from "./features/booking/ServicePages.jsx";
 
 export default function App() {
   useEffect(() => {
@@ -30,6 +32,11 @@ export default function App() {
         <Route path="/myReserve" element={<MyReserve />} />
         <Route path="/login" element={<Login />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/guidelines" element={<Guidelines />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/reservationReport" element={<ReservationReportPage />} />
+        <Route path="/auditLogs" element={<AuditLogsPage />} />
+        <Route path="/notificationManager" element={<NotificationManagerPage />} />
 
         {/* 管理員頁面 */}
         <Route path="/memberManager" element={<MemberManager />} />

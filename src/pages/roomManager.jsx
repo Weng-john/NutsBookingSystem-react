@@ -1,12 +1,14 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { fetchRoomsAPI, addRoomAPI, updateRoomAPI, deleteRoomAPI } from "../api";
+import { confirmDialog, notify } from "../dialog";
 
 export default function RoomManager() {
   const { user, setGlobalLoading, globalLoading, setLoadingText, setSubmit, requestCaptcha } = useOutletContext();
   const navigate = useNavigate();
 
   const [rooms, setRooms] = useState([]);
+  const [isAddOpen, setIsAddOpen] = useState(false); // 窄螢幕時「新增」表單是否展開
 
   // --- 篩選器狀態 ---
   const [query, setQuery] = useState("");
@@ -33,7 +35,7 @@ export default function RoomManager() {
       setRooms(Array.isArray(list) ? list : []);
     } catch (err) {
       console.error("Fetch rooms error:", err);
-      alert("讀取考場清單失敗：" + err.message);
+      notify("讀取考場清單失敗：" + err.message);
     } finally {
       setGlobalLoading(false);
       setLoadingText("");
@@ -42,7 +44,7 @@ export default function RoomManager() {
 
   useEffect(() => {
     if (user && !isTeacher) {
-      alert("權限不足，將返回首頁");
+      notify("權限不足，將返回首頁");
       navigate("/");
       return;
     }
@@ -70,7 +72,7 @@ export default function RoomManager() {
     e.preventDefault();
 
     if (!addFormData.placeName || !addFormData.capacity) {
-      return alert("請至少填寫「教室名稱」與「容量」！");
+      return notify("請至少填寫「教室名稱」與「容量」！");
     }
 
     const token = await requestCaptcha();
@@ -83,14 +85,14 @@ export default function RoomManager() {
     try {
       const res = await addRoomAPI({ ...addFormData, captchaToken: token });
       if (res.ok) {
-        alert("✅ 新增成功！");
+        notify("✅ 新增成功！");
         setAddFormData(initialAddState);
         await fetchRooms(); 
       } else {
-        alert("❌ 新增失敗：" + (res.message || "未知錯誤"));
+        notify("❌ 新增失敗：" + (res.message || "未知錯誤"));
       }
     } catch (err) {
-      alert("⚠️ 系統錯誤，新增失敗：" + err.message);
+      notify("⚠️ 系統錯誤，新增失敗：" + err.message);
     } finally {
       setGlobalLoading(false);
       setSubmit(false); 
@@ -101,9 +103,9 @@ export default function RoomManager() {
   // 3. 觸發刪除 
   async function handleDeleteClick(roomID, placeName) {
     if (
-      !window.confirm(
+      !(await confirmDialog(
         `確定要刪除考場「${placeName}」嗎？\n注意：如果有考試已綁定此考場，建議先修改考試地點！`
-      )
+      ))
     ) {
       return;
     }
@@ -118,13 +120,13 @@ export default function RoomManager() {
     try {
       const res = await deleteRoomAPI({ roomID, captchaToken: token });
       if (res.ok) {
-        alert("考場刪除成功！");
+        notify("考場刪除成功！");
         await fetchRooms(); 
       } else {
-        alert("刪除失敗：" + (res.message || "未知錯誤"));
+        notify("刪除失敗：" + (res.message || "未知錯誤"));
       }
     } catch (err) {
-      alert("⚠️ 系統錯誤，刪除失敗：" + err.message);
+      notify("⚠️ 系統錯誤，刪除失敗：" + err.message);
     } finally {
       setGlobalLoading(false);
       setSubmit(false); 
@@ -170,7 +172,7 @@ export default function RoomManager() {
     }
 
     if (!editFormData.placeName || !editFormData.capacity) {
-      return alert("「教室名稱」與「容量」為必填！");
+      return notify("「教室名稱」與「容量」為必填！");
     }
 
     const token = await requestCaptcha();
@@ -188,14 +190,14 @@ export default function RoomManager() {
       });
 
       if (res.ok) {
-        alert("✅ 更新成功！");
+        notify("✅ 更新成功！");
         cancelEditing();
         await fetchRooms(); 
       } else {
-        alert("❌ 更新失敗：" + (res.message || "未知錯誤"));
+        notify("❌ 更新失敗：" + (res.message || "未知錯誤"));
       }
     } catch (err) {
-      alert("⚠️ 系統錯誤，更新失敗：" + err.message);
+      notify("⚠️ 系統錯誤，更新失敗：" + err.message);
     } finally {
       setGlobalLoading(false);
       setSubmit(false); 
@@ -226,8 +228,10 @@ export default function RoomManager() {
     <div className="manager-wrapper">
       <div className="manager-container">
         {/* 左側：新增區塊 */}
-        <div className="centered-form side-panel add-panel room-panel">
-          <h3>新增考場/教室</h3>
+        <div className={`centered-form side-panel add-panel room-panel collapsible ${isAddOpen ? "open" : ""}`}>
+          <h3 onClick={() => setIsAddOpen(!isAddOpen)}>
+            新增考場/教室 <i className="fa-solid fa-chevron-down add-panel-chevron"></i>
+          </h3>
 
           <form onSubmit={handleAdd} className="modern-form">
             <div className="input-field">
@@ -308,6 +312,10 @@ export default function RoomManager() {
             </div>
 
             <div className="button-container">
+              {/* 取消：清空表單；窄螢幕時同時收合表單回到清單 */}
+              <button type="button" className="cancel-button" disabled={globalLoading} onClick={() => { setAddFormData(initialAddState); setIsAddOpen(false); }}>
+                取消
+              </button>
               <button type="submit" className="btn-primary full-width" disabled={globalLoading}>
                 {globalLoading ? "處理中..." : "確認新增"}
               </button>
@@ -335,7 +343,7 @@ export default function RoomManager() {
                 setOpenFilterMenu(openFilterMenu === "search" ? null : "search");
               }}
             >
-              教室名稱 <i className="fa-solid fa-filter" style={{ color: query ? "#d9534f" : "#ccc" }}></i>
+              教室名稱 <i className={`fa-solid fa-filter ${query ? "active" : ""}`}></i>
 
               {openFilterMenu === "search" && (
                 <div

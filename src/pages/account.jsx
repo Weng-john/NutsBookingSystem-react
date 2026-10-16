@@ -1,10 +1,14 @@
 import ReCAPTCHA from "react-google-recaptcha";
+import { useTheme } from "../theme";
 import { useEffect, useMemo, useState, useRef } from "react";
 import { useNavigate, useOutletContext, useLocation } from "react-router-dom";
 import { STORAGE_KEYS, SESSION_DURATION_MS, RECAPTCHA_SITE_KEY } from "../config";
 import { fetchMeAPI, updateProfileAPI } from "../api";
+import { notify } from "../dialog";
+import { PENDING_BOOKING_KEY } from "../features/booking/utils";
 
 export default function Account() {
+  const theme = useTheme(); // reCAPTCHA 要跟著深淺色切換
   const navigate = useNavigate();
   const location = useLocation();
   const { user, globalLoading, setUser, setLoadingText, setGlobalLoading, setSubmit } = useOutletContext();
@@ -30,9 +34,9 @@ export default function Account() {
       alertShownRef.current = true;
       
       if (location.state?.isNewUser) {
-        alert("歡迎加入會員！\n\n請務必填寫正確的姓名與聯絡電話，\n以便後續進行考試預約與通知。");
+        notify("歡迎加入會員！\n\n請務必填寫正確的姓名與聯絡電話，\n以便後續進行考試預約與通知。");
       } else {
-        alert("尚未填寫聯絡電話！\n請先填寫完成，以利後續考試報名。");
+        notify("尚未填寫聯絡電話！\n請先填寫完成，以利後續考試報名。");
       }
 
       // 顯示完畢後淨化 location state
@@ -45,7 +49,7 @@ export default function Account() {
     const lastActive = Number(localStorage.getItem(STORAGE_KEYS.LAST_ACTIVE) || "0");
     if (!token || !lastActive || (Date.now() - lastActive > SESSION_DURATION_MS)) {
       setUser(null);
-      alert(token ? "登入已逾時，請重新登入" : "請先登入");
+      notify(token ? "登入已逾時，請重新登入" : "請先登入");
       navigate("/login");
     }
   }, [token, navigate, setUser]);
@@ -90,7 +94,7 @@ export default function Account() {
 
   const executeUpdate = async (payload, loadingMsg, successMsg) => {
     if (!captchaToken) {
-      alert("請先完成下方的「我不是機器人」驗證！");
+      notify("請先完成下方的「我不是機器人」驗證！");
       return;
     }
 
@@ -105,15 +109,16 @@ export default function Account() {
         ...payload
       });
 
-      alert(successMsg);
+      notify(successMsg);
       
       // 更新成功後，同步更新畫面與全域狀態
       if (data.user) {
         setForm(prev => ({ ...prev, ...data.user }));
         setUser(data.user);
+        if (data.user.phoneNumber && sessionStorage.getItem(PENDING_BOOKING_KEY)) navigate("/");
       }
     } catch (err) {
-      alert(`更新失敗：${err.message}`);
+      notify(`更新失敗：${err.message}`);
     } finally {
       setSubmit(false);
       setLoadingText("");
@@ -198,6 +203,8 @@ export default function Account() {
           <div className="button-container">
             <div className="form-group captcha-group">
               <ReCAPTCHA
+                key={theme}
+                theme={theme}
                 ref={recaptchaRef}
                 sitekey={RECAPTCHA_SITE_KEY}
                 onChange={(token) => setCaptchaToken(token)}

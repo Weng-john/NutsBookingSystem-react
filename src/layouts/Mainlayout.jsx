@@ -2,8 +2,11 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback, useRef } from "react";
 import Header from "../components/header";
 import Footer from "../components/footer";
+import DialogHost from "../components/dialogHost";
+import { useTheme } from "../theme";
 import { STORAGE_KEYS, SESSION_DURATION_MS, RECAPTCHA_SITE_KEY, OAUTH_NONCE_KEY } from "../config"; // 新增導入 RECAPTCHA_SITE_KEY
 import { loginAPI } from "../api";
+import { notify } from "../dialog";
 import ReCAPTCHA from "react-google-recaptcha"; // 新增導入 ReCAPTCHA
 
 // --- 靜態變數外提 (避免每次 Render 都重新建立) ---
@@ -44,6 +47,7 @@ function clearAuthData() {
 
 export default function MainLayout() {
   const location = useLocation();
+  const theme = useTheme();
   const navigate = useNavigate();
 
   // --- UI 載入狀態 ---
@@ -115,7 +119,7 @@ export default function MainLayout() {
       if (!lastActiveStr) return;
 
       if (Date.now() - Number(lastActiveStr) > SESSION_DURATION_MS) {
-        alert("您已閒置過久，系統將自動登出");
+        notify("您已閒置過久，系統將自動登出");
         clearAuthAndRedirect();
       }
     }, 1000);
@@ -136,7 +140,7 @@ export default function MainLayout() {
     sessionStorage.removeItem(OAUTH_NONCE_KEY);
     if (!expectedNonce || getTokenNonce(idToken) !== expectedNonce) {
       window.history.replaceState(null, document.title, window.location.pathname);
-      alert("登入驗證失敗，請重新登入");
+      notify("登入驗證失敗，請重新登入");
       return;
     }
 
@@ -226,11 +230,15 @@ export default function MainLayout() {
         {/* ReCAPTCHA 全域驗證視窗 */}
         {captchaConfig.isOpen && (
           <div className="modal-overlay recaptcha" onClick={handleCaptchaCancel}>
-            <div className="modal-content captcha-modal" style={{ gap: "2rem" }} onClick={e => e.stopPropagation()}>
+            <div className="modal-content captcha-modal" onClick={e => e.stopPropagation()}>
+              <button type="button" className="modal-close" aria-label="關閉" title="關閉" onClick={handleCaptchaCancel}>&times;</button>
               <h3>請驗證您不是機器人</h3>
 
-              <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <div className="captcha-box">
+                {/* reCAPTCHA 產生後不能換色，key 讓它在主題切換時重新產生 */}
                 <ReCAPTCHA
+                  key={theme}
+                  theme={theme}
                   sitekey={RECAPTCHA_SITE_KEY}
                   onChange={handleCaptchaSuccess}
                 />
@@ -270,6 +278,9 @@ export default function MainLayout() {
       </div>
 
       <Footer />
+
+      {/* 再確認與提示對話框 (取代原生的 confirm / alert) */}
+      <DialogHost />
     </div>
   );
 }

@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useNavigate, useOutletContext } from "react-router-dom";
+import { Link, useLocation, useNavigate, useOutletContext } from "react-router-dom";
 import { sendContactEmailAPI } from "../api";
+import { notify } from "../dialog";
 
 export default function Contact() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { setGlobalLoading, setLoadingText, setSubmit, requestCaptcha } = useOutletContext() || {};
+  const { user, setGlobalLoading, setLoadingText, setSubmit, requestCaptcha } = useOutletContext() || {};
 
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
@@ -26,7 +27,9 @@ export default function Contact() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    let token = "skip-captcha";
+    if (!user) { navigate("/login"); return; }
+    if (!requestCaptcha) { notify("驗證服務尚未準備完成，請稍後重試。"); return; }
+    let token;
     if (requestCaptcha) {
       token = await requestCaptcha();
       if (!token) return;
@@ -39,10 +42,10 @@ export default function Contact() {
 
     try {
       await sendContactEmailAPI({ subject, content, token });
-      alert("信件已成功送出！我們將會盡快處理。");
+      notify("信件已排入發送佇列，我們將會盡快處理。");
       navigate("/");
     } catch (error) {
-      alert("發送信件失敗：" + error.message);
+      notify("發送信件失敗：" + error.message);
     } finally {
       setIsSubmitting(false);
       if (setSubmit) setSubmit(false);
@@ -55,6 +58,12 @@ export default function Contact() {
     <div className="centered-form">
       <h1 className="loginH1 contact-title">聯絡我們</h1>
 
+      {!user && (
+        <div className="exam-notice info">
+          <i className="fa-solid fa-circle-info"></i>
+          <span>請先<Link to="/login">登入</Link>，讓我們能以您的會員電子郵件回覆。</span>
+        </div>
+      )}
       <form onSubmit={handleSubmit} className="contact-form">
         <div className="contact-form-group">
           <label className="contact-form-label">主旨</label>
@@ -63,6 +72,7 @@ export default function Contact() {
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             required
+            maxLength={200}
             className="contact-form-input"
             placeholder="請輸入信件主旨"
           />
@@ -74,6 +84,7 @@ export default function Contact() {
             value={content}
             onChange={(e) => setContent(e.target.value)}
             required
+            maxLength={5000}
             rows="8"
             className="contact-form-textarea"
             placeholder="請輸入信件內容..."
@@ -84,7 +95,7 @@ export default function Contact() {
           <button
             type="submit"
             className="btn-confirm btn-contact-submit"
-            disabled={isSubmitting}
+            disabled={isSubmitting || !user}
           >
             {isSubmitting ? "處理中..." : "確認送出"}
           </button>

@@ -7,6 +7,7 @@ import {
   deleteSubjectAPI, 
   // regenerateColorAPI 
 } from "../api";
+import { confirmDialog, notify } from "../dialog";
 
 export default function SubjectManager() {
   // 👉 補上 requestCaptcha
@@ -14,9 +15,10 @@ export default function SubjectManager() {
   const navigate = useNavigate();
 
   const [subjects, setSubjects] = useState([]);
+  const [isAddOpen, setIsAddOpen] = useState(false); // 窄螢幕時「新增」表單是否展開
   const [subjectName, setSubjectName] = useState("");
 
-  const isTeacher = useMemo(() => user?.role === "admin" || user?.role === "teacher", [user]);
+  const isTeacher = useMemo(() => user?.role === "admin", [user]);
 
   // 1. 取得所有科目
   async function fetchSubjects() {
@@ -30,7 +32,7 @@ export default function SubjectManager() {
       }
     } catch (err) {
       console.error("Fetch error:", err);
-      alert("讀取科目清單失敗：" + err.message);
+      notify("讀取科目清單失敗：" + err.message);
     } finally {
       setGlobalLoading(false); // 呼叫全域 Loading 結束
       setLoadingText("");
@@ -40,7 +42,7 @@ export default function SubjectManager() {
   // 權限檢查與初始化
   useEffect(() => {
     if (user && !isTeacher) {
-      alert("權限不足，將返回首頁");
+      notify("權限不足，將返回首頁");
       navigate("/");
       return;
     }
@@ -55,7 +57,7 @@ export default function SubjectManager() {
     const trimmedName = subjectName.trim();
     if (!trimmedName) return;
     
-    if (!window.confirm(`確定要新增科目「${trimmedName}」嗎？`)) return;
+    if (!(await confirmDialog(`確定要新增科目「${trimmedName}」嗎？`))) return;
 
     // 👉 呼叫全域驗證
     const token = await requestCaptcha();
@@ -68,15 +70,15 @@ export default function SubjectManager() {
       // 若後端需要驗證 token，請在 API 傳入 token。如：addSubjectAPI(trimmedName, token)
       const res = await addSubjectAPI(trimmedName, token);
       if (res.ok) {
-        alert("✅ 新增成功！");
+        notify("✅ 新增成功！");
         setSubjectName(""); 
         await fetchSubjects(); 
       } else {
-        alert("❌ 新增失敗：" + (res.message || "未知錯誤"));
+        notify("❌ 新增失敗：" + (res.message || "未知錯誤"));
       }
     } catch (err) {
       console.error(err.message);
-      alert("⚠️ 系統錯誤，新增失敗：" + err.message);
+      notify("⚠️ 系統錯誤，新增失敗：" + err.message);
     } finally {
       setGlobalLoading(false);
       setSubmit(false);
@@ -86,7 +88,7 @@ export default function SubjectManager() {
 
   // 3. 刪除科目
   async function handleDelete(subjectId, subjectName) {
-    if (!window.confirm(`確定要刪除 ${subjectName} 嗎？\nID為 ${subjectId}`)) return;
+    if (!(await confirmDialog(`確定要刪除 ${subjectName} 嗎？\nID為 ${subjectId}`))) return;
     
     // 👉 呼叫全域驗證
     const token = await requestCaptcha();
@@ -99,14 +101,14 @@ export default function SubjectManager() {
       // 若後端需要驗證 token，請在 API 傳入 token。如：deleteSubjectAPI(subjectId, token)
       const res = await deleteSubjectAPI(subjectId, token);
       if (res.ok) {
-        alert("科目刪除成功！");
+        notify("科目刪除成功！");
         await fetchSubjects();
       } else {
-        alert("刪除失敗：" + (res.message || "無法刪除該科目"));
+        notify("刪除失敗：" + (res.message || "無法刪除該科目"));
       }
     } catch (err) {
       console.error(err);
-      alert("⚠️ 系統錯誤，刪除失敗：" + err.message);
+      notify("⚠️ 系統錯誤，刪除失敗：" + err.message);
     } finally {
       setGlobalLoading(false);
       setSubmit(false);
@@ -116,7 +118,7 @@ export default function SubjectManager() {
 
   // // 4. 重新生成顏色
   // async function handleRegenerateColor(subjectId, subjectName) {
-  //   if (!window.confirm("確定要重新隨機生成該科目的顏色嗎？")) return;
+  //   if (!(await confirmDialog("確定要重新隨機生成該科目的顏色嗎？"))) return;
 
   //   const token = await requestCaptcha();
   //   if (!token) return;
@@ -127,14 +129,14 @@ export default function SubjectManager() {
   //   try {
   //     const res = await regenerateColorAPI(subjectId, token);
   //     if (res.ok) {
-  //       alert("✅ 顏色已成功更新！");
+  //       notify("✅ 顏色已成功更新！");
   //       await fetchSubjects();
   //     } else {
-  //       alert("❌ 顏色更新失敗：" + (res.message || "請稍後再試"));
+  //       notify("❌ 顏色更新失敗：" + (res.message || "請稍後再試"));
   //     }
   //   } catch (err) {
   //     console.error(err);
-  //     alert("⚠️ 系統錯誤，顏色更新失敗：" + err.message);
+  //     notify("⚠️ 系統錯誤，顏色更新失敗：" + err.message);
   //   } finally {
   //     setGlobalLoading(false);
   //     setSubmit(false);
@@ -148,8 +150,10 @@ export default function SubjectManager() {
     <div className="manager-wrapper">
       <div className="manager-container">
         {/* 左側：新增區塊 */}
-        <div className="centered-form side-panel add-panel">
-          <h3>新增科目</h3>
+        <div className={`centered-form side-panel add-panel collapsible ${isAddOpen ? "open" : ""}`}>
+          <h3 onClick={() => setIsAddOpen(!isAddOpen)}>
+            新增科目 <i className="fa-solid fa-chevron-down add-panel-chevron"></i>
+          </h3>
           <form onSubmit={handleAdd} className="modern-form">
             <div className="input-field">
               <label>科目名稱</label>
@@ -163,6 +167,10 @@ export default function SubjectManager() {
               />
             </div>
             <div className="button-container">
+              {/* 取消：清空表單；窄螢幕時同時收合表單回到清單 */}
+              <button type="button" className="cancel-button" disabled={globalLoading} onClick={() => { setSubjectName(""); setIsAddOpen(false); }}>
+                取消
+              </button>
                 <button type="submit" className="btn-primary full-width" disabled={globalLoading}>
                 {globalLoading ? "處理中..." : "確認新增"}
                 </button>

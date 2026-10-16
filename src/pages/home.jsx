@@ -1,7 +1,9 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { useNavigate, useOutletContext } from "react-router-dom";
-import { STORAGE_KEYS, REGISTRATION_DEADLINE_DAYS, EXAM_LANGUAGE } from "../config";
+import { Link, useNavigate, useOutletContext } from "react-router-dom";
+import { STORAGE_KEYS, REGISTRATION_DEADLINE_DAYS, EXAM_LANGUAGE, CERTIPORT_FEE } from "../config";
+import PublicExamDetails from "../features/booking/PublicExamDetails.jsx";
+import { PENDING_BOOKING_KEY } from "../features/booking/utils";
 import {
   fetchReservationsAPI,
   submitReservationAPI,
@@ -9,6 +11,7 @@ import {
   fetchRoomsAPI,
   subscribeNoticeAPI
 } from "../api";
+import { confirmDialog, notify } from "../dialog";
 
 // --- 常數定義 ---
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
@@ -33,6 +36,9 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [expandedDateStr, setExpandedDateStr] = useState(null);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [detailEvent, setDetailEvent] = useState(null);
+  const submissionKey = useRef(crypto.randomUUID());
+  const calendarLoadSequence = useRef(0);
   const [popoverPosition, setPopoverPosition] = useState(null);
 
   // --- 資料清單 State ---
@@ -58,6 +64,7 @@ export default function Home() {
   const roomRef = useRef(null);
   const cellRefs = useRef({});
   const popoverRef = useRef(null);
+  const monthWrapperRef = useRef(null);
 
   // 初始化與同步 SessionStorage
   const [selectedSubjects, setSelectedSubjects] = useState(() => JSON.parse(sessionStorage.getItem(STORAGE_KEY_SUBJECT) || "[]"));
@@ -100,14 +107,29 @@ export default function Home() {
   };
 
   const loadCalendarEvents = async () => {
+    const sequence = ++calendarLoadSequence.current;
     setIsEventsLoading(true);
     try {
       const events = await fetchReservationsAPI();
+      if (sequence !== calendarLoadSequence.current) return;
       // console.log(events)
       if (Array.isArray(events)) setCalendarEvents(events);
+      const pending = sessionStorage.getItem(PENDING_BOOKING_KEY);
+      const wantsNotice = pending?.startsWith("notice:");
+      if (pending && user && (user.phoneNumber || wantsNotice) && Array.isArray(events)) {
+        sessionStorage.removeItem(PENDING_BOOKING_KEY);
+        const event = events.find(exam => exam.id === (wantsNotice ? pending.slice(7) : pending));
+        if (event) {
+          setCurrentDate(new Date(event.startTimeISO));
+          if (wantsNotice && String(event.status).toUpperCase() === "DRAFT") await subscribe(event);
+          else if (wantsNotice) setDetailEvent(event);
+          else beginBooking(event);
+        }
+        else notify("原場次已不存在，請重新選擇。");
+      }
     }
     catch (error) { console.error("預約狀況載入失敗:", error); }
-    finally { setIsEventsLoading(false); }
+    finally { if (sequence === calendarLoadSequence.current) setIsEventsLoading(false); }
   };
 
   const handleRefresh = async () => {
@@ -136,7 +158,7 @@ export default function Home() {
     window.addEventListener('pageshow', handlePageShow);
     return () => window.removeEventListener('pageshow', handlePageShow);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user?.email, user?.phoneNumber]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -215,52 +237,20 @@ export default function Home() {
   const getRoomLabel = (roomID) => roomsList.find(l => l.roomID === roomID)?.placeName || roomID;
 
   // --- 互動事件處理 ---
-  const handleEventClick = async (e, evt, isDayDisabled) => {
+  const handleEventClick = (e, evt) => {
     e.stopPropagation();
-
-    if (isDayDisabled) return;
-
-    if (!localStorage.getItem(STORAGE_KEYS.TOKEN)) {
-      if (window.confirm("需登入會員才可查看詳細資訊或進行報名。\n是否前往登入頁面？")) navigate("/login");
-      return;
+    setDetailEvent(evt); setExpandedDateStr(null);
+  };
+  const beginBooking = (evt) => {
+    if (!user || !localStorage.getItem(STORAGE_KEYS.TOKEN)) {
+      sessionStorage.setItem(PENDING_BOOKING_KEY, evt.id); navigate("/login"); return;
     }
-
-    const currentStatus = (evt.status || "Open").toUpperCase();
-
-    // ✨ 邏輯 1：如果是 Canceled 狀態，跳出警告並阻擋開啟表單
-    if (currentStatus === "CANCELLED" || currentStatus === "CANCELED") {
-      alert("⚠️ 考試已取消");
-      return;
+    if (!user.phoneNumber) { sessionStorage.setItem(PENDING_BOOKING_KEY, evt.id); navigate("/account", { state: { emptyPhoneNumber: true } }); return; }
+    const deadline = evt.registrationDeadline || new Date(new Date(evt.startTimeISO).getTime() - REGISTRATION_DEADLINE_DAYS * 86400000);
+    if (String(evt.status || "Open").toUpperCase() !== "OPEN" || evt.registeredCount >= evt.capacity || new Date(deadline) <= new Date()) {
+      setDetailEvent(evt); notify("此場次目前無法報名，請查看最新資訊。"); return;
     }
-
-    // ✨ 邏輯 2：如果是 Draft 狀態，詢問是否要接收通知
-    if (currentStatus === "DRAFT") {
-      const wantsNotification = window.confirm("💡 此考試目前尚未開放報名。\n當考試轉為「開放報名」時，是否希望接收 Email 通知？");
-      if (wantsNotification) {
-        setLoadingText("正在為您登記通知...");
-        setSubmit(true);
-        setGlobalLoading(true);
-        try {
-          await subscribeNoticeAPI({ examID: evt.id, email: user?.email });
-          alert("✅ 已為您登記！開放報名時將會寄發通知至您的信箱。");
-        } catch (error) {
-          console.error("訂閱通知失敗:", error);
-          alert(`登記失敗，請稍後再試：${error.message}`);
-        } finally {
-          setLoadingText("");
-          setSubmit(false);
-          setGlobalLoading(false);
-        }
-      }
-    }
-
-    // ✨ 邏輯 3：如果是 Close 狀態，跳出警告並附上聯絡電話 (但依然會打開表單以供檢視)
-    if (currentStatus === "CLOSE" || currentStatus === "CLOSED") {
-      const targetRoom = roomsList.find(r => r.roomID === evt.roomID);
-      const roomPhone = targetRoom?.phoneNumber || "未提供聯絡電話";
-      alert(`⚠️ 考試報名已經關閉，如有問題請洽負責人。\n聯絡電話：${roomPhone}`);
-    }
-
+    setDetailEvent(null); submissionKey.current = crypto.randomUUID();
     // 打開表單並帶入資料
     setSelectedEvent(evt);
     setFormData({
@@ -270,6 +260,12 @@ export default function Home() {
     });
     setExpandedDateStr(null);
   };
+  const subscribe = async evt => {
+    if (!user) { sessionStorage.setItem(PENDING_BOOKING_KEY, "notice:" + evt.id); navigate("/login"); return; }
+    setGlobalLoading(true); setLoadingText("正在登記開放通知…");
+    try { await subscribeNoticeAPI({ examID: evt.id }); notify("已登記開放通知。"); }
+    catch (error) { notify(error.message); } finally { setGlobalLoading(false); setLoadingText(""); }
+  };
 
   const handleFormChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -278,7 +274,7 @@ export default function Home() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!window.confirm(`確定要報名 ${formData.subject} 嗎？`)) return;
+    if (!(await confirmDialog(`確定要報名 ${formData.subject} 嗎？`))) return;
 
     const recaptchaToken = await requestCaptcha();
     if (!recaptchaToken) return; // 如果沒有取得 Token，代表驗證失敗或取消，直接中斷
@@ -289,6 +285,7 @@ export default function Home() {
 
     try {
       const result = await submitReservationAPI({
+        submissionKey: submissionKey.current,
         examID: selectedEvent.id,
         lastname: formData.lastname, firstname: formData.firstname,
         phone: formData.phone, language: formData.language,
@@ -296,55 +293,156 @@ export default function Home() {
         certiport: formData.certiport, certiportAccount: formData.certiportAccount,
         token: recaptchaToken
       });
-      alert(`報名成功！\n報名序號：${result.data.reserveID}`);
+      notify(`報名成功！\n報名序號：${result.data.reserveID}`);
       await loadCalendarEvents();
     } catch (error) {
       // ✨ 取消了前端阻擋重複報名的判斷，統一顯示錯誤訊息（如果後端還是會阻擋，則顯示後端訊息）
-      alert(`報名失敗：${error.message}`);
+      notify(`報名失敗：${error.message}`);
     } finally {
       setLoadingText(""); setSubmit(false); setGlobalLoading(false); setSelectedEvent(null);
     }
   };
 
-  const renderEventPill = (evt, isDayDisabled) => {
+  // isDayDisabled：這一天已過或已超過報名截止日。色塊會變淡 (仍可點開看詳情)，日期格子本身不變
+  const renderEventPill = (evt, isDayDisabled = false) => {
     const isFull = evt.registeredCount >= evt.capacity;
     // 判斷是否為取消狀態，以便在月曆介面顯示樣式
     const isCanceled = (evt.status || "Open").toUpperCase() === "CANCELLED" || (evt.status || "Open").toUpperCase() === "CANCELED";
-    const canClick = !isDayDisabled;
+    const canClick = true;
+
+    // 右側的名額標籤：直接寫「剩幾位」，不能報名時寫原因 (原本的 9/40 看不出是已報名還是剩餘)
+    const status = (evt.status || "Open").toUpperCase();
+    const remaining = Math.max(0, evt.capacity - evt.registeredCount);
+    let seats = { text: `剩 ${remaining} 位`, type: remaining <= 3 ? "warning" : "" };
+    if (isCanceled) seats = { text: "已取消", type: "neutral" };
+    else if (isDayDisabled) seats = { text: "已截止", type: "neutral" };
+    else if (status === "DRAFT") seats = { text: "未開放", type: "neutral" };
+    else if (status === "CLOSE" || status === "CLOSED") seats = { text: "已關閉", type: "neutral" };
+    else if (isFull) seats = { text: "額滿", type: "danger" };
 
     return (
       <div key={evt.id}
-        className={`event-pill ${!canClick || isFull || isCanceled ? "disabled-pill" : ""}`}
-        style={{
-          backgroundColor: evt.color || "#e0e0e0",
-          color: evt.textColor || "#333",
-          cursor: canClick ? "pointer" : "not-allowed",
-          opacity: canClick ? 1 : 0.6
-        }}
-        title={`${evt.startTime} ${evt.title} (${evt.registeredCount}/${evt.capacity})`}
+        className={`event-pill ${!canClick || isFull || isCanceled || isDayDisabled ? "disabled-pill" : ""} ${canClick ? "" : "locked"}`}
+        // 科目顏色由後端提供，用 CSS 變數傳給樣式表；怎麼上色 (淺色模式淡化、深色模式實色) 由 CSS 決定
+        style={{ "--event-color": evt.color || undefined, "--event-ink": evt.textColor || undefined }}
+        title={`${evt.startTime} ${evt.title}｜已報名 ${evt.registeredCount} / ${evt.capacity}，${seats.type === "neutral" || isFull ? seats.text : `剩餘 ${remaining} 名額`}`}
         onClick={(e) => {
-          if (canClick) handleEventClick(e, evt, isDayDisabled);
+          handleEventClick(e, evt);
         }}
       >
-        <span className="event-time-pill">
-          {evt.startTime}
-          <span className="reservedStatus">
-            <strong>{isCanceled ? "(取消)" : isFull ? "(額滿)" : `(${evt.registeredCount}/${evt.capacity})`}</strong>
-          </span>
-        </span>
+        <span className="event-time-pill">{evt.startTime}</span>
         <span className="event-title-pill">{evt.title}</span>
+        <span className={`event-seats ${seats.type}`}>{seats.text}</span>
       </div>
     );
   };
 
-  const maxVisible = weeksCount > 4 ? 1 : 2;
+  // --- 手機版清單：只列出當月今天以後、有考試的日期 ---
+  const agendaDays = calendarCells.filter(cell => cell.type === "day" && !cell.isPast && cell.events.length > 0);
+
+  const renderAgendaItem = (evt, isDayDisabled) => {
+    const status = (evt.status || "Open").toUpperCase();
+    const isFull = evt.registeredCount >= evt.capacity;
+    const isCanceled = status === "CANCELLED" || status === "CANCELED";
+    const remaining = Math.max(0, evt.capacity - evt.registeredCount);
+    // 已截止或已取消的場次點了也不能做任何事，直接設為不可點，外觀上也要看得出來
+    const canClick = true;
+
+    // 右側狀態標籤：依優先順序只顯示一個
+    let badge = { text: `剩 ${remaining} 位`, type: remaining <= 3 ? "warning" : "success" };
+    if (isCanceled) badge = { text: "已取消", type: "danger" };
+    else if (isDayDisabled) badge = { text: "報名已截止", type: "neutral" };
+    else if (status === "DRAFT") badge = { text: "尚未開放", type: "neutral" };
+    else if (status === "CLOSE" || status === "CLOSED") badge = { text: "已關閉", type: "neutral" };
+    else if (isFull) badge = { text: "額滿", type: "danger" };
+
+    return (
+      <button
+        key={evt.id}
+        type="button"
+        className={`agenda-item ${canClick ? "" : "unavailable"}`}
+        style={{ "--event-color": isFull || !canClick ? undefined : evt.color }}
+        disabled={!canClick}
+        onClick={(e) => handleEventClick(e, evt, isDayDisabled)}
+      >
+        <span className="agenda-time">
+          {evt.startTime}
+          {evt.endTime && <small>{evt.endTime}</small>}
+        </span>
+        <span className="agenda-main">
+          <span className="agenda-title">{evt.title}</span>
+          <span className="agenda-meta">
+            <i className="fa-solid fa-location-dot"></i>
+            {evt.location || getRoomLabel(evt.roomID)}
+          </span>
+        </span>
+        <span className="agenda-side">
+          <span className={`agenda-badge ${badge.type}`}>{badge.text}</span>
+          {evt.hasRegistered && <span className="agenda-badge registered">已報名</span>}
+        </span>
+        {/* 可點的場次顯示箭頭，不可點的顯示鎖頭 */}
+        <i className={`agenda-arrow fa-solid ${canClick ? "fa-chevron-right" : "fa-lock"}`}></i>
+      </button>
+    );
+  };
+
+  // 月曆每一格放得下幾列科目。把月曆可用的高度平均分給各週再扣掉日期列，
+  // 而不是量格子目前的高度 (格子會被內容撐高，量它會越算越多)。
+  // 視窗大小、週數改變時重算；讀取完成後也重算一次，才量得到科目色塊實際的高度
+  // all：全部顯示時最多幾個；withMore：最後一列要放「還有 N 個考試」時還能顯示幾個 (那一列比科目色塊矮)
+  const [rowCapacity, setRowCapacity] = useState({ all: 2, withMore: 1 });
+  useEffect(() => {
+    const wrapper = monthWrapperRef.current;
+    if (!wrapper) return;
+    const measure = () => {
+      const cell = wrapper.querySelector(".calendar-cell:not(.empty)");
+      // 手機改用清單檢視時月曆是隱藏的，高度為 0，不用算
+      if (!cell || !wrapper.clientHeight) return;
+      const header = cell.querySelector(".cell-header"), content = cell.querySelector(".cell-content");
+      const cellStyle = getComputedStyle(cell);
+      const rem = parseFloat(getComputedStyle(document.documentElement).fontSize) || 16;
+      const gap = parseFloat(getComputedStyle(content).rowGap) || 0;
+      const pillHeight = wrapper.querySelector(".event-pill")?.offsetHeight || 1.65 * rem;
+      const moreHeight = wrapper.querySelector(".more-events-btn")?.offsetHeight || 1.3 * rem;
+      const weekHeight = (wrapper.clientHeight - (wrapper.querySelector(".weekday-header")?.offsetHeight || 0)) / weeksCount;
+      const available = weekHeight - parseFloat(cellStyle.paddingTop) - parseFloat(cellStyle.paddingBottom) - parseFloat(cellStyle.borderBottomWidth)
+        - header.offsetHeight - parseFloat(getComputedStyle(header).marginBottom);
+      const all = Math.max(1, Math.floor((available + gap) / (pillHeight + gap)));
+      const withMore = Math.max(1, Math.floor((available - moreHeight) / (pillHeight + gap)));
+      // 數字沒變就沿用原本的物件，避免多餘的重新繪製
+      setRowCapacity((previous) => (previous.all === all && previous.withMore === withMore ? previous : { all, withMore }));
+    };
+    // ResizeObserver 開始觀察時就會觸發一次，等於初始計算
+    const observer = new ResizeObserver(measure);
+    observer.observe(wrapper);
+    return () => observer.disconnect();
+  }, [weeksCount, isAnyLoading]);
 
   const currentExamStatus = selectedEvent ? (selectedEvent.status || "Open").toUpperCase() : "OPEN";
   const isExamOpen = currentExamStatus === "OPEN";
   const isExamDraft = currentExamStatus === "DRAFT";
   const isExamClosed = currentExamStatus === "CLOSE" || currentExamStatus === "CLOSED";
   const isFull = selectedEvent ? selectedEvent.registeredCount >= selectedEvent.capacity : false;
-  const isFormDisabled = !isExamOpen || isFull;
+  const isFormDisabled = !isExamOpen || isFull || !user || (selectedEvent && new Date(selectedEvent.registrationDeadline || new Date(new Date(selectedEvent.startTimeISO).getTime() - REGISTRATION_DEADLINE_DAYS * 86400000)) <= new Date());
+
+  // 報名視窗的考試狀態：標籤與提示文字 (不可報名時 notice 會說明原因)
+  let examBadge = { text: "開放報名", type: "success" };
+  let examNotice = null;
+  if (isExamDraft) {
+    examBadge = { text: "尚未開放", type: "warning" };
+    examNotice = { type: "warning", icon: "fa-hourglass-half", text: "這場考試尚未開放報名，目前僅供查看。" };
+  } else if (isExamClosed) {
+    examBadge = { text: "已關閉", type: "neutral" };
+    examNotice = { type: "neutral", icon: "fa-lock", text: "這場考試已關閉報名，如有問題請洽考場負責人。" };
+  } else if (!isExamOpen) {
+    examBadge = { text: "不可報名", type: "neutral" };
+    examNotice = { type: "neutral", icon: "fa-ban", text: "這場考試目前無法報名。" };
+  } else if (isFull) {
+    examBadge = { text: "額滿", type: "danger" };
+    examNotice = { type: "danger", icon: "fa-users-slash", text: "這場考試名額已滿。" };
+  }
+  const seatsTaken = selectedEvent ? Math.min(selectedEvent.registeredCount, selectedEvent.capacity) : 0;
+  const seatsPercent = selectedEvent?.capacity ? Math.round((seatsTaken / selectedEvent.capacity) * 100) : 0;
 
   // --- Render ---
   return (
@@ -352,8 +450,7 @@ export default function Home() {
       <div className="calendar-header">
         <div className="header-left">
           <h1>預約狀況總覽</h1>
-          <button onClick={handleRefresh} disabled={isAnyLoading} className="btn-refresh"
-            style={{ cursor: isAnyLoading ? 'not-allowed' : 'pointer', transform: isAnyLoading ? 'rotate(360deg)' : 'none', transition: isAnyLoading ? 'transform 1s linear infinite' : 'all 1s' }} title="重新整理">
+          <button onClick={handleRefresh} disabled={isAnyLoading} className={`btn-refresh ${isAnyLoading ? "is-loading" : ""}`} title="重新整理">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
               <path fillRule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
               <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
@@ -440,7 +537,7 @@ export default function Home() {
       </div>
 
       {/* 月曆主體 */}
-      <div className="calendar-wrapper-month">
+      <div className="calendar-wrapper-month" ref={monthWrapperRef}>
         <div className="weekday-header">{WEEKDAYS.map((day) => (<div key={day} className="weekday-cell">{day}</div>))}</div>
         <div className="month-grid">
           {calendarCells.map((cell) => {
@@ -456,8 +553,10 @@ export default function Home() {
             }
 
             const isDayDisabled = cell.isPast || cell.isDeadlineClosed;
-            const visibleEvents = cell.events.slice(0, maxVisible);
-            const hiddenCount = cell.events.length - maxVisible;
+            // 放得下就全部顯示；放不下時最後一列留給「還有 N 個考試」(至少仍顯示一個科目)
+            const visibleCount = cell.events.length <= rowCapacity.all ? cell.events.length : rowCapacity.withMore;
+            const visibleEvents = cell.events.slice(0, visibleCount);
+            const hiddenCount = cell.events.length - visibleCount;
 
             return (
               <div key={cell.dateStr} ref={(el) => cellRefs.current[cell.dateStr] = el} className={`calendar-cell ${cell.isPast ? "past" : ""} ${cell.isToday ? "today-cell" : ""}`}>
@@ -468,10 +567,9 @@ export default function Home() {
                 <div className="cell-content">
                   {visibleEvents.map(evt => renderEventPill(evt, isDayDisabled))}
                   {hiddenCount > 0 && (
-                    <div className={`more-events-btn ${isDayDisabled ? 'disabled-pill' : ''}`}
-                      style={{ cursor: isDayDisabled ? 'not-allowed' : 'pointer' }}
+                    <div className={`more-events-btn ${isDayDisabled ? 'disabled-pill locked' : ''}`}
                       onClick={(e) => {
-                        if (!isDayDisabled) {
+                        {
                           e.stopPropagation(); setExpandedDateStr(cell.dateStr);
                         }
                       }}>
@@ -498,31 +596,75 @@ export default function Home() {
         </div>
       </div>
 
+      {/* 手機版：依日期排列的考試清單 (由 CSS 在窄螢幕切換，取代上方的月曆格) */}
+      <div className="calendar-agenda">
+        {isAnyLoading ? (
+          <div className="agenda-empty"><p>讀取中...</p></div>
+        ) : agendaDays.length === 0 ? (
+          <div className="agenda-empty">
+            <i className="fa-regular fa-calendar-xmark"></i>
+            <p>{year} 年 {month + 1} 月沒有可報名的考試</p>
+            <button type="button" className="btn-today" onClick={() => setCurrentDate(new Date(year, month + 1, 1))}>
+              查看下個月
+            </button>
+          </div>
+        ) : (
+          agendaDays.map(cell => (
+            <section key={cell.dateStr} className={`agenda-day ${cell.isDeadlineClosed ? "closed" : ""}`}>
+              <header className="agenda-day-header">
+                <span className="agenda-date">{month + 1}/{cell.day}</span>
+                <span className="agenda-weekday">週{"日一二三四五六"[new Date(cell.dateStr).getDay()]}</span>
+                {cell.isToday && <span className="agenda-today">今天</span>}
+                {cell.isDeadlineClosed && <span className="deadline-badge">已截止報名</span>}
+              </header>
+              {cell.events.map(evt => renderAgendaItem(evt, cell.isDeadlineClosed))}
+            </section>
+          ))
+        )}
+      </div>
+
       {/* 報名確認視窗 */}
+      {detailEvent && <PublicExamDetails exam={detailEvent} onClose={() => setDetailEvent(null)} onBook={beginBooking} onSubscribe={subscribe} />}
       {selectedEvent && createPortal(
         <div className="modal-overlay" onClick={() => setSelectedEvent(null)}>
           <div className="modal-content exam-form-modal" onClick={(e) => e.stopPropagation()}>
-            <h3>
-              考試報名
-              {/* ✨ 已報名過的考試，加註提示文字 */}
-              {selectedEvent.hasRegistered && (
-                <span style={{ color: "#d9534f", fontSize: "0.8em", marginLeft: "8px", fontWeight: "normal" }}>
-                  (已經報名過)
+            <button type="button" className="modal-close" aria-label="關閉" title="關閉" onClick={() => setSelectedEvent(null)}>&times;</button>
+            <h3>考試報名</h3>
+
+            {/* 考試資訊摘要 */}
+            <div className="exam-summary" style={{ "--event-color": isFull ? undefined : selectedEvent.color }}>
+              <div className="exam-summary-head">
+                <span className="exam-summary-title">{formData.subject || selectedEvent.title}</span>
+                <span className={`agenda-badge ${examBadge.type}`}>{examBadge.text}</span>
+              </div>
+              <div className="exam-summary-grid">
+                <div><i className="fa-regular fa-calendar"></i><span>日期</span><strong>{selectedEvent.date}</strong></div>
+                <div><i className="fa-regular fa-clock"></i><span>時間</span><strong>{selectedEvent.startTime} ~ {selectedEvent.endTime}</strong></div>
+                <div><i className="fa-solid fa-location-dot"></i><span>考場</span><strong>{formData.room || selectedEvent.location}</strong></div>
+                <div><i className="fa-solid fa-sack-dollar"></i><span>應付費用</span><strong>{Number(selectedEvent.fee) + (formData.certiport ? CERTIPORT_FEE : 0)} 元</strong></div>
+              </div>
+              <div className="exam-seats">
+                <div className="exam-seats-bar"><span style={{ width: `${seatsPercent}%` }}></span></div>
+                <span>
+                  已報名 {selectedEvent.registeredCount} / {selectedEvent.capacity}
+                  {!isFull && `，剩餘 ${selectedEvent.capacity - selectedEvent.registeredCount} 名額`}
                 </span>
-              )}
-              {/* 👇 ✨ 根據狀態顯示不同的標題提示文字 */}
-              {isExamDraft && <span className="exam-closed-warning">(目前尚未開放報名)</span>}
-              {isExamClosed && <span className="exam-closed-warning">(已關閉報名)</span>}
-            </h3>
-            <div className="modal-info-block">
-              <p><strong>時間：</strong> {selectedEvent.date} {selectedEvent.startTime} ~ {selectedEvent.endTime}</p>
-              <p><strong>考試費用：</strong> {selectedEvent.fee}</p>
-              <p><strong>名額狀況：</strong> <span style={{ color: isFull ? 'red' : 'green' }}>{isFull ? "已額滿" : `剩餘 ${selectedEvent.capacity - selectedEvent.registeredCount} 名額`}</span></p>
+              </div>
             </div>
 
+            {/* 狀態提示 */}
+            {selectedEvent.hasRegistered && (
+              <div className="exam-notice info"><i className="fa-solid fa-circle-info"></i>您已經報名過這場考試。</div>
+            )}
+            {examNotice && (
+              <div className={`exam-notice ${examNotice.type}`}><i className={`fa-solid ${examNotice.icon}`}></i>{examNotice.text}</div>
+            )}
+
             <form onSubmit={handleSubmit} className="exam-form">
+              {/* 不可報名時欄位都不能填，直接收起來，只留下方的按鈕 */}
+              {!isFormDisabled && (<>
               <div className="form-group">
-                <label>電子郵件</label><input type="email" name="email" className="input-disabled" value={formData.email} disabled />
+                <label>報名帳號 (電子郵件)</label><input type="email" name="email" className="input-disabled" value={formData.email} disabled />
               </div>
               <div className="form-group">
                 <label>Certiport帳號 <span className="required-mark">*</span></label>
@@ -543,20 +685,18 @@ export default function Home() {
                   </select>
                 </div>
               </div>
-              <div className="form-row">
-                <div className="form-group half"><label>考試科目</label><input name="subject" value={formData.subject} className="input-disabled" disabled /></div>
-                <div className="form-group half"><label>考場</label><input type="text" name="room" value={formData.room} className="input-disabled" disabled /></div>
-              </div>
               <div className="form-group checkbox-group">
                 <label><input type="checkbox" name="certiport" checked={formData.certiport} onChange={handleFormChange} disabled={isFormDisabled} /><span>加購 Certiport Exam Replay 優惠加值方案</span></label>
               </div>
+              </>)}
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setSelectedEvent(null)}>取消</button>
+                <button type="button" className="btn-cancel" onClick={() => setSelectedEvent(null)}>{isFormDisabled ? "關閉" : "取消"}</button>
                 <button
                   type="submit"
                   className="btn-confirm"
                   disabled={isFormDisabled}
                 >
+                  {isFormDisabled && <i className="fa-solid fa-lock"></i>}
                   {isFormDisabled
                     ? (isFull ? "已額滿" : (isExamDraft ? "尚未開放" : (isExamClosed ? "已關閉" : "不可報名")))
                     : "確認報名"}

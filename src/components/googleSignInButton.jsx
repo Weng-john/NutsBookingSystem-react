@@ -10,7 +10,7 @@ export default function GoogleSignInButton({ clientId, disabled }) {
     const redirectUri = encodeURIComponent(REDIRECT_URI);
 
     // 使用更安全的 crypto API 產生 Nonce
-    const nonce = window.crypto?.randomUUID ? window.crypto.randomUUID() : Math.random().toString(36).substring(2);
+    const nonce = window.crypto.randomUUID ? window.crypto.randomUUID() : Array.from(window.crypto.getRandomValues(new Uint8Array(32)), byte => byte.toString(16).padStart(2, "0")).join("");
     // 暫存 nonce，回到本站時用來比對 id_token，確認是本次由使用者自己發起的登入
     sessionStorage.setItem(OAUTH_NONCE_KEY, nonce);
 
