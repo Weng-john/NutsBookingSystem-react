@@ -159,7 +159,7 @@ test("outbox revalidates manual reminders and changed sessions can notify again 
 
 test("existing frontend adapters read actual GAS envelopes and forward captcha for member and room operations", async () => {
   const h = harness(), storage = new Map([["token", "alice"]]);
-  const context = vm.createContext({ Date, JSON, Number, String, Math, console: { log() {}, error() {}, warn() {} }, setTimeout,
+  const context = vm.createContext({ Date, JSON, Number, String, Math, console: { log() {}, error() {}, warn() {} }, setTimeout, clearTimeout, AbortController, encodeURIComponent,
     GAS_BASE: "https://local.test/exec", STORAGE_KEYS: { TOKEN: "token", LAST_PING: "lastPing" }, TOKEN_EXPIRED: "expired", REDIRECT_URI: "/login",
     localStorage: { getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) },
     window: { location: { href: "" } },

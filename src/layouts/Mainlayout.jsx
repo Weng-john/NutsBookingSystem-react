@@ -3,6 +3,7 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import Header from "../components/header";
 import Footer from "../components/footer";
 import DialogHost from "../components/dialogHost";
+import ToastHost from "../components/ToastHost";
 import { useTheme } from "../theme";
 import { STORAGE_KEYS, SESSION_DURATION_MS, RECAPTCHA_SITE_KEY, OAUTH_NONCE_KEY } from "../config"; // 新增導入 RECAPTCHA_SITE_KEY
 import { loginAPI } from "../api";
@@ -281,6 +282,7 @@ export default function MainLayout() {
 
       {/* 再確認與提示對話框 (取代原生的 confirm / alert) */}
       <DialogHost />
+      <ToastHost />
     </div>
   );
 }

@@ -246,6 +246,12 @@ export default function Home() {
       sessionStorage.setItem(PENDING_BOOKING_KEY, evt.id); navigate("/login"); return;
     }
     if (!user.phoneNumber) { sessionStorage.setItem(PENDING_BOOKING_KEY, evt.id); navigate("/account", { state: { emptyPhoneNumber: true } }); return; }
+    if (evt.hasRegistered) {
+      setDetailEvent(null);
+      notify("您已報名這個場次，可在「我的考試」查看進度。");
+      navigate("/myReserve");
+      return;
+    }
     const deadline = evt.registrationDeadline || new Date(new Date(evt.startTimeISO).getTime() - REGISTRATION_DEADLINE_DAYS * 86400000);
     if (String(evt.status || "Open").toUpperCase() !== "OPEN" || evt.registeredCount >= evt.capacity || new Date(deadline) <= new Date()) {
       setDetailEvent(evt); notify("此場次目前無法報名，請查看最新資訊。"); return;
@@ -423,7 +429,7 @@ export default function Home() {
   const isExamDraft = currentExamStatus === "DRAFT";
   const isExamClosed = currentExamStatus === "CLOSE" || currentExamStatus === "CLOSED";
   const isFull = selectedEvent ? selectedEvent.registeredCount >= selectedEvent.capacity : false;
-  const isFormDisabled = !isExamOpen || isFull || !user || (selectedEvent && new Date(selectedEvent.registrationDeadline || new Date(new Date(selectedEvent.startTimeISO).getTime() - REGISTRATION_DEADLINE_DAYS * 86400000)) <= new Date());
+  const isFormDisabled = !isExamOpen || isFull || !user || selectedEvent?.hasRegistered || (selectedEvent && new Date(selectedEvent.registrationDeadline || new Date(new Date(selectedEvent.startTimeISO).getTime() - REGISTRATION_DEADLINE_DAYS * 86400000)) <= new Date());
 
   // 報名視窗的考試狀態：標籤與提示文字 (不可報名時 notice 會說明原因)
   let examBadge = { text: "開放報名", type: "success" };
@@ -698,7 +704,7 @@ export default function Home() {
                 >
                   {isFormDisabled && <i className="fa-solid fa-lock"></i>}
                   {isFormDisabled
-                    ? (isFull ? "已額滿" : (isExamDraft ? "尚未開放" : (isExamClosed ? "已關閉" : "不可報名")))
+                    ? (selectedEvent.hasRegistered ? "已報名" : (isFull ? "已額滿" : (isExamDraft ? "尚未開放" : (isExamClosed ? "已關閉" : "不可報名"))))
                     : "確認報名"}
                 </button>
               </div>

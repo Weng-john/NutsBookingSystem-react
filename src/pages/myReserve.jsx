@@ -9,6 +9,8 @@ import { reserveGroups, EXAM_LANGUAGE, DEADLINE_CONFIG, REGISTRATION_DEADLINE_DA
 import { confirmDialog, notify } from "../dialog";
 import StatusTabs from "../components/statusTabs";
 
+const MAX_PAYMENT_PROOF_BYTES = 5 * 1024 * 1024;
+
 export default function MyReserve() {
   const { user, setGlobalLoading, setLoadingText, setSubmit, requestCaptcha } = useOutletContext();
   const navigate = useNavigate();
@@ -122,7 +124,26 @@ export default function MyReserve() {
   const tabMessage = currentStatus?.message || activeTabInfo.message;
 
   // --- 繳費處理邏輯 ---
-  const handleFileChange = (e) => setPaymentFile(e.target.files[0] || null);
+  const handleFileChange = (e) => {
+    const file = e.target.files[0] || null;
+    if (!file) {
+      setPaymentFile(null);
+      return;
+    }
+    if (!["image/png", "image/jpeg", "image/webp"].includes(file.type)) {
+      notify("請上傳 PNG、JPEG 或 WebP 格式的繳費證明。");
+      e.target.value = "";
+      setPaymentFile(null);
+      return;
+    }
+    if (file.size > MAX_PAYMENT_PROOF_BYTES) {
+      notify("繳費證明不可超過 5 MB，請壓縮圖片後再上傳。");
+      e.target.value = "";
+      setPaymentFile(null);
+      return;
+    }
+    setPaymentFile(file);
+  };
 
   const getBase64 = (file) =>
     new Promise((resolve, reject) => {
@@ -220,7 +241,15 @@ export default function MyReserve() {
   // 從報名詳細資訊進入「上傳繳費證明」「修改報名資料」
   const openPayment = (res) => {
     setDetailData(null);
+    setPaymentMethod("轉帳");
+    setPaymentFile(null);
     setPaymentModalData(res);
+  };
+
+  const closePayment = () => {
+    if (isUploading) return;
+    setPaymentFile(null);
+    setPaymentModalData(null);
   };
 
   const openUpdate = (res) => {
@@ -433,9 +462,9 @@ export default function MyReserve() {
       {/* 繳費資訊 Modal */}
       {paymentModalData &&
         createPortal(
-          <div className="modal-overlay" onClick={() => setPaymentModalData(null)}>
+          <div className="modal-overlay" onClick={closePayment}>
             <div className="modal-content exam-form-modal" onClick={(e) => e.stopPropagation()}>
-              <button type="button" className="modal-close" aria-label="關閉" title="關閉" onClick={() => setPaymentModalData(null)}>&times;</button>
+              <button type="button" className="modal-close" aria-label="關閉" title="關閉" onClick={closePayment} disabled={isUploading}>&times;</button>
               <h3>{paymentModalData.statusInfo?.id === "payment_rejected" ? "重新上傳繳費資訊" : "上傳繳費資訊"}</h3>
               <div className="modal-info-block">
                 <p>
@@ -455,7 +484,7 @@ export default function MyReserve() {
               <form onSubmit={handleSubmitPayment} className="exam-form">
                 <div className="form-group">
                   <label>繳費方式：</label>
-                  <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} required>
+                  <select value={paymentMethod} onChange={(e) => setPaymentMethod(e.target.value)} required disabled={isUploading}>
                     <option value="轉帳">銀行 / ATM 轉帳</option>
                     <option value="信用卡">信用卡</option>
                     <option value="Line Pay">Line Pay</option>
@@ -464,15 +493,16 @@ export default function MyReserve() {
                 </div>
 
                 <div className="form-group">
-                  <label>繳費證明截圖/照片：</label>
-                  <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleFileChange} required />
+                  <label>繳費證明截圖／照片 <span className="required-mark">*</span></label>
+                  <input type="file" accept="image/png,image/jpeg,image/webp" onChange={handleFileChange} required disabled={isUploading} aria-describedby="payment-proof-hint" />
+                  <p id="payment-proof-hint" className="svc-hint">支援 PNG、JPEG、WebP，檔案不得超過 5 MB。</p>
                 </div>
 
                 <div className="modal-actions">
                   <button
                     type="button"
                     className="btn-cancel"
-                    onClick={() => setPaymentModalData(null)}
+                    onClick={closePayment}
                     disabled={isUploading}
                   >
                     取消

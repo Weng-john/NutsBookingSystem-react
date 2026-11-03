@@ -121,22 +121,6 @@ export default function ReservationManager() {
     return [...new Set(rooms)];
   }, [reservations, subjectFilter]);
 
-  useEffect(() => {
-    if (availableSubjects.length > 0 && !subjectFilter) {
-      setSubjectFilter(availableSubjects[0]);
-    }
-  }, [availableSubjects, subjectFilter]);
-
-  useEffect(() => {
-    if (availableRooms.length > 0) {
-      if (!availableRooms.includes(roomFilter)) {
-        setRoomFilter(availableRooms[0]);
-      }
-    } else {
-      setRoomFilter("");
-    }
-  }, [availableRooms, roomFilter]);
-
   const fetchReservations = useCallback(async () => {
     setSubmit(false); // ✅ 確保一開始拉取資料時關閉 Submit 狀態
     setIsRefreshing(true);
@@ -255,9 +239,9 @@ export default function ReservationManager() {
     return filtered.sort((a, b) => new Date(a.reservedAt || 0) - new Date(b.reservedAt || 0));
   }, [reservations, activeTabInfo, subjectFilter, dateFilter, roomFilter, contactQuery]);
 
-  const isSubjectModified = availableSubjects.length > 0 && subjectFilter !== availableSubjects[0];
-  const isRoomModified = availableRooms.length > 0 && roomFilter !== availableRooms[0];
-  const showClearButton = dateFilter || contactQuery || isSubjectModified || isRoomModified;
+  // 篩選預設為「全部」，避免側欄總數與清單因預選第一個科目／考場而不一致。
+  const hasColumnFilters = Boolean(subjectFilter || roomFilter || dateFilter || contactQuery);
+  const showClearButton = hasColumnFilters;
 
   const openReviewModal = (res) => {
     const badge = res.statusInfo?.badge;
@@ -438,7 +422,8 @@ export default function ReservationManager() {
               <button
                 className="clear-filter-btn"
                 onClick={() => {
-                  setSubjectFilter(availableSubjects[0] || "");
+                  setSubjectFilter("");
+                  setRoomFilter("");
                   setDateFilter("");
                   setContactQuery("");
                   setTempContactQuery("");
@@ -469,9 +454,11 @@ export default function ReservationManager() {
                     value={subjectFilter}
                     onChange={(e) => {
                       setSubjectFilter(e.target.value);
+                      setRoomFilter("");
                       setOpenFilterMenu(null);
                     }}
                   >
+                    <option value="">全部科目</option>
                     {availableSubjects.map((subName) => (
                       <option key={subName} value={subName}>
                         {subName}
@@ -531,6 +518,7 @@ export default function ReservationManager() {
                       setOpenFilterMenu(null);
                     }}
                   >
+                    <option value="">全部地點</option>
                     {availableRooms.map((roomName) => (
                       <option key={roomName} value={roomName}>
                         {roomName}
@@ -582,7 +570,10 @@ export default function ReservationManager() {
             {filteredReservations.length === 0 ? (
               <div className="empty-state">
                 <i className="fa-regular fa-folder-open"></i>
-                <p>目前沒有{activeTabInfo.label}的項目</p>
+                <p>{hasColumnFilters ? "目前的篩選條件沒有符合項目" : `目前沒有${activeTabInfo.label}的項目`}</p>
+                {hasColumnFilters && <button type="button" className="btn-primary" onClick={() => {
+                  setSubjectFilter(""); setRoomFilter(""); setDateFilter(""); setContactQuery(""); setTempContactQuery("");
+                }}>清除篩選，查看全部</button>}
               </div>
             ) : (
               <ul className="modern-list manager-list">

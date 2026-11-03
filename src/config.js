@@ -1,16 +1,16 @@
 // 1. 系統參數設定
 export const EXPIRED_HOURS = 1; // 設定閒置幾小時登出
 export const SESSION_DURATION_MS = EXPIRED_HOURS * 60 * 60 * 1000;
-export const TOKEN_EXPIRED = "token expired";
+export const TOKEN_EXPIRED = "登入已失效，請重新登入。";
 export const REDIRECT_URI = window.location.origin + "/booking";
 export const IS_DEV = import.meta.env.MODE === "development";
 
 // 2. API 與第三方服務
 const GAS_ID = import.meta.env.VITE_GAS_ID;
-const GAS_MODE = import.meta.env.VITE_GAS_MODE;
+const GAS_MODE = import.meta.env.VITE_GAS_MODE || "exec";
 export const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 export const RECAPTCHA_SITE_KEY = import.meta.env.VITE_RECAPTCHA_SITE_KEY;
-export const GAS_BASE = `https://script.google.com/macros/s/${GAS_ID}/${GAS_MODE}`;
+export const GAS_BASE = GAS_ID ? `https://script.google.com/macros/s/${GAS_ID}/${GAS_MODE}` : "";
 
 // 3. LocalStorage Key 管理
 export const STORAGE_KEYS = {

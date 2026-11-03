@@ -1,5 +1,5 @@
 import {TOKEN_EXPIRED} from "../config"
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { 
   fetchSubjectsRawAPI, 
@@ -21,7 +21,7 @@ export default function SubjectManager() {
   const isTeacher = useMemo(() => user?.role === "admin", [user]);
 
   // 1. 取得所有科目
-  async function fetchSubjects() {
+  const fetchSubjects = useCallback(async () => {
     setSubmit(false); // 👉 確保拉取資料時關閉 Submit 狀態
     setLoadingText("正在取得科目清單...");
     setGlobalLoading(true);
@@ -37,7 +37,7 @@ export default function SubjectManager() {
       setGlobalLoading(false); // 呼叫全域 Loading 結束
       setLoadingText("");
     }
-  }
+  }, [setGlobalLoading, setLoadingText, setSubmit]);
 
   // 權限檢查與初始化
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function SubjectManager() {
     if (user && isTeacher) {
       fetchSubjects();
     }
-  }, [user, isTeacher, navigate]);
+  }, [user, isTeacher, navigate, fetchSubjects]);
 
   // 2. 新增科目
   async function handleAdd(e) {

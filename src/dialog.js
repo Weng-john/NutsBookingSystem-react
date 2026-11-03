@@ -7,8 +7,12 @@
 let queue = [];
 let nextId = 1;
 const listeners = new Set();
+let toastQueue = [];
+let nextToastId = 1;
+const toastListeners = new Set();
 
 const emit = () => listeners.forEach((listener) => listener());
+const emitToasts = () => toastListeners.forEach((listener) => listener());
 
 export function subscribe(listener) {
   listeners.add(listener);
@@ -16,6 +20,20 @@ export function subscribe(listener) {
 }
 
 export const getQueue = () => queue;
+
+export function subscribeToasts(listener) {
+  toastListeners.add(listener);
+  return () => toastListeners.delete(listener);
+}
+
+export const getToasts = () => toastQueue;
+
+export function dismissToast(id) {
+  const nextQueue = toastQueue.filter((toast) => toast.id !== id);
+  if (nextQueue.length === toastQueue.length) return;
+  toastQueue = nextQueue;
+  emitToasts();
+}
 
 /** 關閉目前最上層的對話框，並把結果回傳給呼叫的人 */
 export function closeCurrent(result) {
@@ -52,8 +70,8 @@ export function confirmDialog(message, options = {}) {
 }
 
 /**
- * 提示訊息 (取代 alert)。不會擋住後面的程式執行；需要等使用者按下時可以 await。
- * options: { title, tone: "success" | "danger" | "warning" | "info" }
+ * 成功與一般提示以 snackbar 呈現；警告與錯誤保留對話框。
+ * options: { title, tone: "success" | "danger" | "warning" | "info", duration }
  */
 export function notify(message, options = {}) {
   const text = String(message);
@@ -61,5 +79,21 @@ export function notify(message, options = {}) {
   if (/失敗|錯誤|無法|逾時|失效/.test(text)) tone = "danger";
   else if (/成功|已為您|已送出|已登記/.test(text)) tone = "success";
   else if (/請先|尚未|不能|不可|已取消|已經關閉|已關閉|已滿|注意/.test(text)) tone = "warning";
+  tone = options.tone || tone;
+
+  if (tone === "success" || tone === "info") {
+    const duration = Number.isFinite(options.duration) ? Math.max(0, options.duration) : 5000;
+    const toast = {
+      id: nextToastId++,
+      message: stripLeadingSymbols(text),
+      tone,
+      title: options.title,
+      duration,
+    };
+    toastQueue = [...toastQueue.filter((item) => item.message !== toast.message), toast].slice(-3);
+    emitToasts();
+    return Promise.resolve(true);
+  }
+
   return open("notice", message, { tone, ...options });
 }

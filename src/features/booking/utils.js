@@ -111,8 +111,8 @@ export function dateKey(value) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Taipei", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
 }
 export function bookingAmounts(res) {
-  const base = Number(res.baseFee ?? res.examInfo?.fee ?? 0);
-  const addon = Number(res.additionalFee ?? (isTrue(res.additional) ? 100 : 0));
+  const base = Number(res.baseFee === "" || res.baseFee == null ? res.examInfo?.fee ?? 0 : res.baseFee);
+  const addon = Number(res.additionalFee === "" || res.additionalFee == null ? (isTrue(res.additional) ? 100 : 0) : res.additionalFee);
   const due = Number(res.amountDue === "" || res.amountDue == null ? base + addon : res.amountDue);
   const paid = Number(res.paidAmount === "" || res.paidAmount == null ? (isTrue(res.paymentStatus) ? due : 0) : res.paidAmount);
   const refunded = Number(res.refundedAmount || 0);
@@ -142,13 +142,14 @@ function foldLine(line) {
   }
   return output + chunk;
 }
+const examCancelled = (res) => ["cancelled", "canceled"].includes(String((res.examInfo || res).status || "").toLowerCase());
 export function createICS(res) {
   const event = eventDetails(res);
   return ["BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Nuts Institute//Booking//ZH-TW", "CALSCALE:GREGORIAN", "BEGIN:VEVENT",
     `UID:${icsEscape(res.reserveID || res.id || "exam")}@nutsreserve`, `DTSTAMP:${utcStamp(new Date())}`,
     `DTSTART:${utcStamp(event.start)}`, `DTEND:${utcStamp(event.end)}`, `SUMMARY:${icsEscape(event.title)}`,
     `LOCATION:${icsEscape(event.location)}`, `DESCRIPTION:${icsEscape(event.description)}`,
-    `STATUS:${res.reservationStatus === "cancelled" ? "CANCELLED" : isTrue(res.reviewStatus) ? "CONFIRMED" : "TENTATIVE"}`,
+    `STATUS:${(res.reservationStatus === "cancelled" || examCancelled(res)) ? "CANCELLED" : isTrue(res.reviewStatus) ? "CONFIRMED" : "TENTATIVE"}`,
     "END:VEVENT", "END:VCALENDAR", ""].map(foldLine).join("\r\n");
 }
 export function googleCalendarURL(res) {
@@ -181,7 +182,7 @@ export function confirmationHTML(res) {
     ["電子郵件", res.email], ["電話", res.phoneNumber], ["考試時間", `${formatDateTime(exam.examStartTime).replace(/:\d\d$/, "")} ～ ${formatDateTime(exam.examEndTime).replace(/:\d\d$/, "")}`],
     ["考場", exam.location], ["地址", exam.address], ["語言", res.language], ["Certiport 帳號", res.certiportAccount],
     ["加值方案", isTrue(res.additional) ? "有加購" : "無"], ["應付金額", money(amount.due)],
-    ["報名狀態", res.reservationStatus === "cancelled" ? "已取消" : isTrue(res.reviewStatus) ? "已通過審核" : "尚未通過審核"],
+    ["報名狀態", res.reservationStatus === "cancelled" ? "已取消" : examCancelled(res) ? "場次已取消" : isTrue(res.reviewStatus) ? "已通過審核" : "尚未通過審核"],
     ["付款狀態", isTrue(res.paymentStatus) ? "已確認付款" : String(res.paymentStatus).toUpperCase() === "PENDING" ? "繳費審核中" : "尚未確認付款"],
     ["已退款", money(amount.refunded)],
   ];

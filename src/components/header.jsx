@@ -5,6 +5,7 @@ import { STORAGE_KEYS } from "../config";
 import { logoutUser } from "../api";
 import { useTheme, toggleTheme as toggleStoredTheme } from "../theme";
 import { confirmDialog } from "../dialog";
+import Tooltip from "./Tooltip";
 
 // --- SVG 圖示元件 ---
 const IconUser = () => (
@@ -121,9 +122,11 @@ export default function Header({ user, page }) {
 
   // header 上的主題切換圖示。登入後在平板/手機會隱藏 (改放側邊選單底部)，避免右上角太擠
   const renderThemeButton = (className) => (
-    <button type="button" className={className} onClick={toggleTheme} title={themeLabel} aria-label={themeLabel}>
-      {theme === "light" ? <IconMoon /> : <IconSun />}
-    </button>
+    <Tooltip content={themeLabel} side="left">
+      <button type="button" className={className} onClick={toggleTheme} aria-label={themeLabel}>
+        {theme === "light" ? <IconMoon /> : <IconSun />}
+      </button>
+    </Tooltip>
   );
 
   return (
@@ -184,22 +187,33 @@ export default function Header({ user, page }) {
 
               {/* --- 大頭貼與帳號選單 --- */}
               <div className="user-menu" ref={menuRef}>
-                <div
-                  className={`user-menu-btn ${isMenuOpen ? 'active' : ''}`}
-                  onClick={() => setIsMenuOpen(!isMenuOpen)}
-                  title="帳號選單"
-                >
-                  {showAvatarImage ? (
-                    <img
-                      src={user.picture}
-                      alt="avatar"
-                      className="user-avatar"
-                      onError={() => setImgError(true)}
-                    />
-                  ) : (
-                    <IconUserPlaceholder />
-                  )}
-                </div>
+                <Tooltip content={isMenuOpen ? "關閉帳號選單" : "開啟帳號選單"} side="left">
+                  <div
+                    className={`user-menu-btn ${isMenuOpen ? 'active' : ''}`}
+                    onClick={() => setIsMenuOpen(!isMenuOpen)}
+                    role="button"
+                    tabIndex={0}
+                    aria-label="帳號選單"
+                    aria-expanded={isMenuOpen}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setIsMenuOpen(!isMenuOpen);
+                      }
+                    }}
+                  >
+                    {showAvatarImage ? (
+                      <img
+                        src={user.picture}
+                        alt="avatar"
+                        className="user-avatar"
+                        onError={() => setImgError(true)}
+                      />
+                    ) : (
+                      <IconUserPlaceholder />
+                    )}
+                  </div>
+                </Tooltip>
 
                 {isMenuOpen && (
                   <div className="dropdown-menu">

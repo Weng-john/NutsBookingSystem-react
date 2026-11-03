@@ -99,7 +99,9 @@ test("generated fixtures work with actual review, immediate change, refund and r
   const review = scenario(h, "REVIEWING");
   assert.equal(h.request("updateReservationStatus", { reserveID: review.reserveID, type: "registration", action: "approve", token: "captcha" }, "admin").ok, true);
   assert.equal(h.request("submitReservationRequest", { reserveID: scenario(h, "UNPAID").reserveID, type: "cancel", reason: "test", submissionKey: "cancel-test", captchaToken: "captcha" }).data.executed, true);
-  const target = h.read("Exam", "EXAM_COLUMN").find(row => row.examID.endsWith("_EXAM_TARGET"));
+  const exams = h.read("Exam", "EXAM_COLUMN");
+  const target = { ...exams.find(row => row.examID.endsWith("_EXAM_TARGET")), examID: "ISOLATED_TARGET", numHasReserved: 0 };
+  h.seed("Exam", "EXAM_COLUMN", [...exams, target]);
   assert.equal(h.request("submitReservationRequest", { reserveID: scenario(h, "PARTIAL_PAID").reserveID, type: "reschedule", targetExamID: target.examID, reason: "test", submissionKey: "move-test", captchaToken: "captcha" }).data.executed, true);
   const req = h.read("ReservationRequests", "REQUEST_COLUMNS").find(row => row.reserveID === scenario(h, "REFUND_APPROVED").reserveID);
   assert.equal(h.request("processReservationRequest", { requestID: req.requestID, version: req.version, status: "completed", comment: "test", refundReference: "TEST-REFUND", captchaToken: "captcha" }, "admin").ok, true);

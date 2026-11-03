@@ -11,6 +11,7 @@ export default function PublicExamDetails({ exam, onClose, onBook, onSubscribe }
   const isDraft = status === "DRAFT", isCancelled = ["CANCELLED", "CANCELED"].includes(status);
   const isFull = exam.registeredCount >= exam.capacity, isPastDeadline = !(new Date(deadline) > new Date());
   const available = status === "OPEN" && !isFull && !isPastDeadline;
+  const canBook = available && !exam.hasRegistered;
 
   // 右上角的標籤與下方的提示
   let badge = { text: "開放報名", type: "success" }, notice = null;
@@ -71,11 +72,13 @@ export default function PublicExamDetails({ exam, onClose, onBook, onSubscribe }
       {notice && <div className={`exam-notice ${notice.type}`}><i className={`fa-solid ${notice.icon}`}></i>{notice.text}</div>}
 
       {/* 不能報名的場次就不用提醒看須知了 */}
-      {available && <Link to="/guidelines" className="svc-inline-link" onClick={onClose}><i className="fa-solid fa-circle-question"></i>報名前請先看考試須知與常見問題</Link>}
+      {canBook && <Link to="/guidelines" className="svc-inline-link" onClick={onClose}><i className="fa-solid fa-circle-question"></i>報名前請先看考試須知與常見問題</Link>}
 
       <div className="modal-actions">
         <button type="button" className="btn-cancel" onClick={onClose}>關閉</button>
-        {isDraft
+        {exam.hasRegistered
+          ? <Link to="/myReserve" className="btn-confirm" onClick={onClose}>查看我的考試</Link>
+          : isDraft
           ? <button type="button" className="btn-confirm" onClick={() => onSubscribe(exam)}>開放時通知我</button>
           : <button type="button" className="btn-confirm" disabled={!available} onClick={() => onBook(exam)}>我要報名</button>}
       </div>

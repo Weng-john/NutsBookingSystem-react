@@ -8,68 +8,25 @@ const PING_COOLDOWN = 10 * 60 * 1000;
 let pingPromise = null; // 用來鎖定正在進行中的 Ping，防止重複發送
 
 export const ensureGASAwake = async () => {
-  const lastPing = localStorage.getItem(STORAGE_KEYS.LAST_PING);
-  const now = Date.now();
-
-  // 1. 檢查是否在指定的Cooldown時間內，如果是，直接放行
-  if (lastPing && (now - parseInt(lastPing, 10)) < PING_COOLDOWN) {
-    return true;
-  }
-
-  // 2. 如果已經有一個 Ping 正在處理中，讓其他 Request 一起等待這個 Promise 完成
-  if (pingPromise) {
-    return pingPromise;
-  }
-
-  // 3. 建立一個新的 Ping 請求
+  let lastPing = 0;
+  try { lastPing = Number(localStorage.getItem(STORAGE_KEYS.LAST_PING)); } catch { /* 無法使用儲存空間時仍可喚醒 */ }
+  const elapsed = Date.now() - lastPing;
+  if (lastPing && elapsed >= 0 && elapsed < PING_COOLDOWN) return true;
+  if (pingPromise) return pingPromise;
   pingPromise = (async () => {
     try {
-      console.log("⏳ GAS 喚醒中 (Handshake)...");
-      const url = `${GAS_BASE}?route=ping`;
-
-      // 注意：這裡直接用 fetch，不透過 sendToGAS，避免無限迴圈
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ route: "ping" }), // 加上 body 雙重保險
-      });
-
-      if (!response.ok) throw new Error("Ping failed");
-
-      // 喚醒成功，更新 LocalStorage 時間
-      localStorage.setItem(STORAGE_KEYS.LAST_PING, Date.now().toString());
-      console.log("GAS 喚醒成功！放行後續請求。");
+      await sendToGAS("ping");
+      try { localStorage.setItem(STORAGE_KEYS.LAST_PING, String(Date.now())); } catch { /* 不影響 API */ }
       return true;
-
-    } catch (error) {
-      console.warn("GAS 喚醒異常 (可能冷啟動超時)，仍將嘗試放行後續請求:", error);
-      // 即使 Ping 失敗（可能只是 Timeout），我們依然回傳 true 放行後續的真實 API，
-      // 讓真實 API 去承擔真正的錯誤處理。
-      return true;
-    } finally {
-      // 執行完畢後清除 Promise 鎖，讓下次冷卻時間過後可以重新 Ping
-      pingPromise = null;
-    }
+    } catch {
+      return false;
+    } finally { pingPromise = null; }
   })();
-
   return pingPromise;
 };
 
-/**
- * 用於喚醒休眠中的 GAS 服務 (Cold Start Mitigation)
- */
-export const pingGASAPI = async () => {
-  try {
-    // 使用現有的 sendToGAS，不帶任何參數與 Token
-    const response = await sendToGAS("ping");
-    console.log("GAS Handshake Success:", response.message);
-    return true;
-  } catch (error) {
-    // 喚醒失敗不需要丟出 Error 給 UI，靜默處理即可
-    console.warn("GAS Handshake Failed (Might be cold starting):", error);
-    return false;
-  }
-};
+/** 背景喚醒與正式請求分開進行，不延遲頁面查詢 */
+export const pingGASAPI = () => ensureGASAwake();
 
 /* =========================================
     🛠️ 內部輔助與狀態管理
@@ -223,41 +180,66 @@ const calculateStatus_ = (res, exam) => {
     🚀 核心請求函式 (包含自動偵測 Invalid Token)
    ========================================= */
 
-export const sendToGAS = async (route, bodyData = {}) => {
-  // ✨ 新增：在發送真實請求前，確保 GAS 是醒著的 (排除 ping 自己)
-  if (route !== "ping") {
-    await ensureGASAwake();
-  }
+const READ_ROUTES = new Set([
+  "ping", "me", "getExams", "getSubjects", "getRooms", "getReservations", "getMyReservationsWithDetails",
+  "getAllReservationsAdmin", "getExamsAdmin", "listUsers", "getExamGuidelines", "getPaymentProof",
+  "getMyReservationRequests", "getReservationRequestsAdmin", "getReservationReport", "getAuditLogs",
+  "getMyNotifications", "getNotificationPreferences", "getNotificationRules", "getNotificationDeliveryLogs",
+]);
+const pendingReads = new Map();
+const apiError = (message, code, status) => Object.assign(new Error(message), { code, ...(status ? { status } : {}) });
 
+async function requestGAS(route, bodyData) {
+  if (!GAS_BASE) throw apiError("服務尚未完成連線設定，請聯絡學苑。", "CONFIGURATION_ERROR");
+  const sentToken = bodyData.idToken;
+  const controller = new AbortController();
+  let timer;
+  const timeout = new Promise((_, reject) => {
+    timer = setTimeout(() => {
+      reject(apiError("連線等候過久。若剛送出資料，請先重新整理確認結果，再決定是否重送。", "TIMEOUT"));
+      controller.abort();
+    }, route === "ping" ? 8000 : 45000);
+  });
   try {
-    const url = `${GAS_BASE}?route=${route}`;
-    const response = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ route, ...bodyData }), // 確保 route 有進 body
-    });
-
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-    const resData = await response.json();
-
-    // 自動偵測 Token 是否無效
-    if (!resData.ok) {
-      if (resData.error && (resData.error.includes("Invalid token") || resData.error.includes("Token expired"))) {
-        // 這次請求根本沒帶 Token (公開路由) 卻被要求登入：代表後端還不認得這條路由 (GAS 尚未更新部署)，
-        // 並不是登入失效，不能因此把使用者登出
-        if (!bodyData.idToken) throw new Error("這項功能尚未在伺服器啟用");
-        handleUnauthorized();
-        throw new Error(TOKEN_EXPIRED);
+    return await Promise.race([timeout, (async () => {
+      let response;
+      try {
+        response = await fetch(`${GAS_BASE}?route=${encodeURIComponent(route)}`, {
+          method: "POST", headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify({ ...bodyData, route }), signal: controller.signal,
+        });
+      } catch {
+        throw apiError("無法連線至伺服器，請檢查網路後再試。若剛送出資料，請先重新整理確認結果。", "NETWORK_ERROR");
       }
-      throw new Error(resData.error || "GAS API Error");
-    }
-    // console.log(resData);
-    return resData;
-  } catch (error) {
-    console.error(`API Error (${route}):`, error);
-    throw error;
-  }
+      if (!response.ok) throw apiError("伺服器暫時無法處理請求，請稍後再試。", "HTTP_ERROR", response.status);
+      let resData;
+      try { resData = await response.json(); }
+      catch { throw apiError("伺服器回應異常，請稍後再試；若持續發生，請聯絡學苑。", "INVALID_RESPONSE"); }
+      if (!resData || typeof resData.ok !== "boolean" || (resData.ok && !Object.prototype.hasOwnProperty.call(resData, "data"))) throw apiError("伺服器回應格式不完整，請聯絡學苑。", "INVALID_RESPONSE");
+      if (!resData.ok) {
+        const unauthorized = resData.code === "UNAUTHORIZED" || (!resData.code && /^(Invalid token|Token expired|Missing idToken|Audience mismatch|Invalid issuer)/i.test(resData.error || ""));
+        if (unauthorized) {
+          if (!sentToken) throw apiError("這項功能尚未在伺服器啟用，請聯絡學苑。", "NOT_FOUND");
+          // 舊請求的回應不能登出後來重新登入的帳號。
+          if (localStorage.getItem(STORAGE_KEYS.TOKEN) === sentToken) handleUnauthorized();
+          throw apiError(TOKEN_EXPIRED, "UNAUTHORIZED");
+        }
+        const message = typeof resData.error === "string" && /[\u3400-\u9fff]/.test(resData.error) ? resData.error : "操作未完成，請重新整理後再試；若持續發生，請聯絡學苑。";
+        throw apiError(message, resData.code || "REQUEST_FAILED");
+      }
+      return resData;
+    })()]);
+  } finally { clearTimeout(timer); }
+}
+
+export const sendToGAS = (route, bodyData = {}) => {
+  // 只合併同一身分、同一內容的進行中查詢；完成後不保留個資或過期資料。
+  if (!READ_ROUTES.has(route)) return requestGAS(route, bodyData);
+  const key = JSON.stringify([route, bodyData]);
+  if (pendingReads.has(key)) return pendingReads.get(key);
+  const request = requestGAS(route, bodyData).finally(() => pendingReads.delete(key));
+  pendingReads.set(key, request);
+  return request;
 };
 
 /* =========================================

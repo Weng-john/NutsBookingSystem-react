@@ -45,7 +45,7 @@
 
 | 原表 | 追加欄位 |
 | --- | --- |
-| Reserved | reservationStatus, baseFee, additionalFee, amountDue, paidAmount, refundedAmount, paymentDeadline, version, submissionKey |
+| Reserved | reservationStatus, baseFee, additionalFee, amountDue, paidAmount, refundedAmount, paymentDeadline, version, submissionKey, attendance, score, examResult, resultNote, resultUpdatedAt |
 | Exam | registrationDeadline, paymentDeadline |
 | Transaction | fileID |
 
@@ -178,10 +178,10 @@
 
 ## 驗證結果與限制
 
-- `npm test`：25 項通過，涵蓋完整 GAS 語法載入與路由對照、API adapters、所有權、角色、重送、容量衝突、成功改期、版本、部分付款、退款、寫入失敗復原、私人證明、舊金額處理、提醒去重／狀態重查、單次 captcha、追加欄位、匯出逸出。
+- `npm test`：截至 2026-10-20 共 50 項通過，涵蓋完整 GAS 語法載入與路由對照、API adapters、所有權、角色、重送、容量衝突、成功改期、版本、部分付款、退款、寫入失敗復原、私人證明、舊金額處理、提醒去重／狀態重查、單次 captcha、追加欄位、匯出逸出。
 - `npm run build`：通過。既有 CSS 的 `image/arrow.svg`、`image/dark-arrow.svg`、`image/overlay.png` 有資產解析警告，報名服務各頁的樣式在 `src/index.css` 第 13 節。
-- `npm run lint`：零錯誤；既有 subjectManager 的 useEffect dependency 警告一項。
-- `npm audit --json`：本次查詢回報零已知套件弱點（共 211 項相依項目）；這是當次資料庫結果，不代表程式邏輯或部署設定沒有風險。
+- `npm run lint`：2026-10-20 驗證零錯誤、零警告（terra 已修正 subjectManager 的 dependency）。
+- `npm audit --json`：前次紀錄為零已知套件弱點（共 211 項相依項目）；本輪沒有連線重查，不能視為目前弱點資料庫結果。
 - 測試以 Node VM 模擬 Sheets、Drive、Google token/captcha、Mail 與排程，沒有連正式 Google API。瀏覽器驗收是把同一套測試 harness 包成本機 HTTP 服務、讓前端實際接上 GAS 程式後以無頭 Chrome 操作（見下方「整併與介面調整」），仍然沒有連正式 Google API，也沒有在實體手機上測試。
 
 仍需部署者處理的資料安全事項：
@@ -195,3 +195,31 @@
 7. 行事曆匯出是資訊快照，不是同步訂閱。ICS 採 UTC、穩定 UID、CRLF、文字逸出與 75 UTF-8 byte 行折疊；收到異動請人工更新行事曆。[RFC 5545](https://www.rfc-editor.org/info/rfc5545/)。
 
 正式上線前請先完成上述 Google 端設定與測試環境驗收。
+
+## 發布前核對清單（sol，2026-10-20）
+
+本輪只修改本機程式並以模擬服務驗證；沒有連線 Google、執行正式造資料、上傳、寄信或部署。
+
+- [ ] 先保存完整試算表、Apps Script 與現行部署版本。**目前 `GAS/*` 被現有 `.gitignore` 忽略**，一般 Git 差異／提交不會包含後端修正；請另外保存整個 GAS 目錄並由部署者人工核對，勿只依前端 Git 版本判斷後端是否已更新。
+- [ ] 核對 `GAS/Config.gs` 的試算表 ID、私人付款證明資料夾 ID、OAuth client ID 與管理員信箱。前後端 OAuth client 必須一致。
+- [ ] Script Properties 設定已輪替的 `RECAPTCHA_SECRET_KEY` 與正式 `PAYMENT_INSTRUCTIONS`。提醒規則由管理員介面維護 `BOOKING_NOTIFICATION_RULES`，未設定則沿用程式預設。密鑰不得放進 VITE 變數。
+- [ ] 同步全部目前的 `GAS/*.gs`，移除 Apps Script 專案內舊的八個 `Booking.*.gs` 同名實作。正式專案不執行 `testData.gs` 的生成、重設與清理工具。
+- [ ] 由部署者在編輯器執行 `initializeBookingFeatures()`，核對新增四表，以及 Reserved、Exam、Transaction 的追加欄位。這次已補上初始化 Transaction，包含 `fileID`；Reserved 成績五欄也會追加。標題不符時先核對原始表，不要重排／清空原資料。
+- [ ] 舊已付款資料逐筆對帳：除了應付金額，也要填實際 `paidAmount` 和 `refundedAmount`。只有應付金額、沒有實收數字的已付款資料仍標記推估，禁止核准退款。
+- [ ] 核對付款資料夾及舊檔個別分享權限。舊孤兒清理排程目前預設只預覽；`cleanUpOrphanPaymentProofs_()` 不移動檔案。以交易 fileID／舊連結 ID 保護已引用檔案，無 ID 的舊交易才保守比對檔名；跳過 24 小時內檔案，單次最多掃描 200 筆。若回傳 `truncated: true`，代表尚未盤點完整資料夾，須人工處理，不能宣稱已清乾淨。確認預覽內容後，部署者才考慮明確傳入 `false` 執行。
+- [ ] 部署者執行 `installBookingNotificationTrigger()`，核對唯一的每 15 分鐘排程、執行帳號授權與通知寄送紀錄。既有其他帳號建立的排程仍需人工盤點。
+- [ ] 建立新版 Web App 部署，確認存取設定與前端使用的 `/exec` URL，保留可回復的舊版本。新前端與新 GAS 成對發布。
+- [ ] 前端環境填入 `VITE_GAS_ID`、`VITE_GAS_MODE=exec`、`VITE_GOOGLE_CLIENT_ID`、`VITE_RECAPTCHA_SITE_KEY`。執行 `npm test`、`npm run lint`、`npm run build`；將 dist 內容提供於 `/booking/`。本輪確認產出 HTML 的 JS、CSS、favicon 都指向 `/booking/assets/`。
+- [ ] 正式主機設定 `/booking` 導向 `/booking/`，以及子路徑重新整理時的 SPA fallback；Vite 內的轉址外掛只涵蓋開發與 preview。
+- [ ] 用隔離的驗收試算表與測試帳號檢查登入、重複報名、名額競爭、部分付款、改期／退費、跨帳號權限、私人證明、通知、CSV／行事曆／確認單，再由擁有者批准正式發布。
+
+### 本輪行為與相容性
+
+- GAS 失敗回應仍為 `{ ok: false, error, code }`，error 為繁體中文；code 區分 `UNAUTHORIZED`、`FORBIDDEN`、`CAPTCHA_FAILED`、`BUSY`、`NOT_FOUND`、`REQUEST_FAILED`。未知英文內部例外不再直接顯示給考生。Google tokeninfo 的 429／5xx 是服務暫時故障，不是登入失效。
+- 前端缺少 GAS 部署 ID 時會直接顯示中文設定錯誤（不發送無效網址）；部署模式未填時預設 exec。前端依明確的 UNAUTHORIZED 判斷登出，且只有請求所帶 token 仍等於目前 token 才清除登入；舊帳號的延遲回應不會登出新帳號。公開請求遇到登入錯誤只顯示功能尚未啟用。
+- 正式 API 不再等待 ping 完成；背景 ping 上限 8 秒、其餘請求含 JSON 讀取上限 45 秒。同帳號同參數的進行中讀取會合併，完成後不保留回應快取；寫入不自動合併或重試。超時不代表伺服器未寫入，請先重新查詢結果再重送。
+- 相同 submissionKey 的重送仍回傳原紀錄；即使換了 key，同帳號也不能再報名同一個有效場次，改期不能移到本人已有有效報名的目標場次。取消完成後可以重新報名。
+- 部分付款後修改加購，應付不能低於已確認收款。異動路由及通知偏好在取得鎖後重查帳號／權限，避免等待期間權限被撤銷後仍寫入。
+- 已取消場次的 ICS 標為 CANCELLED，確認單顯示「場次已取消」；舊資料的空白基本費／加購欄位依相同估算規則處理，明確的零元保留為零。
+
+既有 localStorage token、tokeninfo 架構、非持久交易的 Sheets、舊公開檔案與郵件可能重複投遞的限制仍適用，見上方安全事項。正式 Google 環境驗收與部署由擁有者執行。

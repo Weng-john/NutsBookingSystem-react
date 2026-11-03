@@ -1,17 +1,21 @@
 import { useState } from "react";
 import { Link, Navigate, useOutletContext } from "react-router-dom";
 import { formatDateTime, requestStatuses, requestTones, shortId } from "./utils";
+import Breadcrumbs from "../../components/Breadcrumbs";
+import Tooltip from "../../components/Tooltip";
 
 /* 報名服務各頁共用的版面與小元件 (樣式在 index.css 第 13 節) */
 
 export function RefreshButton({ loading, onClick }) {
   return (
-    <button type="button" onClick={onClick} disabled={loading} className={`btn-refresh ${loading ? "is-loading" : ""}`} title="重新整理" aria-label="重新整理">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
-        <path fillRule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
-        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
-      </svg>
-    </button>
+    <Tooltip content="重新整理資料" side="left">
+      <button type="button" onClick={onClick} disabled={loading} className={`btn-refresh ${loading ? "is-loading" : ""}`} aria-label="重新整理資料">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+          <path fillRule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
+          <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
+        </svg>
+      </button>
+    </Tooltip>
   );
 }
 
@@ -45,6 +49,7 @@ export function ServicePage({ title, subtitle, admin = false, open = false, remo
       <section className="svc-page">
         <header className="svc-head">
           <div className="svc-head-text">
+            <Breadcrumbs items={[{ label: "首頁", to: "/" }, { label: title }]} />
             <h1>{title}</h1>
             {subtitle && <p>{subtitle}</p>}
           </div>
@@ -83,7 +88,13 @@ export function Pill({ tone = "muted", icon, children }) {
 /** 編號太長時只顯示前段，滑過可看到完整編號 */
 export function IdTag({ label, value }) {
   if (!value) return null;
-  return <span className="svc-id" title={value}>{label && <span>{label}</span>}<code>{shortId(value)}</code></span>;
+  return (
+    <Tooltip content={String(value)}>
+      <span className="svc-id" tabIndex={0} aria-label={`${label ? `${label}，` : ""}完整編號 ${value}`}>
+        {label && <span>{label}</span>}<code>{shortId(value)}</code>
+      </span>
+    </Tooltip>
+  );
 }
 
 /** 開關 (取代原生勾選框) */

@@ -576,7 +576,6 @@ button.down {
 	height: 5rem;
 	line-height: 4.5rem;
 	padding: 0;
-	background-image: url("image/dark-arrow.svg");
 	background-position: center center;
 	background-repeat: no-repeat;
 	text-indent: -10rem;
@@ -620,7 +619,6 @@ input[type="submit"].style2.down,
 input[type="reset"].style2.down,
 .button.style2.down,
 button.style2.down {
-	background-image: url("image/arrow.svg");
 }
 
 /* Button Variants */
@@ -1199,16 +1197,6 @@ table select {
 .image {
 	position: relative;
 	display: inline-block;
-}
-
-.image:before {
-	content: '';
-	position: absolute;
-	left: 0;
-	top: 0;
-	width: 100%;
-	height: 100%;
-	background: url("image/overlay.png");
 }
 
 .image img {
@@ -2158,17 +2146,8 @@ body:before {
 }
 
 body:after {
-	animation: overlay-hide 1.5s ease-in forwards !important;
-	background: #ffffff;
-	content: '';
-	display: block;
-	height: 100%;
-	left: 0;
-	opacity: 0;
-	position: fixed;
-	top: 0;
-	width: 100%;
-	z-index: -1;
+	/* 舊版載入遮罩已無使用，避免初次進站時淡白蓋住整個畫面 */
+	display: none;
 }
 
 /* ============================================
@@ -9231,5 +9210,315 @@ textarea.svc-short {
 	.modal-content {
 		--modal-pad-top: 1.75rem;
 		--modal-pad-x: 1.5rem;
+	}
+}
+
+/* ============================================
+   13.14 麵包屑、工具提示與 snackbar
+   ============================================ */
+.ui-breadcrumbs {
+	margin: 0 0 0.25rem;
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+	line-height: 1.4;
+}
+
+.ui-breadcrumbs ol {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.4rem;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.ui-breadcrumbs li {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+}
+
+.ui-breadcrumbs a {
+	color: var(--text-3);
+	text-decoration: none;
+}
+
+.ui-breadcrumbs a:hover {
+	color: var(--primary-text);
+	text-decoration: underline;
+}
+
+.ui-breadcrumbs [aria-current="page"] {
+	color: var(--text-2);
+	font-weight: 500;
+}
+
+.ui-breadcrumbs i {
+	font-size: 0.6rem;
+	opacity: 0.7;
+}
+
+.ui-tooltip {
+	position: relative;
+	display: inline-flex;
+	max-width: 100%;
+	vertical-align: middle;
+}
+
+.ui-tooltip-bubble {
+	position: absolute;
+	bottom: calc(100% + 0.55rem);
+	left: 50%;
+	z-index: var(--z-index-floating);
+	width: max-content;
+	max-width: min(18rem, calc(100vw - 2rem));
+	padding: 0.45rem 0.65rem;
+	transform: translate(-50%, 0.25rem);
+	border-radius: var(--radius-sm);
+	background: var(--text);
+	box-shadow: var(--shadow);
+	color: var(--surface);
+	font-size: var(--fs-xs);
+	font-weight: 500;
+	line-height: 1.5;
+	text-align: left;
+	white-space: normal;
+	word-break: break-word;
+	visibility: hidden;
+	opacity: 0;
+	transition: opacity 0.14s ease, transform 0.14s ease, visibility 0.14s;
+	pointer-events: none;
+}
+
+.ui-tooltip-bubble::after {
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	border: 0.35rem solid transparent;
+	border-top-color: var(--text);
+	content: "";
+	transform: translateX(-50%);
+}
+
+.ui-tooltip-bottom .ui-tooltip-bubble {
+	top: calc(100% + 0.55rem);
+	bottom: auto;
+	transform: translate(-50%, -0.25rem);
+}
+
+.ui-tooltip-bottom .ui-tooltip-bubble::after {
+	top: auto;
+	bottom: 100%;
+	border-top-color: transparent;
+	border-bottom-color: var(--text);
+}
+
+.ui-tooltip-left .ui-tooltip-bubble {
+	top: 50%;
+	right: calc(100% + 0.55rem);
+	bottom: auto;
+	left: auto;
+	transform: translate(0.25rem, -50%);
+}
+
+.ui-tooltip-left .ui-tooltip-bubble::after {
+	top: 50%;
+	right: auto;
+	bottom: auto;
+	left: 100%;
+	border-top-color: transparent;
+	border-left-color: var(--text);
+	transform: translateY(-50%);
+}
+
+.ui-tooltip-right .ui-tooltip-bubble {
+	top: 50%;
+	right: auto;
+	bottom: auto;
+	left: calc(100% + 0.55rem);
+	transform: translate(-0.25rem, -50%);
+}
+
+.ui-tooltip-right .ui-tooltip-bubble::after {
+	top: 50%;
+	right: 100%;
+	bottom: auto;
+	left: auto;
+	border-top-color: transparent;
+	border-right-color: var(--text);
+	transform: translateY(-50%);
+}
+
+.ui-tooltip:is(:hover, :focus-within, .is-open) .ui-tooltip-bubble {
+	transform: translate(-50%, 0);
+	visibility: visible;
+	opacity: 1;
+}
+
+.ui-tooltip-left:is(:hover, :focus-within, .is-open) .ui-tooltip-bubble {
+	transform: translate(0, -50%);
+}
+
+.ui-tooltip-right:is(:hover, :focus-within, .is-open) .ui-tooltip-bubble {
+	transform: translate(0, -50%);
+}
+
+.ui-tooltip-bottom:is(:hover, :focus-within, .is-open) .ui-tooltip-bubble {
+	transform: translate(-50%, 0);
+}
+
+.ui-tooltip:focus-within .svc-id {
+	border-radius: var(--radius-sm);
+	box-shadow: var(--ring);
+}
+
+.user-menu-btn:focus-visible {
+	outline: none;
+	box-shadow: var(--ring);
+}
+
+.toast-viewport {
+	position: fixed;
+	right: 1rem;
+	bottom: calc(var(--footer-height) + 0.75rem + env(safe-area-inset-bottom));
+	z-index: var(--z-index-floating);
+	display: flex;
+	flex-direction: column;
+	gap: 0.6rem;
+	width: min(26rem, calc(100vw - 2rem));
+	pointer-events: none;
+}
+
+.toast-card {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	min-width: 0;
+	padding: 0.8rem 0.85rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-left: 4px solid var(--primary);
+	border-radius: var(--radius);
+	box-shadow: var(--shadow-lg);
+	color: var(--text);
+	animation: toastIn 0.18s ease-out;
+	pointer-events: auto;
+}
+
+.toast-success {
+	border-left-color: var(--success);
+}
+
+.toast-warning {
+	border-left-color: var(--warning);
+}
+
+.toast-danger {
+	border-left-color: var(--danger);
+}
+
+.toast-icon {
+	display: inline-flex;
+	flex: 0 0 2rem;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	border-radius: 50%;
+	background: var(--info-soft);
+	color: var(--info-text);
+}
+
+.toast-success .toast-icon {
+	background: var(--success-soft);
+	color: var(--success-text);
+}
+
+.toast-warning .toast-icon {
+	background: var(--warning-soft);
+	color: var(--warning-text);
+}
+
+.toast-danger .toast-icon {
+	background: var(--danger-soft);
+	color: var(--danger-text);
+}
+
+.toast-copy {
+	flex: 1 1 auto;
+	min-width: 0;
+}
+
+.toast-copy strong {
+	display: block;
+	margin-bottom: 0.1rem;
+	font-size: var(--fs-sm);
+}
+
+.toast-copy p {
+	margin: 0;
+	color: var(--text-2);
+	font-size: var(--fs-sm);
+	line-height: 1.5;
+	white-space: pre-line;
+	word-break: break-word;
+}
+
+.toast-dismiss {
+	display: inline-flex;
+	flex: 0 0 2rem;
+	align-items: center;
+	justify-content: center;
+	width: 2rem;
+	height: 2rem;
+	padding: 0;
+	background: transparent;
+	border: 0;
+	border-radius: 50%;
+	color: var(--text-3);
+	cursor: pointer;
+}
+
+.toast-dismiss:hover {
+	background: var(--surface-3);
+	color: var(--text);
+}
+
+@keyframes toastIn {
+	from {
+		transform: translateY(0.35rem);
+		opacity: 0;
+	}
+
+	to {
+		transform: translateY(0);
+		opacity: 1;
+	}
+}
+
+@media screen and (max-width: 480px) {
+	.toast-viewport {
+		right: 0.75rem;
+		bottom: calc(var(--footer-height) + 0.75rem + env(safe-area-inset-bottom));
+		left: 0.75rem;
+		width: auto;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.ui-tooltip-bubble,
+	.toast-card {
+		animation: none;
+		transition: none;
+	}
+
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		scroll-behavior: auto !important;
+		transition-duration: 0.01ms !important;
 	}
 }
