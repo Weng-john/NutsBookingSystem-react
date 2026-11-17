@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
+import { activateOnKey } from "../a11y";
 // (移除原有 ReCAPTCHA 和 config 導入)
 import {
   fetchExamsRawAPI,
@@ -59,7 +60,7 @@ const RoomMultiSelect = React.memo(function RoomMultiSelect({
     <div className="input-field">
       <label>考試場地</label>
       <div className="custom-multi-select" ref={containerRef}>
-        <div className={`select-trigger ${disabled ? "disabled" : ""}`} onClick={handleToggleDropdown}>
+        <div className={`select-trigger ${disabled ? "disabled" : ""}`} role="button" tabIndex={disabled ? -1 : 0} aria-haspopup="listbox" aria-expanded={showDropdown} aria-disabled={disabled || undefined} onKeyDown={activateOnKey} onClick={handleToggleDropdown}>
           <div className="select-tags-container">
             {selectedRoomIDs.length === 0 ? (
               <span className="placeholder-text">點擊選擇場地</span>
@@ -82,7 +83,7 @@ const RoomMultiSelect = React.memo(function RoomMultiSelect({
               rooms.map((loc) => {
                 const isSelected = selectedRoomIDs.includes(loc.roomID);
                 return (
-                  <div key={loc.roomID} className={`dropdown-item ${isSelected ? "selected" : ""}`} onClick={(e) => { e.stopPropagation(); onToggleRoom(loc.roomID); }}>
+                  <div key={loc.roomID} className={`dropdown-item ${isSelected ? "selected" : ""}`} role="option" aria-selected={isSelected} tabIndex={0} onKeyDown={activateOnKey} onClick={(e) => { e.stopPropagation(); onToggleRoom(loc.roomID); }}>
                     <span>{loc.placeName}</span>
                   </div>
                 );
@@ -457,7 +458,7 @@ export default function ExamManager() {
           </div>
 
           <div className="list-header-row">
-            <div className="header-cell subject-col" onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'subject' ? null : 'subject'); }}>
+            <div className="header-cell subject-col" role="button" tabIndex={0} onKeyDown={activateOnKey} onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'subject' ? null : 'subject'); }}>
               科目 <i className={`fa-solid fa-filter ${filters.subjectID ? "active" : ""}`}></i>
               {openFilterMenu === 'subject' && (
                 <div className="header-filter-dropdown" onClick={(e) => e.stopPropagation()}>
@@ -468,7 +469,7 @@ export default function ExamManager() {
               )}
             </div>
 
-            <div className="header-cell time-col" onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'date' ? null : 'date'); }}>
+            <div className="header-cell time-col" role="button" tabIndex={0} onKeyDown={activateOnKey} onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'date' ? null : 'date'); }}>
               考試時間 <i className={`fa-solid fa-filter ${filters.targetDate ? "active" : ""}`}></i>
               {openFilterMenu === 'date' && (
                 <div className="header-filter-dropdown" onClick={(e) => e.stopPropagation()}>
@@ -477,7 +478,7 @@ export default function ExamManager() {
               )}
             </div>
 
-            <div className="header-cell room-col" onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'room' ? null : 'room'); }}>
+            <div className="header-cell room-col" role="button" tabIndex={0} onKeyDown={activateOnKey} onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'room' ? null : 'room'); }}>
               地點 <i className={`fa-solid fa-filter ${filters.roomID ? "active" : ""}`}></i>
               {openFilterMenu === 'room' && (
                 <div className="header-filter-dropdown" onClick={(e) => e.stopPropagation()}>

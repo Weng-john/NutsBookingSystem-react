@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { useOutletContext, useNavigate } from "react-router-dom";
 import { listUsersAPI, setUserRoleAPI, setUserMembershipAPI, adminDeleteUserAPI } from "../api";
 import { confirmDialog, notify } from "../dialog";
+import { activateOnKey } from "../a11y";
 
 export default function MemberManager() {
   const { user, setGlobalLoading, globalLoading, setLoadingText, setSubmit, requestCaptcha } = useOutletContext();
@@ -194,7 +195,7 @@ export default function MemberManager() {
           {/* 表格化的標題與篩選器 */}
           <div className="list-header-row userManage-col">
             
-            <div className="header-cell cell-user filterable" onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'user' ? null : 'user'); }}>
+            <div className="header-cell cell-user filterable" role="button" tabIndex={0} onKeyDown={activateOnKey} onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'user' ? null : 'user'); }}>
               使用者 <i className={`fa-solid fa-filter ${query ? "active" : ""}`}></i>
               {openFilterMenu === 'user' && (
                 <div className="header-filter-dropdown filter-search" onClick={(e) => e.stopPropagation()}>
@@ -215,7 +216,7 @@ export default function MemberManager() {
               聯絡電話
             </div>
 
-            <div className="header-cell cell-role filterable" onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'role' ? null : 'role'); }}>
+            <div className="header-cell cell-role filterable" role="button" tabIndex={0} onKeyDown={activateOnKey} onClick={(e) => { e.stopPropagation(); setOpenFilterMenu(openFilterMenu === 'role' ? null : 'role'); }}>
               角色 <i className={`fa-solid fa-filter ${roleFilter ? "active" : ""}`}></i>
               {openFilterMenu === 'role' && (
                 <div className="header-filter-dropdown" onClick={(e) => e.stopPropagation()}>

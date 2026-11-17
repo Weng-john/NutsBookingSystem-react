@@ -8,6 +8,7 @@ import { examStarted, reservationGroup, reservationStatusKey, resultSummary } fr
 import { reserveGroups, EXAM_LANGUAGE, DEADLINE_CONFIG, REGISTRATION_DEADLINE_DAYS } from "../config";
 import { confirmDialog, notify } from "../dialog";
 import StatusTabs from "../components/statusTabs";
+import { activateOnKey } from "../a11y";
 
 const MAX_PAYMENT_PROOF_BYTES = 5 * 1024 * 1024;
 
@@ -394,6 +395,9 @@ export default function MyReserve() {
                     <li
                       key={reserveID}
                       className={`list-item tone-${tone} clickable`}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={activateOnKey}
                       onClick={() => setDetailData(res)}
                       title="點擊查看報名詳細資訊"
                     >

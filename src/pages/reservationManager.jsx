@@ -13,6 +13,7 @@ import PaymentProof from "../features/booking/PaymentProof.jsx";
 import RequestProcessModal from "../features/booking/RequestProcess.jsx";
 import ResultEntryModal from "../features/booking/ResultEntry.jsx";
 import { examStarted, isOpenRequest, isTrue, requestFromReservation, requestStatuses, requestTones, resultSummary } from "../features/booking/utils";
+import { activateOnKey } from "../a11y";
 
 // 可以登記成績的報名：已繳費、沒有取消、考試已經開始
 const canRecordResult = (res) => res.reservationStatus !== "cancelled" && isTrue(res.paymentStatus) && examStarted(res);
@@ -623,6 +624,9 @@ export default function ReservationManager() {
                     <li
                       key={reserveID}
                       className={`list-item tone-${tone} ${isClickable ? "clickable" : ""}`}
+                      role={isClickable ? "button" : undefined}
+                      tabIndex={isClickable ? 0 : undefined}
+                      onKeyDown={activateOnKey}
                       onClick={() => {
                         if (isRefundTab) {
                           setRefundRequest(requestFromReservation(res));

@@ -5,6 +5,7 @@ import { STORAGE_KEYS, REGISTRATION_DEADLINE_DAYS, EXAM_LANGUAGE, CERTIPORT_FEE 
 import PublicExamDetails from "../features/booking/PublicExamDetails.jsx";
 import { PENDING_BOOKING_KEY, googleCalendarURL } from "../features/booking/utils";
 import Celebration from "../components/Celebration.jsx";
+import { activateOnKey } from "../a11y";
 import {
   fetchReservationsAPI,
   submitReservationAPI,
@@ -366,6 +367,7 @@ export default function Home() {
     return (
       <div key={evt.id}
         className={`event-pill ${!canClick || isFull || isCanceled || isDayDisabled ? "disabled-pill" : ""} ${canClick ? "" : "locked"}`}
+        role="button" tabIndex={0} onKeyDown={activateOnKey}
         // 科目顏色由後端提供，用 CSS 變數傳給樣式表；怎麼上色 (淺色模式淡化、深色模式實色) 由 CSS 決定
         style={{ "--event-color": evt.color || undefined, "--event-ink": evt.textColor || undefined }}
         title={`${evt.startTime} ${evt.title}｜已報名 ${evt.registeredCount} / ${evt.capacity}，${seats.type === "neutral" || isFull ? seats.text : `剩餘 ${remaining} 名額`}`}
@@ -644,7 +646,7 @@ export default function Home() {
                 <div className="cell-content">
                   {visibleEvents.map(evt => renderEventPill(evt, isDayDisabled))}
                   {hiddenCount > 0 && (
-                    <div className={`more-events-btn ${isDayDisabled ? 'disabled-pill locked' : ''}`}
+                    <div className={`more-events-btn ${isDayDisabled ? 'disabled-pill locked' : ''}`} role="button" tabIndex={0} onKeyDown={activateOnKey}
                       onClick={(e) => {
                         {
                           e.stopPropagation(); setExpandedDateStr(cell.dateStr);
