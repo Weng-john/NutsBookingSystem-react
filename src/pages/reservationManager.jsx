@@ -279,6 +279,13 @@ export default function ReservationManager() {
     setReminderReservation(res);
   };
 
+  // 目前清單中，下一筆同樣需要審核的報名 (同一種審核：報名或付款)
+  const nextInList = (current) => {
+    const badge = current.statusInfo?.badge;
+    const index = filteredReservations.findIndex((res) => res.reserveID === current.reserveID);
+    return filteredReservations.slice(index + 1).find((res) => res.statusInfo?.badge === badge) || null;
+  };
+
   const closeModal = () => {
     setSelectedReservation(null);
     setReviewAction("approve");
@@ -294,6 +301,9 @@ export default function ReservationManager() {
     e.preventDefault();
     const confirmedAmount = new FormData(e.currentTarget).get("confirmedAmount");
     if (!selectedReservation) return;
+    // 「通過並下一筆」：送出成功後直接打開同一分頁的下一筆，不必回到清單再點
+    const goNext = e.nativeEvent?.submitter?.dataset?.next === "1";
+    const nextReservation = goNext ? nextInList(selectedReservation) : null;
 
     const currentBadge = selectedReservation.statusInfo?.badge;
     const type = currentBadge === "primary" ? "payment" : "registration";
@@ -332,6 +342,7 @@ export default function ReservationManager() {
       notify(reviewAction === "approve" ? "審核通過成功！" : "退件成功！");
       closeModal();
       await fetchReservations(); // ✅ 等待資料重新抓取完畢，Loading 畫面才會消失
+      if (nextReservation) openReviewModal(nextReservation);
     } catch (error) {
       console.error("updateReservationStatusAPI error:", error);
       notify("送出審核結果失敗：" + error.message);
@@ -742,6 +753,7 @@ export default function ReservationManager() {
             onClose={closeModal}
             onSubmit={handleSubmitReview}
             isSubmitting={isSubmitting}
+            hasNext={!!nextInList(selectedReservation)}
           />,
           document.body
         )}
@@ -810,6 +822,7 @@ function ReviewModal({
   onClose,
   onSubmit,
   isSubmitting,
+  hasNext,
 }) {
   const isPaymentReview = reservation.statusInfo?.badge === "primary";
   const paymentInfo = getPaymentInfo(reservation);
@@ -856,6 +869,11 @@ function ReviewModal({
           取消
         </button>
         {/* 退件是影響報名者的操作，按鈕改用警示色並寫明動作 */}
+        {hasNext && !isReject && (
+          <button type="submit" data-next="1" className="btn-cancel btn-next" disabled={isSubmitting}>
+            通過並下一筆 <i className="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </button>
+        )}
         <button type="submit" className={`btn-confirm ${isReject ? "btn-danger" : ""}`} disabled={isSubmitting}>
           {isSubmitting ? "送出中..." : isReject ? "確認退件" : "確認通過"}
         </button>
@@ -864,13 +882,16 @@ function ReviewModal({
   );
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay review-overlay" onClick={onClose}>
       <div
-        className={`modal-content exam-form-modal ${isPaymentReview ? "review-modal-wide" : "review-modal-narrow"}`}
+        className={`modal-content exam-form-modal review-panel ${isPaymentReview ? "review-modal-wide" : "review-modal-narrow"}`}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="review-title"
         onClick={(e) => e.stopPropagation()}
       >
         <button type="button" className="modal-close" aria-label="關閉" title="關閉" onClick={onClose}>&times;</button>
-        <h3 className="review-modal-title">{isPaymentReview ? "審核付款資訊" : "審核報名資訊"}</h3>
+        <h3 className="review-modal-title" id="review-title">{isPaymentReview ? "審核付款資訊" : "審核報名資訊"}</h3>
 
         <div className={isPaymentReview ? "review-modal-layout" : "review-modal-layout-block"}>
 

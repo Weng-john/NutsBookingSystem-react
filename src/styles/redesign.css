@@ -1908,6 +1908,45 @@ body.dark .confetti:nth-child(3n + 2) { background: #f3ece6; }
 	}
 }
 
+/* --- R8b. 審核面板 (報名審核) ---
+   桌機：從右側滑出的面板，清單留在左邊可見；付款審核較寬 (要看付款證明)。
+   1024px 以下維持原本置中的彈出視窗 (手機為底部面板) */
+@media screen and (min-width: 1025px) {
+	.modal-overlay.review-overlay {
+		justify-content: flex-end;
+		align-items: stretch;
+		padding: 0;
+		background: rgba(23, 18, 15, 0.28);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+
+	.review-overlay > .modal-content.review-panel {
+		width: min(32rem, 92vw);
+		max-width: none;
+		height: 100dvh;
+		max-height: none;
+		margin: 0;
+		border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+		overflow-y: auto;
+		animation: panel-in var(--dur-slow) var(--ease-out) both;
+	}
+
+	.review-overlay > .modal-content.review-panel.review-modal-wide {
+		width: min(60rem, 92vw);
+	}
+}
+
+@keyframes panel-in {
+	from {
+		transform: translateX(100%);
+	}
+}
+
+.modal-actions .btn-next {
+	margin-right: auto;
+}
+
 /* --- R9. 減少動態／透明度 --- */
 @media (prefers-reduced-motion: reduce) {
 	*,
