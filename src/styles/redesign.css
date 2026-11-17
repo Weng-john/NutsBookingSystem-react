@@ -416,6 +416,23 @@ textarea:focus-visible {
 }
 
 
+/* 考生端的「我的考試」也用同樣的頂端對齊與平面卡片 */
+.public-shell .manager-container {
+	align-items: stretch;
+	gap: var(--space-4);
+}
+
+.public-shell .side-panel {
+	align-self: stretch;
+	justify-content: flex-start;
+	border: 1px solid var(--border);
+	box-shadow: none;
+}
+
+.public-shell .side-panel.add-panel {
+	align-self: flex-start;
+}
+
 /* 報名審核：狀態分頁改為清單上方的橫向分頁，清單取得完整寬度 (觸發表格式排版) */
 .admin-shell .manager-container:has(.status-tabs) {
 	flex-direction: column;
