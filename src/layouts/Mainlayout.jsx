@@ -2,10 +2,12 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useState, useCallback, useRef } from "react";
 import Header from "../components/header";
 import Footer from "../components/footer";
+import AdminSidebar from "../components/AdminSidebar";
+import BottomTabBar from "../components/BottomTabBar";
 import DialogHost from "../components/dialogHost";
 import ToastHost from "../components/ToastHost";
 import { useTheme } from "../theme";
-import { STORAGE_KEYS, SESSION_DURATION_MS, RECAPTCHA_SITE_KEY, OAUTH_NONCE_KEY } from "../config"; // 新增導入 RECAPTCHA_SITE_KEY
+import { STORAGE_KEYS, SESSION_DURATION_MS, RECAPTCHA_SITE_KEY, OAUTH_NONCE_KEY, ADMIN_PATHS } from "../config";
 import { loginAPI } from "../api";
 import { notify } from "../dialog";
 import ReCAPTCHA from "react-google-recaptcha"; // 新增導入 ReCAPTCHA
@@ -214,12 +216,16 @@ export default function MainLayout() {
 
   // --- 畫面渲染 ---
   const page = PATH_TO_PAGE[location.pathname] ?? "";
+  // 管理頁面 (老師、管理員) 改用左側側邊欄版面；考生端用頂部導覽，手機再加底部分頁列
+  const isStaff = user?.role === "admin" || user?.role === "teacher";
+  const isAdminArea = isStaff && ADMIN_PATHS.includes(location.pathname);
 
   return (
-    <div className="layout-root">
-      <Header user={user} page={page} setUser={setUser} />
+    <div className={`layout-root ${isAdminArea ? "admin-shell" : "public-shell"}`}>
+      {isAdminArea ? <AdminSidebar user={user} /> : <Header user={user} page={page} setUser={setUser} />}
 
-      <div id="content">
+      {/* key 讓每次換頁都重新播放進場動畫 */}
+      <div id="content" key={location.pathname} className="page-enter">
         {/* 載入中遮罩 */}
         {globalLoading && (
           <div className={`loading-overlay ${isSubmit ? "submit-loading" : ""}`}>
@@ -278,7 +284,8 @@ export default function MainLayout() {
         />
       </div>
 
-      <Footer />
+      {!isAdminArea && <Footer />}
+      {!isAdminArea && <BottomTabBar user={user} />}
 
       {/* 再確認與提示對話框 (取代原生的 confirm / alert) */}
       <DialogHost />

@@ -64,7 +64,11 @@ export default function ReservationManager() {
   const navigate = useNavigate();
 
   const [reservations, setReservations] = useState([]);
-  const [activeTab, setActiveTab] = useState("reviewing");
+  // 可用 ?tab=<分頁 id> 直接開啟某個分頁 (管理總覽的待辦卡片會帶這個參數)
+  const [activeTab, setActiveTab] = useState(() => {
+    const tab = new URLSearchParams(window.location.search).get("tab");
+    return adminReserveStatus.some((status) => status.id === tab) ? tab : "reviewing";
+  });
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // --- 篩選器狀態 ---

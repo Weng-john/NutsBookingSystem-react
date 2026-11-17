@@ -76,3 +76,9 @@ export const adminReserveStatus = [
   // 已繳費的考生取消報名時提出的退費申請 (只有管理員看得到這個分頁)
   { id: "refund", label: "退費申請", badge: "refund", icon: "fa-hand-holding-dollar" },
 ];
+
+// 管理後台的頁面：這些路徑改用左側側邊欄版面 (src/components/AdminSidebar.jsx)，不顯示考生端的頁首與頁尾
+export const ADMIN_PATHS = [
+  "/admin", "/reservationManager", "/examManager", "/roomManager", "/subjectManager", "/memberManager",
+  "/reservationReport", "/auditLogs", "/notificationManager",
+];

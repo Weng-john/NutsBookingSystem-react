@@ -14,7 +14,7 @@ import {
 import { confirmDialog, notify } from "../dialog";
 
 // --- 常數定義 ---
-const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAYS = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
 
 // 確保 Storage Keys 讀寫一致
 const STORAGE_KEY_SUBJECT = STORAGE_KEYS?.SUBJECT_FILTER || "savedSubjects";

@@ -27,8 +27,6 @@
    1. CSS RESET & BASE STYLES
    ============================================ */
 
-@import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,900");
-/* @import url("fontawesome-all.min.css"); */
 
 /* CSS Reset */
 html,
@@ -150,13 +148,13 @@ body {
 	min-height: 100vh;
 	flex-direction: column;
 	margin: 0;
-	background: #ffffff;
+	background: var(--surface);
 	min-width: 320px;
-	font-family: "Source Sans Pro", "sans-serif";
+	font-family: var(--font-sans);
 	font-weight: 300;
 	font-size: 18pt;
 	line-height: 2rem;
-	color: #39454b;
+	color: var(--text);
 	letter-spacing: 0.025rem;
 	-webkit-text-size-adjust: none;
 }
@@ -250,7 +248,7 @@ i {
 
 a {
 	transition: color 0.2s ease-in-out;
-	color: #4dc4be;
+	color: var(--primary-text);
 	text-decoration: none;
 }
 
@@ -268,11 +266,11 @@ sup {
 
 hr {
 	border: 0;
-	border-top: solid 1px #e5e6e7;
+	border-top: solid 1px var(--border);
 }
 
 blockquote {
-	border-left: solid 0.5em #e5e6e7;
+	border-left: solid 0.5em var(--border);
 	padding: 1em 0 1em 2em;
 	font-style: italic;
 }
@@ -332,7 +330,7 @@ mark {
 }
 
 #header .dark-background {
-	color: #252D31;
+	color: var(--text);
 	font-weight: bold;
 	padding: 0 0.75rem;
 }
@@ -424,11 +422,11 @@ mark {
 
 #header .right ul li button,
 #header .right ul li a.btn {
-	background-color: #39aba4;
-	color: #fff;
+	background-color: var(--primary);
+	color: var(--on-primary);
 	padding: 0.5rem 1rem;
 	border-radius: 1rem;
-	border: 2px solid #39aba4;
+	border: 2px solid var(--primary);
 	font-weight: bold;
 	line-height: normal;
 	margin: 0.2rem 0.1rem;
@@ -437,20 +435,20 @@ mark {
 
 #header .right ul li button.negative,
 #header .right ul li a.negative {
-	background-color: #ee9f5e;
-	border: 2px solid #ee9f5e;
+	background-color: var(--warning);
+	border: 2px solid var(--warning);
 	font-size: inherit;
 }
 
 #header .right ul li a.btn:hover {
-	background-color: #378a86;
-	border-color: #378a86;
+	background-color: var(--primary);
+	border-color: var(--primary);
 }
 
 #header .right ul li button.negative:hover,
 #header .right ul li a.negative:hover {
-	background-color: #b57948;
-	border: 2px solid #b57948;
+	background-color: var(--brand);
+	border: 2px solid var(--brand);
 }
 
 /* --- Content Area --- */
@@ -467,7 +465,7 @@ mark {
 /* --- Footer --- */
 #footer {
 	margin-top: auto;
-	background: #39454b;
+	background: var(--text);
 	color: rgba(185, 186, 187, 0.5);
 	padding: 0.5rem;
 	text-align: center;
@@ -486,7 +484,7 @@ mark {
 }
 
 #footer a:hover {
-	color: #b9babb;
+	color: var(--text-3);
 }
 
 #footer ul.menu {
@@ -510,7 +508,7 @@ mark {
 }
 
 #footer ul.menu li a:hover {
-	color: #b9babb;
+	color: var(--text-3);
 }
 
 /* ============================================
@@ -525,10 +523,10 @@ input[type="reset"],
 button {
 	appearance: none;
 	transition: background-color 0.2s ease-in-out;
-	background-color: #4dc4be;
+	background-color: var(--primary);
 	border: 0;
 	border-radius: 3.5rem;
-	color: #ffffff;
+	color: var(--on-primary);
 	cursor: pointer;
 	display: inline-block;
 	height: 3.5rem;
@@ -683,7 +681,7 @@ button.style2.down {
 .btn-refre,
 .btn-delete {
 	gap: 0.75rem;
-	background: #6c757d;
+	background: var(--text-3);
 	color: white;
 	font-size: 0.9rem;
 }
@@ -700,8 +698,8 @@ button.style2.down {
 	align-items: center;
 	justify-content: center;
 	padding: 1em;
-	border: 1px solid #ddd;
-	background: #6c757d;
+	border: 1px solid var(--border);
+	background: var(--text-3);
 	cursor: pointer;
 	border-radius: 0.75rem;
 	transition: all 0.2s;
@@ -740,11 +738,11 @@ button.style2.down {
 	height: fit-content;
 	padding: 0.25rem;
 	border-radius: 999px;
-	background: #fff;
-	border: 3px solid #dadce0;
+	background: var(--surface);
+	border: 3px solid var(--border);
 	font-size: 1.5rem;
 	font-weight: 600;
-	color: #3c4043;
+	color: var(--text);
 	cursor: pointer;
 	transition: background 0.2s, box-shadow 0.2s;
 }
@@ -801,11 +799,11 @@ select,
 textarea {
 	appearance: none;
 	transition: border-color 0.2s ease-in-out, color 0.2s ease-in-out;
-	color: #39454b;
+	color: var(--text);
 	display: block;
 	width: 100%;
 	padding: 0.65em 0.75em;
-	border: solid 2px #e5e6e7;
+	border: solid 2px var(--border);
 	color: inherit;
 	border-radius: 0.5em;
 	outline: none;
@@ -869,7 +867,7 @@ textarea {
 	height: auto;
 	overflow-y: auto;
 	box-sizing: border-box;
-	background: #ffffff;
+	background: var(--surface);
 	border-radius: 16px;
 	border: 1px solid rgba(0, 0, 0, 0.08);
 	box-shadow:
@@ -898,7 +896,7 @@ textarea {
 	top: -2.5rem;
 	width: 100%;
 	height: 2px;
-	background: #e0e0e0;
+	background: var(--surface-3);
 }
 
 .loginBTNArea {
@@ -931,7 +929,7 @@ textarea {
 .centered-form form input[type="email"],
 .centered-form form input[type="tel"] {
 	padding: 0.5em;
-	border: 1px solid #ccc;
+	border: 1px solid var(--border);
 	width: 100%;
 	box-sizing: border-box;
 }
@@ -996,7 +994,7 @@ textarea {
 	height: 12rem;
 	border-radius: 50%;
 	object-fit: cover;
-	border: 2px solid #eee;
+	border: 2px solid var(--border);
 }
 
 /* --- Tables --- */
@@ -1026,12 +1024,12 @@ table.default th {
 }
 
 table.default thead {
-	background: #39454b;
+	background: var(--text);
 	color: #ffffff;
 }
 
 table.default tfoot {
-	background: #e5e6e7;
+	background: var(--surface-3);
 }
 
 table input,
@@ -1089,7 +1087,7 @@ table select {
 .modal-info-block {
 	margin-bottom: 0.3rem;
 	padding: 0.5rem;
-	background: #f9f9f9;
+	background: var(--surface-2);
 	border-radius: 8px;
 }
 
@@ -1098,7 +1096,7 @@ table select {
 }
 
 .modal-subtitle {
-	color: #666;
+	color: var(--text-2);
 	margin-bottom: 15px;
 	font-size: 0.9rem;
 }
@@ -1237,7 +1235,7 @@ table select {
 /* --- Calendar Container --- */
 .calendar-container {
 	padding: 1rem 2.5rem;
-	background-color: #fff;
+	background-color: var(--surface);
 	min-height: auto;
 	/* 根據內容自動調整高度 */
 	width: 85%;
@@ -1265,12 +1263,12 @@ table select {
 .calendar-header h1 {
 	margin: 0;
 	font-size: 1.5em;
-	color: #3c4043;
+	color: var(--text);
 }
 
 .calendar-header .text-muted {
 	margin: 4px 0 20px 0;
-	color: #70757a;
+	color: var(--text-2);
 	font-size: 0.9rem;
 }
 
@@ -1285,12 +1283,12 @@ table select {
 .header-left h1 {
 	margin: 0;
 	font-size: 1.5em;
-	color: #333;
+	color: var(--text);
 }
 
 .header-left .text-muted {
 	margin: 4px 0 0 0;
-	color: #777;
+	color: var(--text-2);
 	font-size: 0.9em;
 }
 
@@ -1308,10 +1306,10 @@ table select {
 	align-items: center;
 	justify-content: space-between;
 	flex: 1;
-	border: 1px solid #ccc;
+	border: 1px solid var(--border);
 	border-radius: 6px;
 	padding: 4px 8px;
-	background-color: #fff;
+	background-color: var(--surface);
 	cursor: pointer;
 }
 
@@ -1323,14 +1321,14 @@ table select {
 }
 
 .placeholder-text {
-	color: #888;
+	color: var(--text-3);
 	font-size: 1rem;
 	padding-left: 4px;
 }
 
 .selected-tag {
 	background-color: #8c6f655e;
-	color: #715850;
+	color: var(--text-2);
 	border-radius: 4px;
 	padding: 2px 8px;
 	font-size: 1rem;
@@ -1355,7 +1353,7 @@ table select {
 }
 
 .selected-tag .remove-tag-btn:hover {
-	color: #d32f2f;
+	color: var(--danger-text);
 	background-color: #d32f2f5b;
 }
 
@@ -1364,8 +1362,8 @@ table select {
 	top: calc(100% + 4px);
 	left: 0;
 	width: 100%;
-	background-color: #fff;
-	border: 1px solid #ddd;
+	background-color: var(--surface);
+	border: 1px solid var(--border);
 	border-radius: 6px;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 	max-height: 250px;
@@ -1381,7 +1379,7 @@ table select {
 }
 
 .dropdown-item:hover {
-	background-color: #f5f5f5;
+	background-color: var(--surface-2);
 }
 
 .header-controls {
@@ -1407,7 +1405,7 @@ table select {
 	cursor: pointer;
 	padding: 0.5rem 1rem;
 	border-radius: 1rem;
-	color: #333;
+	color: var(--text);
 	display: flex;
 	align-items: center;
 	gap: 0.5rem;
@@ -1416,7 +1414,7 @@ table select {
 
 .date-picker-container .current-date-btn:hover {
 	background-color: rgba(0, 0, 0, 0.05);
-	border-color: #ddd;
+	border-color: var(--border);
 	/* 滑鼠移上去顯示邊框 */
 }
 
@@ -1428,7 +1426,7 @@ table select {
 	transform: translateX(-50%);
 	/* 水平置中對齊中間的按鈕 */
 	background-color: white;
-	border: 1px solid #ddd;
+	border: 1px solid var(--border);
 	border-radius: 8px;
 	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 	padding: 10px;
@@ -1456,17 +1454,17 @@ table select {
 	align-items: center;
 	margin-bottom: 10px;
 	padding-bottom: 5px;
-	border-bottom: 1px solid #eee;
+	border-bottom: 1px solid var(--border);
 }
 
 .date-picker-popup .dp-header button {
 	background: none;
-	border: 1px solid #eee;
+	border: 1px solid var(--border);
 	border-radius: 4px;
 	cursor: pointer;
 	padding: 2px 8px;
 	font-weight: bold;
-	color: #555;
+	color: var(--text);
 }
 
 .date-picker-popup .dp-header button:hover {
@@ -1493,7 +1491,7 @@ table select {
 	padding: 0.5rem;
 	cursor: pointer;
 	font-size: 1rem;
-	color: #333;
+	color: var(--text);
 	transition: all 0.2s;
 	display: flex;
 	flex-direction: row;
@@ -1503,8 +1501,8 @@ table select {
 }
 
 .date-picker-popup .dp-month-btn:hover {
-	background-color: #f5f5f5;
-	color: #000;
+	background-color: var(--surface-2);
+	color: var(--text);
 }
 
 .date-picker-popup .dp-month-btn.active {
@@ -1517,7 +1515,7 @@ table select {
 /* --- Month View Calendar --- */
 .calendar-wrapper-month {
 	width: 100%;
-	border: 1px solid #dadce0;
+	border: 1px solid var(--border);
 	border-radius: 8px;
 	display: flex;
 	flex-direction: column;
@@ -1529,7 +1527,7 @@ table select {
 
 .calendar-wrapper {
 	display: flex;
-	border: 1px solid #dadce0;
+	border: 1px solid var(--border);
 	border-radius: 8px;
 	overflow: hidden;
 	background: white;
@@ -1550,9 +1548,9 @@ table select {
 	text-align: center;
 	font-weight: 600;
 	font-size: 1.3em;
-	color: #5f6368;
+	color: var(--text-2);
 	/* 修改：從 1px 改為 2px，與 .calendar-cell 保持一致 */
-	border-right: 2px solid #dadce0;
+	border-right: 2px solid var(--border);
 }
 
 .weekday-cell:last-child {
@@ -1569,12 +1567,12 @@ table select {
 
 .calendar-cell {
 	position: relative;
-	border-right: 2px solid #dadce0;
-	border-bottom: 2px solid #dadce0;
+	border-right: 2px solid var(--border);
+	border-bottom: 2px solid var(--border);
 	padding: 0.1rem 0.5rem;
 	display: flex;
 	flex-direction: column;
-	background-color: #fff;
+	background-color: var(--surface);
 	height: 100%;
 	/* 確保佔滿 grid row */
 	transition: background-color 0.2s;
@@ -1592,8 +1590,8 @@ table select {
 }
 
 .calendar-cell.past {
-	background-color: #f5f5f5;
-	color: #aaa;
+	background-color: var(--surface-2);
+	color: var(--text-3);
 }
 
 .calendar-cell.past .event-pill {
@@ -1602,7 +1600,7 @@ table select {
 }
 
 .calendar-cell.today-cell {
-	background-color: #fff;
+	background-color: var(--surface);
 }
 
 .cell-header {
@@ -1742,7 +1740,7 @@ table select {
 	align-items: center;
 	font-size: 0.9rem;
 	font-weight: bold;
-	color: #c62828;
+	color: var(--danger-text);
 	background-color: #ffcdd2;
 	padding: 0 8px;
 	border-radius: 15px;
@@ -1757,7 +1755,7 @@ table select {
 	width: auto;
 	min-width: 180px;
 	background: white;
-	border: 1px solid #ddd;
+	border: 1px solid var(--border);
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.349);
 	border-radius: 8px;
 	z-index: 50;
@@ -1784,7 +1782,7 @@ table select {
 .popover-date {
 	font-size: 0.9em;
 	font-weight: bold;
-	color: #333;
+	color: var(--text);
 }
 
 .popover-close {
@@ -1792,15 +1790,15 @@ table select {
 	border: none;
 	font-size: 1.2rem;
 	cursor: pointer;
-	color: #666;
+	color: var(--text-2);
 	line-height: 1;
 	padding: 0 4px;
 	height: auto;
 }
 
 .popover-close:hover {
-	color: #000;
-	background-color: #eee;
+	color: var(--text);
+	background-color: var(--surface-3);
 	border-radius: 4px;
 }
 
@@ -1824,7 +1822,7 @@ table select {
 
 .more-events-btn {
 	font-size: 0.9rem;
-	color: #5f6368;
+	color: var(--text-2);
 	cursor: pointer;
 	font-weight: 600;
 	height: fit-content;
@@ -1832,7 +1830,7 @@ table select {
 
 .more-events-btn:hover {
 	background-color: #e1e1e1;
-	color: #333;
+	color: var(--text);
 	border-radius: 4px;
 }
 
@@ -1878,7 +1876,7 @@ ul.menu {
 ul.menu li {
 	display: inline-block;
 	line-height: 1em;
-	border-left: solid 1px #e5e6e7;
+	border-left: solid 1px var(--border);
 	padding: 0 0 0 0.5em;
 	margin: 0 0 0 0.5em;
 }
@@ -1973,8 +1971,8 @@ ul.icons a {
 
 /* --- Box --- */
 .box {
-	background: #ffffff;
-	color: #39454b;
+	background: var(--surface);
+	color: var(--text);
 	padding: 2em;
 }
 
@@ -2007,11 +2005,11 @@ ul.icons a {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-	background-color: #949494;
+	background-color: var(--text-3);
 }
 
 ::-webkit-scrollbar-thumb:active {
-	background-color: #949494;
+	background-color: var(--text-3);
 }
 
 ::-webkit-scrollbar-corner {
@@ -2055,19 +2053,19 @@ ul.icons a {
 @keyframes spinner-hide {
 	0% {
 		transform: scale(1) rotate(0deg);
-		color: #e5e6e7;
+		color: var(--text-3);
 		z-index: var(--z-index-highest);
 	}
 
 	99% {
 		transform: scale(0.5) rotate(360deg);
-		color: #e5e6e7;
+		color: var(--text-3);
 		z-index: var(--z-index-highest);
 	}
 
 	100% {
 		transform: scale(0.5) rotate(360deg);
-		color: #e5e6e7;
+		color: var(--text-3);
 		z-index: var(--z-index-bottom);
 	}
 }
@@ -2127,7 +2125,7 @@ body:before {
 	font-style: normal;
 	font-weight: normal;
 	text-transform: none !important;
-	color: #e5e6e7;
+	color: var(--text-3);
 	content: '\f1ce';
 	cursor: default;
 	display: block;
@@ -2400,7 +2398,7 @@ body.is-touch .poptrox-popup .nav-next,
 	bottom: -1.5rem;
 	width: 100%;
 	height: 2px;
-	background: #e0e0e0;
+	background: var(--surface-3);
 }
 
 .side-panel.add-panel .modern-form {
@@ -2470,7 +2468,7 @@ body.is-touch .poptrox-popup .nav-next,
 	justify-content: space-between;
 	align-items: center;
 	padding: 1rem 1.5rem;
-	background: #f9f9f9;
+	background: var(--surface-2);
 	border-radius: 12px;
 	transition: background 0.3s ease;
 	margin-top: 0.5rem;
@@ -2553,13 +2551,13 @@ body.is-touch .poptrox-popup .nav-next,
 	display: flex;
 	flex-direction: row;
 	flex-wrap: unset;
-	color: #666;
+	color: var(--text-2);
 }
 
 .text-group .name {
 	display: block;
 	font-weight: 600;
-	color: #333;
+	color: var(--text);
 	font-size: 1.75rem;
 }
 
@@ -2578,14 +2576,14 @@ body.is-touch .poptrox-popup .nav-next,
 
 .status-tags .additional-tag {
 	font-size: 1rem;
-	color: #e67e22;
-	border: 1px solid #e67e22;
+	color: var(--warning-text);
+	border: 1px solid var(--warning);
 	padding: 2px 8px;
 	border-radius: 4px;
 }
 
 .fa-solid.fa-certificate::before {
-	color: #e67e22;
+	color: var(--warning-text);
 }
 
 .subject-info {
@@ -2600,7 +2598,7 @@ body.is-touch .poptrox-popup .nav-next,
 	white-space: normal !important;
 	/* 這裡允許換行 */
 	background-color: #fff5f5;
-	border: 1px solid #feb2b2;
+	border: 1px solid var(--danger-soft);
 	/* 稍微加深邊框 */
 	border-radius: 6px;
 	margin: 0 15%;
@@ -2622,14 +2620,14 @@ body.is-touch .poptrox-popup .nav-next,
 }
 
 .btn-delete {
-	background-color: #ff4d4f;
+	background-color: var(--danger);
 	color: white;
-	border: 1px solid #ff4d4f;
+	border: 1px solid var(--danger);
 }
 
 .btn-delete:hover {
-	background-color: #c0393b;
-	border-color: #c0393b;
+	background-color: var(--danger);
+	border-color: var(--danger);
 	color: white;
 	transform: scale(1.05);
 }
@@ -2667,7 +2665,7 @@ body.is-touch .poptrox-popup .nav-next,
 }
 
 .subtitle {
-	color: #666;
+	color: var(--text-2);
 	font-size: 1rem;
 	margin-bottom: 20px;
 }
@@ -2705,9 +2703,9 @@ body.is-touch .poptrox-popup .nav-next,
 .loading-spinner {
 	width: 50px;
 	height: 50px;
-	border: 5px solid #f3f3f3;
+	border: 5px solid var(--border);
 	/* 淺灰底色 */
-	border-top: 5px solid #594945;
+	border-top: 5px solid var(--brand);
 	/* 主色調 (配合你的設計風格) */
 	border-radius: 50%;
 	animation: spin 1s linear infinite;
@@ -2764,7 +2762,7 @@ button:disabled {
 .centered-form .remark {
 	margin-top: auto;
 	font-size: 1rem;
-	color: #999;
+	color: var(--text-3);
 }
 
 /* Header.css */
@@ -2813,7 +2811,7 @@ button:disabled {
 	right: 0;
 	width: 10vw;
 	/* 加寬一點，讓內容更舒適 */
-	background-color: #fff;
+	background-color: var(--surface);
 	border-radius: 12px;
 	/* 較圓的導角 */
 	box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15), 0 1px 2px rgba(0, 0, 0, 0.1);
@@ -2839,7 +2837,7 @@ button:disabled {
 }
 
 #header .dropdown-menu .menu-header-profile:hover {
-	background-color: #f5f5f5;
+	background-color: var(--surface-2);
 }
 
 #header .dropdown-menu .profile-text {
@@ -2857,19 +2855,19 @@ button:disabled {
 
 #header .dropdown-menu .profile-name {
 	font-weight: 600;
-	color: #202124;
+	color: var(--text);
 	/* Google 深灰色 */
 	font-size: 1.2rem;
 }
 
 #header .dropdown-menu .profile-subtitle {
-	color: #5f6368;
+	color: var(--text-2);
 	/* 次要文字灰色 */
 	font-size: 1.1rem;
 }
 
 #header .dropdown-menu .profile-arrow {
-	color: #5f6368;
+	color: var(--text-2);
 	display: flex;
 	align-items: center;
 }
@@ -2888,7 +2886,7 @@ button:disabled {
 	height: fit-content;
 	padding: 0.5rem;
 	text-decoration: none;
-	color: #3c4043;
+	color: var(--text);
 	font-size: 1.1rem;
 	cursor: pointer;
 	transition: background-color 0.2s;
@@ -2897,14 +2895,14 @@ button:disabled {
 }
 
 #header .dropdown-menu .menu-item:hover {
-	background-color: #f5f5f5;
+	background-color: var(--surface-2);
 }
 
 #header .dropdown-menu .menu-icon {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	color: #444746;
+	color: var(--text);
 	/* 圖示顏色 */
 }
 
@@ -2916,7 +2914,7 @@ button:disabled {
 }
 
 #header .dropdown-menu .menu-item.logout:hover {
-	background-color: #ee9f5e;
+	background-color: var(--warning);
 }
 
 /* --- 動畫 --- */
@@ -3007,7 +3005,7 @@ button:disabled {
 
 .time-separator {
 	margin-top: 24px;
-	color: #666;
+	color: var(--text-2);
 	font-weight: 500;
 }
 
@@ -3016,9 +3014,9 @@ button:disabled {
 	position: relative;
 	min-height: 42px;
 	padding: 8px 30px 8px 12px;
-	border: 1px solid #ccc;
+	border: 1px solid var(--border);
 	border-radius: 6px;
-	background-color: #fff;
+	background-color: var(--surface);
 	cursor: pointer;
 	user-select: none;
 }
@@ -3030,7 +3028,7 @@ button:disabled {
 }
 
 .custom-multi-select .placeholder-text {
-	color: #888;
+	color: var(--text-3);
 }
 
 .custom-multi-select .selected-tag {
@@ -3039,8 +3037,8 @@ button:disabled {
 	padding: 2px 8px;
 	border-radius: 12px;
 	font-size: 0.85rem;
-	background-color: #71585031;
-	color: #594945;
+	background-color: var(--primary-soft);
+	color: var(--brand);
 }
 
 .custom-multi-select .remove-tag-btn {
@@ -3049,7 +3047,7 @@ button:disabled {
 	margin-left: 4px;
 	cursor: pointer;
 	font-weight: bold;
-	color: #594945;
+	color: var(--brand);
 }
 
 .custom-multi-select .dropdown-arrow {
@@ -3058,7 +3056,7 @@ button:disabled {
 	top: 50%;
 	transform: translateY(-50%);
 	font-size: 0.8rem;
-	color: #888;
+	color: var(--text-3);
 }
 
 .custom-dropdown-menu {
@@ -3066,8 +3064,8 @@ button:disabled {
 	top: 100%;
 	left: 0;
 	right: 0;
-	background: #fff;
-	border: 1px solid #ccc;
+	background: var(--surface);
+	border: 1px solid var(--border);
 	border-radius: 6px;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 	margin-top: 4px;
@@ -3085,20 +3083,20 @@ button:disabled {
 }
 
 .custom-dropdown-menu .dropdown-item:hover {
-	background-color: #f5f5f5;
+	background-color: var(--surface-2);
 }
 
 .custom-dropdown-menu .dropdown-item.selected {
-	background-color: #71585031;
+	background-color: var(--primary-soft);
 }
 
 /* --- 右側篩選器區塊 --- */
 .clear-filter-btn {
 	margin-left: 2rem;
 	padding: 8px 16px;
-	background-color: #fff;
-	border: 1px solid #d9534f;
-	color: #d9534f;
+	background-color: var(--surface);
+	border: 1px solid var(--danger);
+	color: var(--danger-text);
 	border-radius: 6px;
 	cursor: pointer;
 	transition: all 0.2s;
@@ -3106,7 +3104,7 @@ button:disabled {
 }
 
 .clear-filter-btn:hover {
-	background-color: #d9534f;
+	background-color: var(--danger);
 	color: #fff;
 }
 
@@ -3118,7 +3116,7 @@ button:disabled {
 
 .manager-list .list-item.editing-mode {
 	background-color: #fdfdfd;
-	border-left: 4px solid #f0ad4e;
+	border-left: 4px solid var(--warning);
 }
 
 .manager-list .text-group,
@@ -3130,7 +3128,7 @@ button:disabled {
 	width: 100%;
 	min-width: 0;
 	gap: 8px;
-	color: #666;
+	color: var(--text-2);
 	margin-top: 6px;
 }
 
@@ -3147,13 +3145,13 @@ button:disabled {
 .manager-list .text-group i {
 	width: 20px;
 	text-align: center;
-	color: #888;
+	color: var(--text-3);
 	margin-right: 4px;
 }
 
 .manager-list .text-group .name {
 	font-weight: bold;
-	color: #333;
+	color: var(--text);
 }
 
 .manager-list .text-group .reserved-col,
@@ -3174,8 +3172,8 @@ button:disabled {
 
 .manager-list .text-group .inCharge {
 	grid-column: 2 /span 4;
-	border-top: 2px dashed #e0e0e0;
-	color: #888;
+	border-top: 2px dashed var(--border);
+	color: var(--text-3);
 	font-size: 0.85rem;
 	display: flex;
 	align-items: center;
@@ -3255,9 +3253,9 @@ button:disabled {
 	padding-right: 2rem;
 	background-color: #f8f9fa;
 	border-radius: 0.75rem 0.75rem 0 0;
-	border-bottom: 2px solid #ddd;
+	border-bottom: 2px solid var(--border);
 	font-weight: bold;
-	color: #444;
+	color: var(--text);
 }
 
 .header-cell {
@@ -3275,7 +3273,7 @@ button:disabled {
 	left: 0;
 	gap: 0.5rem;
 	background: white;
-	border: 1px solid #ccc;
+	border: 1px solid var(--border);
 	border-radius: 6px;
 	padding: 0.75rem;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
@@ -3331,7 +3329,7 @@ button:disabled {
 .edit-input {
 	padding: 4px 6px;
 	font-size: 1.1rem;
-	border: 1px solid #ccc;
+	border: 1px solid var(--border);
 	border-radius: 4px;
 	outline: none;
 	max-width: 85%;
@@ -3352,25 +3350,25 @@ button:disabled {
 }
 
 .action-col .btn-save {
-	color: #5cb85c;
+	color: var(--success-text);
 }
 
 .action-col .btn-save:hover {
-	background-color: #5cb85c;
+	background-color: var(--success);
 	color: white;
 }
 
 .action-col .btn-cancel {
-	background-color: #ff4d4f;
+	background-color: var(--danger);
 }
 
 .action-col .btn-cancel:hover {
-	background-color: #c0393b;
+	background-color: var(--danger);
 	color: white;
 }
 
 .action-col .btn-edit {
-	background-color: #f0ad4e;
+	background-color: var(--warning);
 }
 
 .action-col .btn-edit:hover {
@@ -3418,7 +3416,7 @@ button:disabled {
 /* --- 9.3 Tab Message --- */
 .tab-message {
 	font-size: 0.9rem;
-	color: #666;
+	color: var(--text-2);
 	padding: 2px 8px;
 	border-radius: 4px;
 }
@@ -3427,7 +3425,7 @@ button:disabled {
 .empty-state {
 	text-align: center;
 	padding: 60px 0;
-	color: #ccc;
+	color: var(--text-3);
 }
 
 .empty-state i {
@@ -3438,22 +3436,22 @@ button:disabled {
 
 /* --- 9.5 Modal Variants --- */
 .modal-info-block.rejected {
-	border-left: 4px solid #d9534f;
+	border-left: 4px solid var(--danger);
 }
 
 .rejected-title {
-	color: #d9534f;
+	color: var(--danger-text);
 	font-weight: bold;
 }
 
 .modal-info-block.info-highlight {
 	background-color: #f0f8ff;
-	border: 1px solid #cce5ff;
+	border: 1px solid var(--info-soft);
 }
 
 .modal-info-block.applicant-highlight {
 	background-color: #f8fbff;
-	border: 1px solid #d8e8ff;
+	border: 1px solid var(--info-soft);
 }
 
 .modal-actions-end {
@@ -3469,7 +3467,7 @@ button:disabled {
 
 /* (modal-subtitle is defined in section 4 Modals) */
 .paid-status {
-	color: #46A66F;
+	color: var(--success-text);
 	font-weight: bold;
 }
 
@@ -3517,14 +3515,14 @@ button:disabled {
 	background-color: #fffaf3;
 	padding: 16px;
 	border-radius: 8px;
-	border: 1px solid #f6dfb3;
+	border: 1px solid var(--border-strong);
 	display: flex;
 	flex-direction: column;
 }
 
 .payment-detail-block h4 {
 	margin: 0 0 15px 0;
-	color: #F09438;
+	color: var(--warning-text);
 }
 
 .payment-detail-block p {
@@ -3538,15 +3536,15 @@ button:disabled {
 .payment-proof-container {
 	margin-top: 10px;
 	text-align: center;
-	background-color: #fff;
+	background-color: var(--surface);
 	padding: 10px;
 	border-radius: 6px;
-	border: 1px solid #e1d3bc;
+	border: 1px solid var(--border-strong);
 }
 
 .payment-proof-link {
 	padding: 20px;
-	color: #1a73e8;
+	color: var(--info-text);
 	text-decoration: underline;
 	word-break: break-all;
 }
@@ -3565,7 +3563,7 @@ button:disabled {
 
 .payment-proof-hint {
 	font-size: 0.85rem;
-	color: #888;
+	color: var(--text-3);
 	margin-top: 8px;
 	margin-bottom: 0;
 }
@@ -3573,8 +3571,8 @@ button:disabled {
 .payment-no-image {
 	padding: 30px;
 	text-align: center;
-	color: #999;
-	border: 1px dashed #ccc;
+	color: var(--text-3);
+	border: 1px dashed var(--border);
 	border-radius: 6px;
 	margin-top: 10px;
 }
@@ -3602,23 +3600,23 @@ button:disabled {
 /* --- 9.10 Reserve ID Label --- */
 .reserve-id-label {
 	margin-left: 10px;
-	color: #999;
+	color: var(--text-3);
 	font-size: 0.9rem;
 }
 
 /* --- 9.11 Icon Colors (static) --- */
 .icon-location {
-	color: #d9534f;
+	color: var(--danger-text);
 }
 
 .icon-personal {
-	color: #907567;
+	color: var(--text-2);
 }
 
 .icon-user-placeholder {
 	background-color: #f3f4f6;
 	border-radius: 50%;
-	color: #9ca3af;
+	color: var(--text-3);
 	padding: 8px;
 }
 
@@ -3651,7 +3649,7 @@ button:disabled {
 	width: 100%;
 	padding: 0.75rem;
 	border-radius: 8px;
-	border: 1px solid #ccc;
+	border: 1px solid var(--border);
 	box-sizing: border-box;
 	font-size: 1rem;
 }
@@ -3660,7 +3658,7 @@ button:disabled {
 	width: 100%;
 	padding: 0.75rem;
 	border-radius: 8px;
-	border: 1px solid #ccc;
+	border: 1px solid var(--border);
 	resize: vertical;
 	box-sizing: border-box;
 	font-size: 1rem;
@@ -3692,7 +3690,7 @@ button:disabled {
 
 /* --- 9.13 Home Page --- */
 .exam-closed-warning {
-	color: #d9534f;
+	color: var(--danger-text);
 	font-size: 1rem;
 }
 
@@ -3706,18 +3704,18 @@ button:disabled {
 
 .cell-loading-text {
 	font-size: 0.8rem;
-	color: #666;
+	color: var(--text-2);
 }
 
 .btn-confirm:disabled {
 	background-color: #ccc;
-	border-color: #ccc;
+	border-color: var(--border);
 	cursor: not-allowed;
-	color: #666;
+	color: var(--text-2);
 }
 
 .dropdown-item.text-muted {
-	color: #888;
+	color: var(--text-3);
 }
 
 .dropdown-item span {
@@ -3740,13 +3738,13 @@ button:disabled {
 }
 
 .in-charge-name {
-	color: #555;
+	color: var(--text);
 	font-weight: 500;
 }
 
 /* --- 9.15 Room Manager --- */
 .text-placeholder {
-	color: #ccc;
+	color: var(--text-3);
 }
 
 .filter-search input {
@@ -3784,7 +3782,7 @@ button:disabled {
 .switch-handle {
 	width: 20px;
 	height: 20px;
-	background-color: #fff;
+	background-color: var(--surface);
 	border-radius: 50%;
 	position: absolute;
 	top: 2px;
@@ -3812,61 +3810,84 @@ button:disabled {
      --fs-xs   最小的註記
    ============================================ */
 :root {
-	--bg: #f3f4f7;
+	/* 色板 B「核果棕＋金黃」：顏色取自 Logo (帽子棕、黃、橘)，見 docs/design/DESIGN_PROFILE.md */
+	--bg: #faf8f6;
 	--surface: #ffffff;
-	--surface-2: #f6f7f9;
-	--surface-3: #eceef2;
-	--border: #e2e5ea;
-	--border-strong: #cdd2d9;
-	--text: #1f2a30;
-	--text-2: #53606a;
-	--text-3: #66717b;
+	--surface-2: #f6f2ee;
+	--surface-3: #efe9e4;
+	--border: #e7e1dc;
+	--border-strong: #d3c9c2;
+	--text: #2b211f;
+	--text-2: #6b5f5a;
+	--text-3: #7a6d67;
 
 	/* 語意色，每種意義只有一個顏色。各有三個層次：
 	     --x        實心底色 (配白字)、線條、圖示
 	     --x-text   放在淺色底上的文字 (對比度 4.5:1 以上)
 	     --x-soft   淡色底 */
-	--primary: #1c7d77;
-	--primary-hover: #166660;
-	--primary-soft: #e0f2f0;
-	--primary-text: #176b66;
-	--accent: #efbe29;
-	--accent-soft: #fdf1c9;
-	--accent-text: #6b4e06;
-	--accent-ink: #3d2f05;
-	--brand: #594945;
-	--danger: #cf3f34;
-	--danger-hover: #b3352b;
-	--danger-soft: #fdebe9;
-	--danger-text: #b93229;
-	--warning: #e08a2c;
-	--warning-text: #9c5708;
-	--warning-soft: #fdf0de;
-	--success: #2b8251;
-	--success-text: #27774a;
-	--success-soft: #e4f5ea;
-	--info: #2f6fb2;
-	--info-text: #2a65a3;
-	--info-soft: #e6f0fa;
+	--primary: #4a3530;
+	--primary-hover: #3a2925;
+	--primary-soft: #f3ece8;
+	--primary-text: #4a3530;
+	--on-primary: #ffffff;
+	--accent: #f0c030;
+	--accent-hover: #e3b120;
+	--accent-soft: #fdf3d0;
+	--accent-text: #7a5a00;
+	--accent-ink: #3d2b28;
+	--accent-orange: #f09030;
+	--brand: #4a3530;
+	--danger: #c0392b;
+	--danger-hover: #a93226;
+	--danger-soft: #fdecea;
+	--danger-text: #991b1b;
+	--warning: #d97706;
+	--warning-text: #92400e;
+	--warning-soft: #fef3c7;
+	--success: #15803d;
+	--success-text: #166534;
+	--success-soft: #dcfce7;
+	--info: #2563eb;
+	--info-text: #1e40af;
+	--info-soft: #dbeafe;
 	--pending: #8a6f61;
-	--pending-text: #735748;
+	--pending-text: #6b5246;
 	--pending-soft: #f3ece8;
 
-	--fs-xs: 0.75rem;
-	--fs-sm: 0.8125rem;
+	/* 字級：最小 13px (使用者排除「高密度小字」) */
+	--fs-xs: 0.8125rem;
+	--fs-sm: 0.875rem;
 	--fs-md: 0.9375rem;
 	--fs-base: 1rem;
 	--fs-lg: 1.125rem;
 	--fs-xl: 1.25rem;
 	--fs-2xl: 1.5rem;
+	--fs-3xl: 1.75rem;
+
+	--font-sans: "Inter", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+	--space-1: 4px;
+	--space-2: 8px;
+	--space-3: 12px;
+	--space-4: 16px;
+	--space-5: 20px;
+	--space-6: 24px;
+	--space-8: 32px;
 
 	--radius-sm: 8px;
 	--radius: 12px;
-	--radius-lg: 18px;
-	--shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
-	--shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 10px 28px -12px rgba(16, 24, 40, 0.16);
-	--shadow-lg: 0 4px 12px rgba(16, 24, 40, 0.08), 0 24px 48px -16px rgba(16, 24, 40, 0.28);
-	--ring: 0 0 0 3px rgba(28, 125, 119, 0.3);
+	--radius-lg: 16px;
+	--radius-pill: 999px;
+	--shadow-sm: 0 1px 2px rgba(43, 33, 31, 0.06);
+	--shadow: 0 1px 3px rgba(43, 33, 31, 0.06), 0 10px 28px -12px rgba(43, 33, 31, 0.18);
+	--shadow-lg: 0 4px 12px rgba(43, 33, 31, 0.08), 0 24px 48px -16px rgba(43, 33, 31, 0.3);
+	--ring: 0 0 0 3px rgba(240, 192, 48, 0.55);
+
+	/* 動態：豐富但有分級；減少動態時見第 14 節 */
+	--dur-fast: 150ms;
+	--dur: 220ms;
+	--dur-slow: 320ms;
+	--ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
 
 	--header-height: 4rem;
 	--header-content-height: 2.25rem;
@@ -3876,7 +3897,8 @@ button:disabled {
 body {
 	background: var(--bg);
 	color: var(--text);
-	font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+	font-family: var(--font-sans);
+	font-feature-settings: "cv11";
 	font-weight: 400;
 	letter-spacing: 0.01em;
 	-webkit-font-smoothing: antialiased;
@@ -4044,14 +4066,14 @@ a {
 	background: var(--primary);
 	border: 0;
 	border-radius: var(--radius-sm);
-	color: #fff;
+	color: var(--on-primary);
 	font-weight: 700;
 }
 
 #header .right ul li a.btn:hover,
 #header .header-link.btn:hover {
 	background: var(--primary-hover);
-	color: #fff;
+	color: var(--on-primary);
 }
 
 .user-menu-btn {
@@ -4204,7 +4226,7 @@ button {
 	line-height: 1.2;
 	background-color: var(--primary);
 	border-radius: var(--radius);
-	color: #fff;
+	color: var(--on-primary);
 	font-size: var(--fs-md);
 	font-weight: 700;
 	letter-spacing: 0.03em;
@@ -4794,7 +4816,7 @@ select.edit-input {
 .centered-form .status-vertical-menu .tab-item-btn.active {
 	background: var(--brand);
 	box-shadow: 0 8px 18px -8px rgba(89, 73, 69, 0.7);
-	color: #fff;
+	color: var(--on-primary);
 	font-weight: 700;
 }
 
@@ -5295,7 +5317,7 @@ select.edit-input {
 
 .date-picker-popup .dp-month-btn.active {
 	background: var(--primary);
-	color: #fff;
+	color: var(--on-primary);
 	font-weight: 700;
 }
 
@@ -5369,16 +5391,23 @@ select.edit-input {
 }
 
 /* 科目顏色由後端決定，home.jsx 用 --event-color (底色) 與 --event-ink (配它的字色) 傳進來。
-   淺色模式：整塊實色配黑字太重，改成淡化的底色 + 同色系的深色字，左側留一條原色方便辨識科目
-   (底色 38%、字色 30% 的混色比例，常見的科目顏色對比度都在 5.6:1 以上)。
-   前兩行是不支援 color-mix 時的備援；深色模式維持實色，見第 12 節 */
+   「淡底彩字」膠囊 (參考 Untitled UI 行事曆)：底色是科目色的淡化，字是同色系的深色，不加左側色條。
+   字色是科目色 45% 混入正文色，常見的淺色科目色對比度在 6:1 以上。
+   前兩行是不支援 color-mix 時的備援；深色模式見第 12 節 */
 .event-pill {
 	background: var(--event-color, var(--surface-3));
-	background: color-mix(in srgb, var(--event-color, var(--surface-3)) 38%, var(--surface));
-	border-left: 3px solid var(--event-color, var(--border-strong));
+	background: color-mix(in srgb, var(--event-color, var(--surface-3)) 24%, var(--surface));
+	border: 1px solid color-mix(in srgb, var(--event-color, var(--border)) 45%, var(--surface));
 	color: var(--event-ink, var(--text));
-	color: color-mix(in srgb, var(--event-color, var(--text)) 30%, var(--text));
+	color: color-mix(in srgb, var(--event-color, var(--text)) 38%, var(--text));
 	cursor: pointer;
+	transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), filter var(--dur-fast);
+}
+
+.event-pill:hover {
+	filter: none;
+	transform: translateY(-1px);
+	box-shadow: var(--shadow-sm);
 }
 
 /* disabled-pill 只是變淡 (額滿、已取消仍可點開查看)；locked 才是真的不能點 */
@@ -7416,36 +7445,41 @@ screen and (max-height: 760px) {
    下方少數規則是變數換不掉的例外。
    ============================================ */
 body.dark {
-	--bg: #121626;
-	--surface: #1c2239;
-	--surface-2: #232a45;
-	--surface-3: #2e3757;
-	--border: #323b5f;
-	--border-strong: #465078;
-	--text: #e9ebf3;
-	--text-2: #b7bed1;
-	--text-3: #8f98b3;
+	--bg: #17120f;
+	--surface: #211a17;
+	--surface-2: #2b2320;
+	--surface-3: #362c28;
+	--border: #3a302b;
+	--border-strong: #54463f;
+	--text: #f3ece6;
+	--text-2: #c3b6ad;
+	--text-3: #a89990;
 
-	/* 實心按鈕的底色沿用淺色模式的深度 (白字才清楚)；文字用的 -text 色則調亮 */
-	--primary: #1c7d77;
-	--primary-hover: #23968e;
-	--primary-soft: rgba(53, 179, 171, 0.18);
-	--primary-text: #5fd0c7;
-	--accent-soft: rgba(239, 190, 41, 0.18);
+	/* 深色模式改用金黃當主色，按鈕配深棕字 (對比 7.8:1)；棕色在深底上看不見 */
+	--primary: #f0c030;
+	--primary-hover: #f5cf55;
+	--primary-soft: rgba(240, 192, 48, 0.16);
+	--primary-text: #f3d16b;
+	--on-primary: #2b211f;
+	--accent: #f0c030;
+	--accent-hover: #f5cf55;
+	--accent-soft: rgba(240, 192, 48, 0.16);
 	--accent-text: #f3d16b;
-	--accent-ink: #1a1a2e;
-	--brand: #efbe29;
-	--danger: #cf3f34;
-	--danger-hover: #e0554a;
-	--danger-soft: rgba(240, 113, 103, 0.18);
-	--danger-text: #ff8f85;
-	--warning-text: #f2ad5e;
-	--warning-soft: rgba(224, 138, 44, 0.2);
-	--success-text: #6fd29a;
-	--success-soft: rgba(92, 192, 136, 0.18);
-	--info: #4a8fd6;
-	--info-text: #84b9f0;
-	--info-soft: rgba(90, 155, 224, 0.18);
+	--accent-ink: #2b211f;
+	--brand: #f0c030;
+	--danger: #e05a4e;
+	--danger-hover: #ea6f64;
+	--danger-soft: rgba(224, 90, 78, 0.18);
+	--danger-text: #ff9b91;
+	--warning: #f59e0b;
+	--warning-text: #fcd34d;
+	--warning-soft: rgba(245, 158, 11, 0.18);
+	--success: #22c55e;
+	--success-text: #86efac;
+	--success-soft: rgba(34, 197, 94, 0.16);
+	--info: #60a5fa;
+	--info-text: #93c5fd;
+	--info-soft: rgba(96, 165, 250, 0.18);
 	--pending: #b08d7c;
 	--pending-text: #d0ad9c;
 	--pending-soft: rgba(176, 141, 124, 0.18);
@@ -7453,13 +7487,13 @@ body.dark {
 	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
 	--shadow: 0 1px 3px rgba(0, 0, 0, 0.4), 0 10px 28px -12px rgba(0, 0, 0, 0.6);
 	--shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.45), 0 24px 48px -16px rgba(0, 0, 0, 0.7);
-	--ring: 0 0 0 3px rgba(53, 179, 171, 0.4);
+	--ring: 0 0 0 3px rgba(240, 192, 48, 0.45);
 
 	color-scheme: dark;
 }
 
 body.dark #header {
-	background: rgba(18, 22, 38, 0.88);
+	background: rgba(33, 26, 23, 0.88);
 }
 
 @media screen and (max-width: 1024px) {
@@ -7508,7 +7542,7 @@ body.dark select {
 body.dark .centered-form .google-custom-btn {
 	background: #131314;
 	border-color: #8e918f;
-	color: #e3e3e3;
+	color: var(--text-3);
 }
 
 body.dark .centered-form .google-custom-btn:hover {
@@ -7533,9 +7567,9 @@ body.dark .event-seats:is(.warning, .danger) {
 
 /* 科目色塊：深色背景上淡化的底色會變髒，維持實色與原本的字色 */
 body.dark .event-pill {
-	background: var(--event-color, var(--surface-3));
-	border-left: 0;
-	color: var(--event-ink, var(--text));
+	background: color-mix(in srgb, var(--event-color, var(--surface-3)) 22%, var(--surface));
+	border-color: color-mix(in srgb, var(--event-color, var(--border)) 40%, var(--surface));
+	color: color-mix(in srgb, var(--event-color, var(--text)) 75%, #ffffff);
 }
 
 /* 今天的格子：深色模式的淡黃底本身是半透明的，不需要再和底色混一次 (混了會偏灰) */
@@ -7760,7 +7794,7 @@ button.svc-btn:hover {
 button.svc-btn.primary {
 	background: var(--primary);
 	border-color: var(--primary);
-	color: #fff;
+	color: var(--on-primary);
 }
 
 button.svc-btn.primary:hover {
@@ -8470,7 +8504,7 @@ label.svc-switch {
 	left: 0.15rem;
 	width: 1.2rem;
 	height: 1.2rem;
-	background: #fff;
+	background: var(--surface);
 	border-radius: 50%;
 	box-shadow: var(--shadow-sm);
 	content: "";

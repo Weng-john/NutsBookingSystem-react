@@ -23,12 +23,6 @@ const IconMail = () => (
 const IconChart = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg>
 );
-const IconHistory = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1 4 1 10 7 10" /><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" /><polyline points="12 7 12 12 15 14" /></svg>
-);
-const IconSend = () => (
-  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-);
 const IconBell = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" /></svg>
 );
@@ -107,15 +101,13 @@ export default function Header({ user, page }) {
     if (e.target.closest("a")) setIsNavOpen(false);
   };
 
-  // 頁面導覽項目 (依權限)。圖示只在平板/手機的側邊選單顯示
+  // 頁面導覽項目：考生端只放常用功能；管理功能集中到「管理後台」的側邊欄
   const navItems = [
-    page !== "index" && { to: "/", label: "首頁", icon: "fa-house" },
-    isAdmin && { to: "/subjectManager", label: "科目管理", icon: "fa-book" },
-    isTeacherOrAdmin && { to: "/examManager", label: "考試管理", icon: "fa-file-pen" },
-    isTeacherOrAdmin && { to: "/roomManager", label: "考場管理", icon: "fa-building" },
-    isAdmin && { to: "/memberManager", label: "會員管理", icon: "fa-users" },
-    isAdmin && { to: "/reservationManager", label: "報名管理", icon: "fa-clipboard-check" },
-    { to: "/myReserve", label: "我的考試", icon: "fa-calendar-check" },
+    { to: "/", label: "找考試", icon: "fa-calendar-days", end: true },
+    { to: "/myReserve", label: "我的考試", icon: "fa-clipboard-list" },
+    { to: "/guidelines", label: "考試須知", icon: "fa-circle-question" },
+    { to: "/contact", label: "聯絡我們", icon: "fa-envelope" },
+    isTeacherOrAdmin && { to: isAdmin ? "/admin" : "/examManager", label: "管理後台", icon: "fa-gauge-high", staff: true },
   ].filter(Boolean);
 
   const themeLabel = theme === "light" ? "切換為深色模式" : "切換為淺色模式";
@@ -137,8 +129,8 @@ export default function Header({ user, page }) {
         <div className="left">
           <h2>
             <Link to="/" className="logo">
-              <img src={nutsLogo} alt="Logo" className="logoIMG" />
-              核果資訊學苑預約報名系統
+              <img src={nutsLogo} alt="" className="logoIMG" />
+              <span className="logo-text">核果資訊學苑<span className="logo-sub">考試報名</span></span>
             </Link>
           </h2>
         </div>
@@ -157,7 +149,7 @@ export default function Header({ user, page }) {
               <ul onClick={handleNavClick}>
                 {navItems.map((item) => (
                   <li key={item.to}>
-                    <NavLink to={item.to} className={activeClass}>
+                    <NavLink to={item.to} end={item.end} className={(state) => [activeClass(state), item.staff ? "nav-staff" : ""].filter(Boolean).join(" ") || undefined}>
                       <i className={`nav-icon fa-solid ${item.icon}`}></i>
                       {item.label}
                     </NavLink>
@@ -167,13 +159,13 @@ export default function Header({ user, page }) {
 
               {/* 主題切換：平板/手機放在側邊選單底部 (桌機版是 header 上的圖示) */}
               <div className="nav-drawer-foot">
-                <div className="drawer-theme-toggle" role="switch" aria-checked={theme === "dark"} onClick={toggleTheme}>
+                <button type="button" className="drawer-theme-toggle" role="switch" aria-checked={theme === "dark"} onClick={toggleTheme}>
                   <IconMoon />
                   <span>深色模式</span>
                   <div className={`theme-switch ${theme}`}>
                     <div className="switch-handle"></div>
                   </div>
-                </div>
+                </button>
               </div>
             </nav>
           </>
@@ -188,19 +180,13 @@ export default function Header({ user, page }) {
               {/* --- 大頭貼與帳號選單 --- */}
               <div className="user-menu" ref={menuRef}>
                 <Tooltip content={isMenuOpen ? "關閉帳號選單" : "開啟帳號選單"} side="left">
-                  <div
+                  <button
+                    type="button"
                     className={`user-menu-btn ${isMenuOpen ? 'active' : ''}`}
                     onClick={() => setIsMenuOpen(!isMenuOpen)}
-                    role="button"
-                    tabIndex={0}
                     aria-label="帳號選單"
+                    aria-haspopup="menu"
                     aria-expanded={isMenuOpen}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        setIsMenuOpen(!isMenuOpen);
-                      }
-                    }}
                   >
                     {showAvatarImage ? (
                       <img
@@ -212,7 +198,7 @@ export default function Header({ user, page }) {
                     ) : (
                       <IconUserPlaceholder />
                     )}
-                  </div>
+                  </button>
                 </Tooltip>
 
                 {isMenuOpen && (
@@ -239,26 +225,11 @@ export default function Header({ user, page }) {
                       <span>通知中心</span>
                     </Link>
 
-                    {/* 管理員的其他工具 (報名審核與退費在導覽列的「報名管理」) */}
-                    {isAdmin && (
-                      <>
-                        <div className="menu-divider"></div>
-
-                        <Link to="/reservationReport" className="menu-item" onClick={handleLinkClick}>
-                          <span className="menu-icon"><IconChart /></span>
-                          <span>名單與統計</span>
-                        </Link>
-
-                        <Link to="/auditLogs" className="menu-item" onClick={handleLinkClick}>
-                          <span className="menu-icon"><IconHistory /></span>
-                          <span>操作紀錄</span>
-                        </Link>
-
-                        <Link to="/notificationManager" className="menu-item" onClick={handleLinkClick}>
-                          <span className="menu-icon"><IconSend /></span>
-                          <span>通知管理</span>
-                        </Link>
-                      </>
+                    {isTeacherOrAdmin && (
+                      <Link to={isAdmin ? "/admin" : "/examManager"} className="menu-item" onClick={handleLinkClick}>
+                        <span className="menu-icon"><IconChart /></span>
+                        <span>管理後台</span>
+                      </Link>
                     )}
 
                     <div className="menu-divider"></div>
@@ -275,10 +246,10 @@ export default function Header({ user, page }) {
 
                     <div className="menu-divider"></div>
 
-                    <div className="menu-item logout" onClick={logout}>
+                    <button type="button" className="menu-item logout" onClick={logout}>
                       <span className="menu-icon"><IconLogout /></span>
                       <span>登出</span>
-                    </div>
+                    </button>
                   </div>
                 )}
               </div>
@@ -297,7 +268,7 @@ export default function Header({ user, page }) {
           ) : (
             <>
               {/* 未登入：沒有帳號選單，首頁、主題切換與登入直接放在右上角 */}
-              {page !== "index" && <NavLink to="/" className="header-link">首頁</NavLink>}
+              <NavLink to="/" end className="header-link">找考試</NavLink>
               <NavLink to="/guidelines" className="header-link">考試須知</NavLink>
               {renderThemeButton("theme-icon-btn")}
               {page !== "login" && <NavLink to="/login" className="header-link btn">登入 / 註冊</NavLink>}

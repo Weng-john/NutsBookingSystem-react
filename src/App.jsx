@@ -15,6 +15,7 @@ import MemberManager from "./pages/memberManager.jsx";
 import ExamManager from "./pages/examManager.jsx";
 import RoomManager from "./pages/roomManager.jsx";
 import ReservationManager from "./pages/reservationManager.jsx";
+import AdminOverview from "./pages/adminOverview.jsx";
 import Guidelines from "./features/booking/Guidelines.jsx";
 import { ReservationReportPage, AuditLogsPage, NotificationsPage, NotificationManagerPage } from "./features/booking/ServicePages.jsx";
 
@@ -39,6 +40,7 @@ export default function App() {
         <Route path="/notificationManager" element={<NotificationManagerPage />} />
 
         {/* 管理員頁面 */}
+        <Route path="/admin" element={<AdminOverview />} />
         <Route path="/memberManager" element={<MemberManager />} />
         <Route path="/examManager" element={<ExamManager />} />
         <Route path="/reservationManager" element={<ReservationManager />} />
