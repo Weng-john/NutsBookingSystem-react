@@ -1984,3 +1984,8 @@ body.dark .confetti:nth-child(3n + 2) { background: #f3ece6; }
 		backdrop-filter: none !important;
 	}
 }
+
+/* 繳費審核通過的慶祝視窗 */
+.modal-content.celebrate-modal {
+	width: min(26rem, calc(100vw - 2rem));
+}

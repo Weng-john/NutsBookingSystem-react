@@ -9,8 +9,21 @@ import { reserveGroups, EXAM_LANGUAGE, DEADLINE_CONFIG, REGISTRATION_DEADLINE_DA
 import { confirmDialog, notify } from "../dialog";
 import StatusTabs from "../components/statusTabs";
 import { activateOnKey } from "../a11y";
+import Celebration from "../components/Celebration.jsx";
 
 const MAX_PAYMENT_PROOF_BYTES = 5 * 1024 * 1024;
+const PAYMENT_REVIEW_KEY = "nuts.paymentReviewSeen";
+
+// 繳費審核通過的偵測：記住上次看到時還在「繳費審核中」的報名；
+// 這次讀取時變成「已繳費」的，回傳第一筆讓畫面慶祝一次。
+function findPaymentApproved(list) {
+  let seen = [];
+  try { seen = JSON.parse(localStorage.getItem(PAYMENT_REVIEW_KEY) || "[]"); } catch { seen = []; }
+  const approved = list.find((res) => seen.includes(res.reserveID) && res.statusInfo?.id === "paid") || null;
+  const nextSeen = list.filter((res) => res.statusInfo?.id === "payment_review").map((res) => res.reserveID);
+  try { localStorage.setItem(PAYMENT_REVIEW_KEY, JSON.stringify(nextSeen)); } catch { /* 無法記住時只是不慶祝 */ }
+  return approved;
+}
 
 export default function MyReserve() {
   const { user, setGlobalLoading, setLoadingText, setSubmit, requestCaptcha } = useOutletContext();
@@ -52,6 +65,9 @@ export default function MyReserve() {
     [activeTab]
   );
 
+  // 繳費審核通過的慶祝：記住曾經是「繳費審核中」的報名，之後變成「已繳費」時慶祝一次
+  const [celebrate, setCelebrate] = useState(null);
+
   const fetchData = useCallback(
     async (isInitial = false) => {
       if (!user) return;
@@ -64,6 +80,8 @@ export default function MyReserve() {
       try {
         const data = await fetchMyReservationsWithDetailsAPI();
         setReservations(data);
+        const approved = findPaymentApproved(data);
+        if (approved) setCelebrate(approved);
 
         if (isInitial) {
           // 進頁面時停在第一個有項目的分頁 (依分頁順序，待處理優先)
@@ -281,6 +299,21 @@ export default function MyReserve() {
 
   return (
     <div className="manager-wrapper">
+      {celebrate && createPortal(
+        <div className="modal-overlay" onClick={() => setCelebrate(null)}>
+          <div className="modal-content celebrate-modal" role="dialog" aria-modal="true" aria-labelledby="celebrate-title" onClick={(e) => e.stopPropagation()}>
+            <div className="booking-done" aria-live="polite">
+              <Celebration />
+              <h3 id="celebrate-title">繳費審核通過！</h3>
+              <p className="booking-done-id">{celebrate.examInfo?.subjectName || "考試"} 已完成報名，記得加入行事曆並準時應考。</p>
+              <div className="modal-actions stacked">
+                <button type="button" className="btn-confirm" onClick={() => { setDetailData(celebrate); setCelebrate(null); }}>查看報名詳情</button>
+                <button type="button" className="btn-cancel" onClick={() => setCelebrate(null)}>關閉</button>
+              </div>
+            </div>
+          </div>
+        </div>, document.body
+      )}
       <div className="manager-container">
         {/* 左側：狀態切換面板 */}
         <div className="centered-form side-panel add-panel" title="篩選預約狀態">
