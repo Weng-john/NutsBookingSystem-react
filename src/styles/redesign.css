@@ -58,9 +58,11 @@ textarea:focus-visible {
 	font-size: var(--fs-sm);
 }
 
-/* 換頁時內容淡入並往上 8px */
+/* 換頁時內容淡入並往上 8px。
+   只用 backwards：動畫結束後不能留下 transform，否則 #content 會變成新的堆疊層，
+   裡面的 reCAPTCHA 視窗就會被 body 層的報名視窗蓋住 */
 .page-enter {
-	animation: page-in var(--dur-slow) var(--ease-out) both;
+	animation: page-in var(--dur-slow) var(--ease-out) backwards;
 }
 
 @keyframes page-in {
@@ -302,6 +304,23 @@ textarea:focus-visible {
 	.public-shell #content {
 		padding-bottom: calc(6rem + env(safe-area-inset-bottom));
 	}
+}
+
+/* 頁尾：淺色，與頁面底色一致 */
+#footer {
+	padding: var(--space-3) var(--space-4);
+	background: var(--surface);
+	border-top: 1px solid var(--border);
+	color: var(--text-3);
+}
+
+#footer a,
+#footer .icons a {
+	color: var(--text-2);
+}
+
+#footer a:hover {
+	color: var(--primary-text);
 }
 
 /* --- R3. 管理後台版面 --- */
@@ -1317,6 +1336,561 @@ textarea:focus-visible {
 	}
 }
 
+/* --- R7. 首頁 (找考試) --- */
+/* 月曆在左、資訊欄在右；整體填滿可用高度，月曆在自己的範圍內捲動 */
+#content > .home-layout {
+	flex: 1 1 0;
+	min-height: 32rem;
+	display: grid;
+	grid-template-columns: minmax(0, 1fr) 20rem;
+	gap: var(--space-5);
+	width: min(96%, 90rem);
+	margin: 0 auto;
+}
+
+.home-main {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	min-width: 0;
+	min-height: 0;
+}
+
+.home-main > .calendar-container.centered-form {
+	flex: 1 1 0;
+	width: 100%;
+	max-width: none;
+	min-height: 22rem;
+	margin: 0;
+	border: 1px solid var(--border);
+	box-shadow: none;
+}
+
+.home-intro {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: flex-end;
+	justify-content: space-between;
+	gap: var(--space-3) var(--space-6);
+}
+
+.home-intro h1 {
+	margin: 0 0 var(--space-1);
+	font-size: var(--fs-2xl);
+	font-weight: 700;
+}
+
+.home-intro p {
+	margin: 0;
+	color: var(--text-2);
+	font-size: var(--fs-md);
+}
+
+.step-chips {
+	display: flex;
+	flex-wrap: wrap;
+	gap: var(--space-2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.step-chips li {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-2);
+	padding: 0.3rem 0.85rem 0.3rem 0.3rem;
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-pill);
+	font-size: var(--fs-sm);
+	font-weight: 600;
+}
+
+.step-chips b {
+	display: grid;
+	place-items: center;
+	width: 1.6rem;
+	height: 1.6rem;
+	border-radius: 50%;
+	background: var(--accent);
+	color: var(--accent-ink);
+	font-size: var(--fs-xs);
+}
+
+.calendar-month-title {
+	margin: 0;
+	font-size: var(--fs-xl);
+	font-weight: 700;
+}
+
+/* 月曆標題改放在左側，原本的年月按鈕只負責切換 */
+.home-main .header-controls .current-date-btn {
+	font-size: var(--fs-md);
+}
+
+.home-main .btn-nav i {
+	font-size: 0.8rem;
+}
+
+.home-main .weekday-cell {
+	letter-spacing: 0.08em;
+	text-transform: none;
+}
+
+/* 月曆格子很窄時，膠囊只顯示科目與名額 (時間在詳情與手機清單裡看得到) */
+.home-main .calendar-cell {
+	container-type: inline-size;
+}
+
+@container (max-width: 170px) {
+	.event-pill .event-time-pill {
+		display: none;
+	}
+}
+
+.custom-dropdown-menu .dropdown-item.selected {
+	background: var(--primary-soft);
+	color: var(--primary-text);
+	font-weight: 700;
+}
+
+.custom-dropdown-menu .dropdown-item.selected::after {
+	content: "\f00c";
+	margin-left: auto;
+	font-family: "Font Awesome 6 Free";
+	font-weight: 900;
+	font-size: 0.8em;
+}
+
+.custom-dropdown-menu .dropdown-item {
+	display: flex;
+	align-items: center;
+}
+
+.home-side {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-4);
+	min-height: 0;
+	overflow-y: auto;
+}
+
+.side-card {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	padding: var(--space-5);
+	background: var(--surface);
+	border: 1px solid var(--border);
+	border-radius: var(--radius-lg);
+	animation: rise-in var(--dur-slow) var(--ease-out) both;
+}
+
+.side-card h2 {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	margin: 0;
+	font-size: var(--fs-base);
+	font-weight: 700;
+}
+
+.side-card p {
+	margin: 0;
+	line-height: 1.6;
+}
+
+.todo-card {
+	border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+	background: color-mix(in srgb, var(--accent-soft) 45%, var(--surface));
+}
+
+.todo-card h2 i {
+	color: var(--accent-text);
+}
+
+.todo-card .count {
+	padding: 0 0.5rem;
+	border-radius: var(--radius-pill);
+	background: var(--accent);
+	color: var(--accent-ink);
+	font-size: var(--fs-xs);
+}
+
+.todo-card ul,
+.upcoming-list {
+	display: flex;
+	flex-direction: column;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.todo-card li {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
+	padding: var(--space-2) 0;
+	border-top: 1px solid var(--border);
+}
+
+.todo-card li:first-child {
+	border-top: 0;
+}
+
+.todo-card li div {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.todo-card li small {
+	color: var(--text-2);
+	font-size: var(--fs-xs);
+}
+
+.tag.tone-warning { background: var(--warning-soft); color: var(--warning-text); }
+.tag.tone-danger { background: var(--danger-soft); color: var(--danger-text); }
+.tag.tone-info { background: var(--info-soft); color: var(--info-text); }
+.tag.tone-success { background: var(--success-soft); color: var(--success-text); }
+.tag.tone-pending { background: var(--pending-soft); color: var(--pending-text); }
+
+.upcoming-list .skeleton-row + .skeleton-row {
+	margin-top: var(--space-2);
+}
+
+.upcoming-item {
+	height: auto;
+	line-height: 1.45;
+	letter-spacing: 0;
+	text-transform: none;
+	display: grid;
+	grid-template-columns: 3.25rem minmax(0, 1fr);
+	gap: var(--space-3);
+	width: 100%;
+	padding: var(--space-3) var(--space-2);
+	margin: 0 calc(var(--space-2) * -1);
+	border: 0;
+	border-radius: var(--radius);
+	background: none;
+	color: var(--text);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+	white-space: normal;
+	box-sizing: content-box;
+	transition: background-color var(--dur-fast);
+}
+
+.upcoming-item:hover {
+	background: var(--surface-2);
+}
+
+.upcoming-main {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.upcoming-main small {
+	color: var(--text-2);
+	font-size: var(--fs-xs);
+}
+
+.upcoming-main .seat-low {
+	color: var(--warning-text);
+	font-weight: 600;
+}
+
+.seat-bar.low i {
+	background: var(--accent-orange);
+}
+
+@media screen and (max-width: 1100px) {
+	#content > .home-layout {
+		grid-template-columns: minmax(0, 1fr);
+		grid-template-rows: auto minmax(0, 1fr);
+	}
+
+	/* 窄螢幕：資訊欄移到上方，只保留「我的待辦」(近期場次已經在清單裡) */
+	.home-side {
+		order: -1;
+		overflow: visible;
+	}
+
+	.home-side .upcoming-card,
+	.home-side .side-card:not(.todo-card) {
+		display: none;
+	}
+}
+
+@media screen and (max-width: 640px) {
+	#content > .home-layout {
+		width: 100%;
+		padding: 0 var(--space-3);
+	}
+
+	.home-intro .step-chips {
+		display: none;
+	}
+
+	.home-intro h1 {
+		font-size: var(--fs-xl);
+	}
+}
+
+/* --- R8. 報名步驟與完成畫面 --- */
+.booking-stepper {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: var(--space-2);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	counter-reset: step;
+}
+
+.booking-stepper li {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	color: var(--text-3);
+	font-size: var(--fs-xs);
+	font-weight: 600;
+}
+
+.booking-stepper li::before {
+	content: "";
+	height: 4px;
+	border-radius: var(--radius-pill);
+	background: var(--border);
+	transition: background-color var(--dur-slow) var(--ease-out);
+}
+
+.booking-stepper li span {
+	display: none;
+}
+
+.booking-stepper li.done,
+.booking-stepper li.current {
+	color: var(--text);
+}
+
+.booking-stepper li.done::before {
+	background: var(--primary);
+}
+
+.booking-stepper li.current::before {
+	background: linear-gradient(90deg, var(--primary) 50%, var(--border) 50%) 0 0 / 200% 100%;
+	animation: step-fill 500ms var(--ease-out) forwards;
+}
+
+@keyframes step-fill {
+	from { background-position: 100% 0; }
+	to { background-position: 0 0; }
+}
+
+.booking-review {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	animation: rise-in var(--dur) var(--ease-out) both;
+}
+
+.review-list {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: var(--space-3) var(--space-4);
+	margin: 0;
+	padding: var(--space-4);
+	background: var(--surface-2);
+	border-radius: var(--radius);
+}
+
+.review-list div {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.review-list dt {
+	color: var(--text-2);
+	font-size: var(--fs-xs);
+}
+
+.review-list dd {
+	margin: 0;
+	overflow-wrap: anywhere;
+	font-weight: 600;
+}
+
+@media screen and (max-width: 480px) {
+	.review-list {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
+
+.booking-done {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: var(--space-3);
+	padding: var(--space-2) 0;
+	text-align: center;
+}
+
+.booking-done h3 {
+	margin: 0;
+	font-size: var(--fs-2xl);
+}
+
+.booking-done-id {
+	margin: 0;
+	color: var(--text-2);
+}
+
+.booking-done-id strong {
+	color: var(--text);
+}
+
+.next-steps {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	width: 100%;
+	margin: var(--space-2) 0 0;
+	padding: var(--space-4);
+	background: var(--surface-2);
+	border-radius: var(--radius);
+	list-style: none;
+	text-align: left;
+}
+
+.next-steps li {
+	display: flex;
+	align-items: flex-start;
+	gap: var(--space-3);
+	animation: rise-in var(--dur-slow) var(--ease-out) backwards;
+}
+
+.next-steps li:nth-child(1) { animation-delay: 500ms; }
+.next-steps li:nth-child(2) { animation-delay: 620ms; }
+.next-steps li:nth-child(3) { animation-delay: 740ms; }
+
+.next-steps li div {
+	display: flex;
+	flex-direction: column;
+}
+
+.next-steps small {
+	color: var(--text-2);
+	font-size: var(--fs-xs);
+}
+
+.next-dot {
+	display: grid;
+	flex-shrink: 0;
+	place-items: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border-radius: 50%;
+	background: var(--surface-3);
+	color: var(--text);
+	font-size: var(--fs-xs);
+	font-weight: 700;
+}
+
+.next-steps li.done .next-dot {
+	background: var(--accent);
+	color: var(--accent-ink);
+}
+
+.modal-actions.stacked {
+	flex-direction: column;
+	align-items: stretch;
+	width: 100%;
+}
+
+.modal-actions.stacked > * {
+	width: 100%;
+}
+
+/* 慶祝動畫：Logo 三色彩紙從中心噴出，勾勾描邊 */
+.celebration {
+	position: relative;
+	display: grid;
+	place-items: center;
+	width: 6rem;
+	height: 6rem;
+}
+
+.celebration-check {
+	width: 5rem;
+	height: 5rem;
+	animation: pop-check 520ms var(--ease-out) both;
+}
+
+.celebration-check circle {
+	fill: var(--primary);
+}
+
+.celebration-check path {
+	fill: none;
+	stroke: var(--on-primary);
+	stroke-width: 4.5;
+	stroke-linecap: round;
+	stroke-linejoin: round;
+	stroke-dasharray: 40;
+	stroke-dashoffset: 40;
+	animation: draw-check 420ms 260ms var(--ease-out) forwards;
+}
+
+@keyframes pop-check {
+	0% { transform: scale(0.4); opacity: 0; }
+	70% { transform: scale(1.08); opacity: 1; }
+	100% { transform: scale(1); }
+}
+
+@keyframes draw-check {
+	to { stroke-dashoffset: 0; }
+}
+
+.confetti {
+	--angle: calc(var(--i) * 25.7deg);
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 8px;
+	height: 14px;
+	margin: -7px 0 0 -4px;
+	border-radius: 2px;
+	background: var(--accent);
+	opacity: 0;
+	animation: confetti-burst 1200ms 120ms var(--ease-out) forwards;
+}
+
+.confetti:nth-child(3n + 1) { background: var(--accent-orange); }
+.confetti:nth-child(3n + 2) { background: #403030; }
+body.dark .confetti:nth-child(3n + 2) { background: #f3ece6; }
+
+@keyframes confetti-burst {
+	0% {
+		opacity: 1;
+		transform: rotate(var(--angle)) translateY(0) rotate(0deg);
+	}
+	70% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: rotate(var(--angle)) translateY(-78px) rotate(240deg);
+	}
+}
+
 /* --- R9. 減少動態／透明度 --- */
 @media (prefers-reduced-motion: reduce) {
 	*,
@@ -1329,6 +1903,19 @@ textarea:focus-visible {
 
 	.skeleton {
 		animation: none;
+	}
+
+	/* 慶祝動畫只留靜態的勾勾 */
+	.confetti {
+		display: none;
+	}
+
+	.celebration-check path {
+		stroke-dashoffset: 0;
+	}
+
+	.next-steps li {
+		opacity: 1;
 	}
 }
 

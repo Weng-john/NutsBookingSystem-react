@@ -3,15 +3,17 @@ import { createPortal } from "react-dom";
 import { Link, useNavigate, useOutletContext } from "react-router-dom";
 import { STORAGE_KEYS, REGISTRATION_DEADLINE_DAYS, EXAM_LANGUAGE, CERTIPORT_FEE } from "../config";
 import PublicExamDetails from "../features/booking/PublicExamDetails.jsx";
-import { PENDING_BOOKING_KEY } from "../features/booking/utils";
+import { PENDING_BOOKING_KEY, googleCalendarURL } from "../features/booking/utils";
+import Celebration from "../components/Celebration.jsx";
 import {
   fetchReservationsAPI,
   submitReservationAPI,
   fetchSubjectsRawAPI,
   fetchRoomsAPI,
-  subscribeNoticeAPI
+  subscribeNoticeAPI,
+  fetchMyReservationsWithDetailsAPI
 } from "../api";
-import { confirmDialog, notify } from "../dialog";
+import { notify } from "../dialog";
 
 // --- 常數定義 ---
 const WEEKDAYS = ["週日", "週一", "週二", "週三", "週四", "週五", "週六"];
@@ -40,6 +42,11 @@ export default function Home() {
   const submissionKey = useRef(crypto.randomUUID());
   const calendarLoadSequence = useRef(0);
   const [popoverPosition, setPopoverPosition] = useState(null);
+  // 報名視窗的步驟：form 填資料 → review 確認 → done 完成 (done 時 bookingResult 存報名序號)
+  const [bookingStep, setBookingStep] = useState("form");
+  const [bookingResult, setBookingResult] = useState(null);
+  // 登入考生的待辦 (未繳費、被退件)，放在首頁右側
+  const [myTodos, setMyTodos] = useState(null);
 
   // --- 資料清單 State ---
   const [calendarEvents, setCalendarEvents] = useState([]);
@@ -145,12 +152,22 @@ export default function Home() {
     setIsRefreshing(false);
   };
 
+  const loadTodos = async () => {
+    if (!user || !localStorage.getItem(STORAGE_KEYS.TOKEN)) { setMyTodos(null); return; }
+    try {
+      const list = await fetchMyReservationsWithDetailsAPI();
+      const todo = (Array.isArray(list) ? list : []).filter(res => ["unpaid", "payment_rejected", "rejected"].includes(res.statusInfo?.id));
+      setMyTodos(todo);
+    } catch { setMyTodos([]); }
+  };
+
   useEffect(() => {
     const initLoad = () => {
       setSubmit(false); // 確保取得初始資料時關閉 Submit 狀態
       loadSubjects();
       loadRooms();
       loadCalendarEvents();
+      loadTodos();
     };
     initLoad();
 
@@ -257,6 +274,7 @@ export default function Home() {
       setDetailEvent(evt); notify("此場次目前無法報名，請查看最新資訊。"); return;
     }
     setDetailEvent(null); submissionKey.current = crypto.randomUUID();
+    setBookingStep("form"); setBookingResult(null);
     // 打開表單並帶入資料
     setSelectedEvent(evt);
     setFormData({
@@ -278,10 +296,14 @@ export default function Home() {
     setFormData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
   };
 
-  const handleSubmit = async (e) => {
+  // 第 2 步「填資料」送出後先到第 3 步確認，不再另外跳出確認對話框
+  const handleSubmit = (e) => {
     e.preventDefault();
-    if (!(await confirmDialog(`確定要報名 ${formData.subject} 嗎？`))) return;
+    setBookingStep("review");
+  };
 
+  // 第 3 步確認送出：通過 reCAPTCHA 後送出，成功時切到完成畫面
+  const confirmBooking = async () => {
     const recaptchaToken = await requestCaptcha();
     if (!recaptchaToken) return; // 如果沒有取得 Token，代表驗證失敗或取消，直接中斷
 
@@ -299,15 +321,30 @@ export default function Home() {
         certiport: formData.certiport, certiportAccount: formData.certiportAccount,
         token: recaptchaToken
       });
-      notify(`報名成功！\n報名序號：${result.data.reserveID}`);
-      await loadCalendarEvents();
+      setBookingResult({ reserveID: result.data.reserveID });
+      setBookingStep("done");
+      loadCalendarEvents();
+      loadTodos();
     } catch (error) {
-      // ✨ 取消了前端阻擋重複報名的判斷，統一顯示錯誤訊息（如果後端還是會阻擋，則顯示後端訊息）
+      // 失敗時保留已填的資料，回到確認步驟讓使用者重試
       notify(`報名失敗：${error.message}`);
     } finally {
-      setLoadingText(""); setSubmit(false); setGlobalLoading(false); setSelectedEvent(null);
+      setLoadingText(""); setSubmit(false); setGlobalLoading(false);
     }
   };
+
+  const closeBooking = () => { setSelectedEvent(null); setBookingStep("form"); setBookingResult(null); };
+
+  // 完成畫面的「加入 Google 行事曆」連結
+  const bookingCalendarURL = (() => {
+    if (!selectedEvent || !bookingResult) return "";
+    try {
+      return googleCalendarURL({
+        reserveID: bookingResult.reserveID,
+        examInfo: { examStartTime: selectedEvent.startTimeISO, examEndTime: selectedEvent.endTimeISO, subjectName: selectedEvent.title, location: selectedEvent.location, address: selectedEvent.address },
+      });
+    } catch { return ""; }
+  })();
 
   // isDayDisabled：這一天已過或已超過報名截止日。色塊會變淡 (仍可點開看詳情)，日期格子本身不變
   const renderEventPill = (evt, isDayDisabled = false) => {
@@ -450,13 +487,39 @@ export default function Home() {
   const seatsTaken = selectedEvent ? Math.min(selectedEvent.registeredCount, selectedEvent.capacity) : 0;
   const seatsPercent = selectedEvent?.capacity ? Math.round((seatsTaken / selectedEvent.capacity) * 100) : 0;
 
+  // 右側「近期可報名」：符合目前篩選、開放中、未額滿、未截止的最近三場
+  const upcomingOpen = (() => {
+    const now = new Date();
+    return calendarEvents
+      .filter(evt =>
+        (selectedSubjects.length === 0 || selectedSubjects.includes(evt.subjectName) || selectedSubjects.includes(evt.title)) &&
+        (selectedRooms.length === 0 || selectedRooms.includes(evt.roomID)) &&
+        String(evt.status || "Open").toUpperCase() === "OPEN" &&
+        evt.registeredCount < evt.capacity &&
+        new Date(evt.registrationDeadline || new Date(new Date(evt.startTimeISO).getTime() - REGISTRATION_DEADLINE_DAYS * 86400000)) > now)
+      .sort((a, b) => new Date(a.startTimeISO) - new Date(b.startTimeISO))
+      .slice(0, 3);
+  })();
+
   // --- Render ---
   return (
+    <div className="home-layout">
+    <div className="home-main">
+      <section className="home-intro">
+        <div>
+          <h1>找到適合的考試場次</h1>
+          <p>點選月曆上的場次查看詳情，三個步驟完成報名。報名截止為考前 <span className="num">{REGISTRATION_DEADLINE_DAYS}</span> 天。</p>
+        </div>
+        <ol className="step-chips" aria-label="報名步驟">
+          <li><b>1</b>選場次</li>
+          <li><b>2</b>填資料</li>
+          <li><b>3</b>上傳繳費證明</li>
+        </ol>
+      </section>
     <div className="calendar-container centered-form">
       <div className="calendar-header">
         <div className="header-left">
-          <h1>預約狀況總覽</h1>
-          <button onClick={handleRefresh} disabled={isAnyLoading} className={`btn-refresh ${isAnyLoading ? "is-loading" : ""}`} title="重新整理">
+          <button onClick={handleRefresh} disabled={isAnyLoading} className={`btn-refresh ${isAnyLoading ? "is-loading" : ""}`} title="重新整理" aria-label="重新整理">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
               <path fillRule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z" />
               <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z" />
@@ -466,22 +529,26 @@ export default function Home() {
 
         <div className="header-options">
           {/* 科目篩選選單 */}
-          <div className="custom-select-bar" ref={subjectRef} onClick={() => setShowSubjectDropdown(!showSubjectDropdown)}>
+          <div className="custom-select-bar" ref={subjectRef} role="button" tabIndex={0} aria-haspopup="listbox" aria-expanded={showSubjectDropdown} aria-label="篩選科目"
+            onClick={() => setShowSubjectDropdown(!showSubjectDropdown)}
+            onKeyDown={(e) => { if (e.target !== e.currentTarget) return; if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowSubjectDropdown(!showSubjectDropdown); } else if (e.key === "Escape") setShowSubjectDropdown(false); }}>
             <div className="select-tags-container">
               {selectedSubjects.length === 0 ? (
                 <span className="placeholder-text">{isSubjectsLoading ? "讀取資料中..." : "篩選欲考科目"}</span>
               ) : (
                 selectedSubjects.map(sub => (
-                  <span key={sub} className="selected-tag">{sub} <button type="button" className="remove-tag-btn" onClick={(e) => toggleFilter(e, sub, 'subject')}>&times;</button></span>
+                  <span key={sub} className="selected-tag">{sub} <button type="button" className="remove-tag-btn" aria-label={`移除 ${sub}`} onClick={(e) => toggleFilter(e, sub, 'subject')}>&times;</button></span>
                 ))
               )}
             </div>
             <span className="dropdown-arrow">▼</span>
             {showSubjectDropdown && (
-              <div className="custom-dropdown-menu">
+              <div className="custom-dropdown-menu" role="listbox" aria-multiselectable="true" aria-label="科目">
                 {isSubjectsLoading ? <div className="dropdown-item text-muted">載入中...</div> : subjectsList.length === 0 ? <div className="dropdown-item">無資料</div> : (
                   subjectsList.map(sub => (
-                    <div key={sub.subjectID} className="dropdown-item" onClick={(e) => toggleFilter(e, sub.subjectName, 'subject')}>
+                    <div key={sub.subjectID} className={`dropdown-item ${selectedSubjects.includes(sub.subjectName) ? "selected" : ""}`} role="option" tabIndex={0} aria-selected={selectedSubjects.includes(sub.subjectName)}
+                      onClick={(e) => toggleFilter(e, sub.subjectName, 'subject')}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter(e, sub.subjectName, 'subject'); } }}>
                       <span>{sub.subjectName}</span>
                     </div>
                   ))
@@ -491,22 +558,26 @@ export default function Home() {
           </div>
 
           {/* 考場篩選選單 */}
-          <div className="custom-select-bar" ref={roomRef} onClick={() => setShowRoomDropdown(!showRoomDropdown)}>
+          <div className="custom-select-bar" ref={roomRef} role="button" tabIndex={0} aria-haspopup="listbox" aria-expanded={showRoomDropdown} aria-label="篩選考場"
+            onClick={() => setShowRoomDropdown(!showRoomDropdown)}
+            onKeyDown={(e) => { if (e.target !== e.currentTarget) return; if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowRoomDropdown(!showRoomDropdown); } else if (e.key === "Escape") setShowRoomDropdown(false); }}>
             <div className="select-tags-container">
               {selectedRooms.length === 0 ? (
                 <span className="placeholder-text">{isRoomsLoading ? "讀取資料中..." : "篩選考場"}</span>
               ) : (
                 selectedRooms.map(rID => (
-                  <span key={rID} className="selected-tag">{getRoomLabel(rID)} <button type="button" className="remove-tag-btn" onClick={(e) => toggleFilter(e, rID, 'room')}>&times;</button></span>
+                  <span key={rID} className="selected-tag">{getRoomLabel(rID)} <button type="button" className="remove-tag-btn" aria-label={`移除 ${getRoomLabel(rID)}`} onClick={(e) => toggleFilter(e, rID, 'room')}>&times;</button></span>
                 ))
               )}
             </div>
             <span className="dropdown-arrow">▼</span>
             {showRoomDropdown && (
-              <div className="custom-dropdown-menu">
+              <div className="custom-dropdown-menu" role="listbox" aria-multiselectable="true" aria-label="考場">
                 {isRoomsLoading ? <div className="dropdown-item text-muted">載入中...</div> : roomsList.length === 0 ? <div className="dropdown-item">無資料</div> : (
                   roomsList.map(loc => (
-                    <div key={loc.roomID} className="dropdown-item" onClick={(e) => toggleFilter(e, loc.roomID, 'room')}>
+                    <div key={loc.roomID} className={`dropdown-item ${selectedRooms.includes(loc.roomID) ? "selected" : ""}`} role="option" tabIndex={0} aria-selected={selectedRooms.includes(loc.roomID)}
+                      onClick={(e) => toggleFilter(e, loc.roomID, 'room')}
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFilter(e, loc.roomID, 'room'); } }}>
                       <span>{loc.placeName}</span>
                     </div>
                   ))
@@ -517,9 +588,9 @@ export default function Home() {
         </div>
 
         <div className="header-controls">
-          <button className="btn-nav" onClick={() => setCurrentDate(new Date(year, month - 1, 1))}>&lt;</button>
+          <button className="btn-nav" aria-label="上個月" onClick={() => setCurrentDate(new Date(year, month - 1, 1))}><i className="fa-solid fa-chevron-left" aria-hidden="true"></i></button>
           <div className="date-picker-container" ref={datePickerRef}>
-            <button className="current-date-btn" onClick={() => setShowDatePicker(!showDatePicker)} title="切換年月">
+            <button className="current-date-btn num" onClick={() => setShowDatePicker(!showDatePicker)} title="切換年月" aria-haspopup="dialog" aria-expanded={showDatePicker}>
               {year} 年 {month + 1} 月 <span className="dropdown-arrow">▼</span>
             </button>
             {showDatePicker && (
@@ -537,7 +608,7 @@ export default function Home() {
               </div>
             )}
           </div>
-          <button className="btn-nav" onClick={() => setCurrentDate(new Date(year, month + 1, 1))}>&gt;</button>
+          <button className="btn-nav" aria-label="下個月" onClick={() => setCurrentDate(new Date(year, month + 1, 1))}><i className="fa-solid fa-chevron-right" aria-hidden="true"></i></button>
           <button className="btn-today" onClick={() => setCurrentDate(new Date())}>今天</button>
         </div>
       </div>
@@ -632,10 +703,37 @@ export default function Home() {
       {/* 報名確認視窗 */}
       {detailEvent && <PublicExamDetails exam={detailEvent} onClose={() => setDetailEvent(null)} onBook={beginBooking} onSubscribe={subscribe} />}
       {selectedEvent && createPortal(
-        <div className="modal-overlay" onClick={() => setSelectedEvent(null)}>
-          <div className="modal-content exam-form-modal" onClick={(e) => e.stopPropagation()}>
-            <button type="button" className="modal-close" aria-label="關閉" title="關閉" onClick={() => setSelectedEvent(null)}>&times;</button>
-            <h3>考試報名</h3>
+        <div className="modal-overlay" onClick={bookingStep === "done" ? closeBooking : () => setSelectedEvent(null)}>
+          <div className="modal-content exam-form-modal booking-modal" role="dialog" aria-modal="true" aria-labelledby="booking-title" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="modal-close" aria-label="關閉" title="關閉" onClick={closeBooking}>&times;</button>
+
+            {bookingStep === "done" ? (
+              /* 完成畫面：慶祝動畫、序號與接下來的步驟 */
+              <div className="booking-done" aria-live="polite">
+                <Celebration />
+                <h3 id="booking-title">報名已送出！</h3>
+                <p className="booking-done-id">報名序號 <strong className="num">{bookingResult?.reserveID}</strong></p>
+                <ol className="next-steps" aria-label="接下來">
+                  <li className="done"><span className="next-dot"><i className="fa-solid fa-check" aria-hidden="true"></i></span><div><strong>送出報名資料</strong><small>{selectedEvent.title}・{selectedEvent.date} {selectedEvent.startTime}</small></div></li>
+                  <li><span className="next-dot num">2</span><div><strong>學苑審核報名</strong><small>審核結果會寄到 {formData.email}</small></div></li>
+                  <li><span className="next-dot num">3</span><div><strong>上傳繳費證明</strong><small>審核通過後，到「我的考試」上傳</small></div></li>
+                </ol>
+                <div className="modal-actions stacked">
+                  <button type="button" className="btn-confirm" onClick={() => { closeBooking(); navigate("/myReserve"); }}>查看我的考試</button>
+                  {bookingCalendarURL && <a className="btn btn-secondary" href={bookingCalendarURL} target="_blank" rel="noopener noreferrer"><i className="fa-brands fa-google" aria-hidden="true"></i>加入 Google 行事曆</a>}
+                </div>
+              </div>
+            ) : (<>
+            <h3 id="booking-title">考試報名</h3>
+
+            {/* 步驟指示：1 選場次 (已完成) → 2 填資料 → 3 確認送出 */}
+            {!isFormDisabled && (
+              <ol className="booking-stepper" aria-label={`步驟 ${bookingStep === "review" ? 3 : 2} / 3`}>
+                <li className="done"><span>1</span>選場次</li>
+                <li className={bookingStep === "form" ? "current" : "done"} aria-current={bookingStep === "form" ? "step" : undefined}><span>2</span>填資料</li>
+                <li className={bookingStep === "review" ? "current" : ""} aria-current={bookingStep === "review" ? "step" : undefined}><span>3</span>確認送出</li>
+              </ol>
+            )}
 
             {/* 考試資訊摘要 */}
             <div className="exam-summary" style={{ "--event-color": isFull ? undefined : selectedEvent.color }}>
@@ -644,14 +742,14 @@ export default function Home() {
                 <span className={`agenda-badge ${examBadge.type}`}>{examBadge.text}</span>
               </div>
               <div className="exam-summary-grid">
-                <div><i className="fa-regular fa-calendar"></i><span>日期</span><strong>{selectedEvent.date}</strong></div>
-                <div><i className="fa-regular fa-clock"></i><span>時間</span><strong>{selectedEvent.startTime} ~ {selectedEvent.endTime}</strong></div>
+                <div><i className="fa-regular fa-calendar"></i><span>日期</span><strong className="num">{selectedEvent.date}</strong></div>
+                <div><i className="fa-regular fa-clock"></i><span>時間</span><strong className="num">{selectedEvent.startTime} ~ {selectedEvent.endTime}</strong></div>
                 <div><i className="fa-solid fa-location-dot"></i><span>考場</span><strong>{formData.room || selectedEvent.location}</strong></div>
-                <div><i className="fa-solid fa-sack-dollar"></i><span>應付費用</span><strong>{Number(selectedEvent.fee) + (formData.certiport ? CERTIPORT_FEE : 0)} 元</strong></div>
+                <div><i className="fa-solid fa-sack-dollar"></i><span>應付費用</span><strong className="num">{Number(selectedEvent.fee) + (formData.certiport ? CERTIPORT_FEE : 0)} 元</strong></div>
               </div>
               <div className="exam-seats">
                 <div className="exam-seats-bar"><span style={{ width: `${seatsPercent}%` }}></span></div>
-                <span>
+                <span className="num">
                   已報名 {selectedEvent.registeredCount} / {selectedEvent.capacity}
                   {!isFull && `，剩餘 ${selectedEvent.capacity - selectedEvent.registeredCount} 名額`}
                 </span>
@@ -666,37 +764,54 @@ export default function Home() {
               <div className={`exam-notice ${examNotice.type}`}><i className={`fa-solid ${examNotice.icon}`}></i>{examNotice.text}</div>
             )}
 
+            {bookingStep === "review" && !isFormDisabled ? (
+              /* 第 3 步：確認資料，按「確認送出」後才做 reCAPTCHA 驗證 */
+              <div className="booking-review">
+                <dl className="review-list">
+                  <div><dt>報名帳號</dt><dd>{formData.email}</dd></div>
+                  <div><dt>Certiport 帳號</dt><dd>{formData.certiportAccount}</dd></div>
+                  <div><dt>姓名</dt><dd>{formData.lastname}{formData.firstname}</dd></div>
+                  <div><dt>電話</dt><dd className="num">{formData.phone}</dd></div>
+                  <div><dt>考試語言</dt><dd>{formData.language}</dd></div>
+                  <div><dt>Exam Replay 加值方案</dt><dd>{formData.certiport ? `加購（+${CERTIPORT_FEE} 元）` : "不加購"}</dd></div>
+                </dl>
+                <p className="svc-hint"><i className="fa-solid fa-shield-halved" aria-hidden="true"></i> 送出前會請您完成一次「我不是機器人」驗證。</p>
+                <div className="modal-actions">
+                  <button type="button" className="btn-cancel" onClick={() => setBookingStep("form")}>上一步</button>
+                  <button type="button" className="btn-confirm" onClick={confirmBooking}>確認送出報名</button>
+                </div>
+              </div>
+            ) : (
             <form onSubmit={handleSubmit} className="exam-form">
               {/* 不可報名時欄位都不能填，直接收起來，只留下方的按鈕 */}
               {!isFormDisabled && (<>
               <div className="form-group">
-                <label>報名帳號 (電子郵件)</label><input type="email" name="email" className="input-disabled" value={formData.email} disabled />
+                <label htmlFor="bk-email">報名帳號 (電子郵件)</label><input id="bk-email" type="email" name="email" className="input-disabled" value={formData.email} disabled />
               </div>
               <div className="form-group">
-                <label>Certiport帳號 <span className="required-mark">*</span></label>
-                <input type="text" name="certiportAccount" value={formData.certiportAccount} onChange={handleFormChange} required disabled={isFormDisabled} className={isFormDisabled ? "input-disabled" : ""} />
+                <label htmlFor="bk-certiport">Certiport 帳號 <span className="required-mark" aria-hidden="true">*</span></label>
+                <input id="bk-certiport" type="text" name="certiportAccount" value={formData.certiportAccount} onChange={handleFormChange} required aria-required="true" autoComplete="username" />
               </div>
               <div className="form-row">
-                <div className="form-group half"><label>姓 (Last Name) <span className="required-mark">*</span></label><input type="text" name="lastname" value={formData.lastname} onChange={handleFormChange} required disabled={isFormDisabled} className={isFormDisabled ? "input-disabled" : ""} /></div>
-                <div className="form-group half"><label>名 (First Name) <span className="required-mark">*</span></label><input type="text" name="firstname" value={formData.firstname} onChange={handleFormChange} required disabled={isFormDisabled} className={isFormDisabled ? "input-disabled" : ""} /></div>
+                <div className="form-group half"><label htmlFor="bk-last">姓 (Last Name) <span className="required-mark" aria-hidden="true">*</span></label><input id="bk-last" type="text" name="lastname" value={formData.lastname} onChange={handleFormChange} required aria-required="true" autoComplete="family-name" /></div>
+                <div className="form-group half"><label htmlFor="bk-first">名 (First Name) <span className="required-mark" aria-hidden="true">*</span></label><input id="bk-first" type="text" name="firstname" value={formData.firstname} onChange={handleFormChange} required aria-required="true" autoComplete="given-name" /></div>
               </div>
               <div className="form-row">
-                <div className="form-group half"><label>電話 <span className="required-mark">*</span></label><input type="tel" name="phone" value={formData.phone} onChange={handleFormChange} required disabled={isFormDisabled} className={isFormDisabled ? "input-disabled" : ""} /></div>
+                <div className="form-group half"><label htmlFor="bk-phone">電話 <span className="required-mark" aria-hidden="true">*</span></label><input id="bk-phone" type="tel" name="phone" value={formData.phone} onChange={handleFormChange} required aria-required="true" autoComplete="tel" /></div>
                 <div className="form-group half">
-                  <label>考試語言 <span className="required-mark">*</span></label>
-                  <select name="language" value={formData.language} onChange={handleFormChange} required disabled={isFormDisabled} className={isFormDisabled ? "input-disabled" : ""}>
+                  <label htmlFor="bk-lang">考試語言 <span className="required-mark" aria-hidden="true">*</span></label>
+                  <select id="bk-lang" name="language" value={formData.language} onChange={handleFormChange} required aria-required="true">
                     <option value="" disabled>請選擇語言</option>
-                    <option value="繁體中文">繁體中文</option>
-                    <option value="English">English</option>
+                    {EXAM_LANGUAGE.map(lang => <option key={lang} value={lang}>{lang}</option>)}
                   </select>
                 </div>
               </div>
               <div className="form-group checkbox-group">
-                <label><input type="checkbox" name="certiport" checked={formData.certiport} onChange={handleFormChange} disabled={isFormDisabled} /><span>加購 Certiport Exam Replay 優惠加值方案</span></label>
+                <label><input type="checkbox" name="certiport" checked={formData.certiport} onChange={handleFormChange} /><span>加購 Certiport Exam Replay 優惠加值方案（+{CERTIPORT_FEE} 元）</span></label>
               </div>
               </>)}
               <div className="modal-actions">
-                <button type="button" className="btn-cancel" onClick={() => setSelectedEvent(null)}>{isFormDisabled ? "關閉" : "取消"}</button>
+                <button type="button" className="btn-cancel" onClick={closeBooking}>{isFormDisabled ? "關閉" : "取消"}</button>
                 <button
                   type="submit"
                   className="btn-confirm"
@@ -705,13 +820,76 @@ export default function Home() {
                   {isFormDisabled && <i className="fa-solid fa-lock"></i>}
                   {isFormDisabled
                     ? (selectedEvent.hasRegistered ? "已報名" : (isFull ? "已額滿" : (isExamDraft ? "尚未開放" : (isExamClosed ? "已關閉" : "不可報名"))))
-                    : "確認報名"}
+                    : "下一步：確認資料"}
                 </button>
               </div>
             </form>
+            )}
+            </>)}
           </div>
         </div>, document.body
       )}
+    </div>
+    </div>
+
+      {/* 右側：近期可報名與我的待辦 */}
+      <aside className="home-side" aria-label="快速資訊">
+        {user && myTodos && myTodos.length > 0 && (
+          <section className="side-card todo-card">
+            <h2><i className="fa-solid fa-circle-exclamation" aria-hidden="true"></i>我的待辦 <span className="count num">{myTodos.length}</span></h2>
+            <ul>
+              {myTodos.slice(0, 3).map(res => (
+                <li key={res.reserveID}>
+                  <div>
+                    <strong>{res.examInfo?.subjectName || "考試"}</strong>
+                    <small className="num">{res.examInfo?.examStartTime ? new Date(res.examInfo.examStartTime).toLocaleDateString("zh-TW", { month: "numeric", day: "numeric", weekday: "short" }) : ""}</small>
+                  </div>
+                  <span className={`tag tone-${res.statusInfo?.tone || "muted"}`}>{res.statusInfo?.id === "unpaid" ? "待上傳繳費" : res.statusInfo?.text}</span>
+                </li>
+              ))}
+            </ul>
+            <Link to="/myReserve" className="btn btn-accent btn-block">前往處理</Link>
+          </section>
+        )}
+
+        <section className="side-card upcoming-card">
+          <h2>近期可報名</h2>
+          {isAnyLoading ? (
+            <ul className="upcoming-list">{[0, 1, 2].map(i => <li key={i} className="skeleton skeleton-row"></li>)}</ul>
+          ) : upcomingOpen.length === 0 ? (
+            <p className="muted small">目前篩選條件下沒有開放報名的場次。</p>
+          ) : (
+            <ul className="upcoming-list">
+              {upcomingOpen.map(evt => {
+                const start = new Date(evt.startTimeISO);
+                const remaining = Math.max(0, evt.capacity - evt.registeredCount);
+                const percent = evt.capacity ? Math.round(evt.registeredCount / evt.capacity * 100) : 0;
+                return (
+                  <li key={evt.id}>
+                    <button type="button" className="upcoming-item" onClick={(e) => handleEventClick(e, evt)}>
+                      <span className="date-chip num"><small>{start.getMonth() + 1} 月</small><b>{start.getDate()}</b><small>週{"日一二三四五六"[start.getDay()]}</small></span>
+                      <span className="upcoming-main">
+                        <strong>{evt.title}</strong>
+                        <small className="num">{evt.startTime}–{evt.endTime}・{evt.location || getRoomLabel(evt.roomID)}{evt.fee ? `・NT$${Number(evt.fee).toLocaleString("en-US")}` : ""}</small>
+                        <span className={`seat-bar ${remaining <= 3 ? "low" : ""}`} aria-hidden="true"><i style={{ width: `${percent}%` }}></i></span>
+                        <small className={remaining <= 3 ? "seat-low" : ""}>{remaining <= 3 ? `剩 ${remaining} 位，即將額滿` : `已報名 ${evt.registeredCount} / ${evt.capacity}，剩 ${remaining} 位`}</small>
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </section>
+
+        {!user && (
+          <section className="side-card">
+            <h2>第一次報名？</h2>
+            <p className="muted small">使用 Google 帳號登入，首次登入會自動建立會員。報名、繳費與成績都能在「我的考試」查看。</p>
+            <Link to="/guidelines" className="text-link">閱讀考試須知 <i className="fa-solid fa-arrow-right" aria-hidden="true"></i></Link>
+          </section>
+        )}
+      </aside>
     </div>
   );
 }

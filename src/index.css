@@ -3810,7 +3810,7 @@ button:disabled {
      --fs-xs   最小的註記
    ============================================ */
 :root {
-	/* 色板 B「核果棕＋金黃」：顏色取自 Logo (帽子棕、黃、橘)，見 docs/design/DESIGN_PROFILE.md */
+	/* 色板 B「核果棕＋金黃」：顏色取自 Logo (帽子棕 #403030、黃 #f0c030、橘 #f09030) */
 	--bg: #faf8f6;
 	--surface: #ffffff;
 	--surface-2: #f6f2ee;
